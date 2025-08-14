@@ -1002,17 +1002,17 @@ tr:hover {
 }
 
 .priority.alta {
-  background-color: #F44336;
+  background-color: #fd7066;
   color: rgb(14, 13, 13);
 }
 
-.priority.mediana {
-  background-color: #FF9800;
+.priority.media {
+  background-color: #f5a05b;
   color: rgb(14, 13, 13);
 }
 
 .priority.baja {
-  background-color: #4CAF50;
+  background-color: #7fe983;
   color: rgb(14, 13, 13);
 }
 
@@ -1033,7 +1033,7 @@ tr:hover {
 }
 
 .status.nuevo {
-  background-color: #F44336;
+  background-color: #86e274;
   color: rgb(14, 13, 13);
 
 }
@@ -1045,13 +1045,13 @@ tr:hover {
 }
 
 .status.en_espera {
-  background-color: #dc8b11;
+  background-color: #fafd34;
   color: rgb(14, 13, 13);
 
 }
 
 .status.resuelto {
-  background-color: #81afe2;
+  background-color: #7ca7da;
   color: rgb(14, 13, 13);
 
 }

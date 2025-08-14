@@ -46,8 +46,11 @@ const SolucionTickets = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+
+
   const userRole = localStorage.getItem("rol");
   const isAdminOrTech = ["administrador", "tecnico"].includes(userRole);
+  const isUser = userRole === "usuario";
 
   useEffect(() => {
     const fetchAllData = async () => {
@@ -197,7 +200,7 @@ const SolucionTickets = () => {
             <div className={styles.ticketInfoContainer}>
               <div className={styles.header}>
                 <h3>Información del Ticket</h3>
-                {!isEditing && (
+                {!isEditing && isAdminOrTech && (
                   <button
                     onClick={() => setIsEditing(true)}
                     className={styles.editButton}
@@ -244,7 +247,7 @@ const SolucionTickets = () => {
                     name="categoria"
                     value={ticket.categoria}
                     onChange={handleChange}
-                    disabled={!isEditing}
+                    disabled={!isEditing || !isAdminOrTech}
                   >
                     <option value="">Seleccione...</option>
                     {categorias?.map((categoria) => (
@@ -277,7 +280,7 @@ const SolucionTickets = () => {
                     name="prioridad"
                     value={ticket.prioridad}
                     onChange={handleChange}
-                    disabled={!isEditing}
+                    disabled={!isEditing || !isAdminOrTech}
                   >
                     <option value="alta">Alta</option>
                     <option value="mediana">Mediana</option>
@@ -327,7 +330,7 @@ const SolucionTickets = () => {
                       name="asignadoA"
                       value={ticket.asignadoA}
                       onChange={handleChange}
-                      disabled={!isEditing}
+                      disabled={!isEditing || !isAdminOrTech}
                     >
                       <option value="">Seleccionar técnico</option>
                       {tecnicos.map((tec) => (
@@ -348,7 +351,7 @@ const SolucionTickets = () => {
                       name="grupoAsignado"
                       value={ticket.grupoAsignado}
                       onChange={handleChange}
-                      disabled={!isEditing}
+                      disabled={!isEditing || !isAdminOrTech}
                     >
                       <option value="">Seleccionar grupo</option>
                       {grupos.map((grupo) => (
@@ -363,7 +366,7 @@ const SolucionTickets = () => {
                 </div>
               </div>
 
-              {isEditing && (
+              {isEditing && isAdminOrTech && (
                 <div className={styles.actions}>
                   <button onClick={handleSave} className={styles.saveButton}>
                     Guardar Cambios
@@ -467,22 +470,27 @@ const SolucionTickets = () => {
                     required
                     className={styles.textarea}
                     placeholder="Describa la solución aplicada o los pasos realizados..."
+                    disabled={!isAdminOrTech && !isUser} // Permitir a todos los roles editar
                   />
                 </div>
 
                 <div className={styles.buttonGroup}>
-                  <button type="submit" className={styles.submitButton}>
-                    {accion === "solucion"
-                      ? "Cerrar Ticket con Solución"
-                      : "Guardar Seguimiento"}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => navigate("/EncuestaSatisfaccion/:surveyId")}
-                    className={styles.cancelButton}
-                  >
-                    Caso Gestionado
-                  </button>
+                  {isAdminOrTech && (
+                    <>
+                      <button type="submit" className={styles.submitButton}>
+                        {accion === "solucion"
+                          ? "Cerrar Ticket con Solución"
+                          : "Guardar Seguimiento"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => navigate("/EncuestaSatisfaccion/:surveyId")}
+                        className={styles.cancelButton}
+                      >
+                        Caso Gestionado
+                      </button>
+                    </>
+                  )}
                 </div>
               </form>
             </div>

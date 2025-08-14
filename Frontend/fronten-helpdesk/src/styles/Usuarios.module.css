@@ -1387,3 +1387,104 @@
     transform: translateY(0);
   }
 }
+
+/* Estilos para los modales */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal {
+  background-color: white;
+  border-radius: 8px;
+  width: 400px;
+  max-width: 90%;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+}
+
+.modalHeader {
+  padding: 16px 20px;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modalHeader h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  color: #333;
+}
+
+.modalCloseButton {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #666;
+}
+
+.modalBody {
+  padding: 20px;
+  text-align: center;
+}
+
+.successIcon,
+.errorIcon {
+  width: 60px;
+  height: 60px;
+  margin: 0 auto 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.successIcon svg {
+  color: #4CAF50;
+}
+
+.errorIcon svg {
+  color: #F44336;
+}
+
+.modalActions {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+}
+
+.modalButton,
+.modalButtonError {
+  padding: 8px 20px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.modalButton {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.modalButtonError {
+  background-color: #F44336;
+  color: white;
+}
+
+.modalButton:hover {
+  background-color: #3e8e41;
+}
+
+.modalButtonError:hover {
+  background-color: #d32f2f;
+}
