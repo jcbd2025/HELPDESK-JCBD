@@ -1,0 +1,567 @@
+/* Variables para breakpoints */
+:root {
+  --mobile: 480px;
+  --tablet: 768px;
+  --desktop: 1024px;
+}
+.containerPrincipal {
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  overflow: auto;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+.containerContenido {
+    width: calc(92% - 60px);
+    height: auto;
+    margin: 20px auto;
+    padding: 80px;
+    background-color: rgb(224, 224, 241);
+    border-radius: 15px;
+    box-shadow: 15px 15px 15px rgba(15, 12, 207, 0.3);
+    margin-top: 9px;
+    transition: margin-left 0.3s ease;
+
+  }
+
+.containerInicio {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  background-color: #343bbf;
+  border-bottom: 1px solid #ccc;
+  transition: margin-left 0.3s ease;
+}
+
+@media (max-width: 1024px) {
+  .containerInicio {
+    width: calc(95% - 40px);
+  }
+}
+
+@media (max-width: 768px) {
+  .containerInicio {
+    width: calc(100% - 30px);
+  
+    border-radius: 10px;
+  }
+}
+
+.containerInicioImg {
+  display: flex;
+  align-items: center;
+}
+
+.linkSinSubrayado {
+  text-decoration: none;
+  color: #333;
+  font-weight: bold;
+  padding: 10px;
+  border-radius: 4px;
+  background-color: #e9ecef;
+  transition: all 0.3s ease;
+}
+
+.linkSinSubrayado:hover {
+  background-color: #0096c7;
+}
+
+.inputContainer {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.searchContainer {
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.search {
+  padding: 10px;
+  padding-right: 40px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 16px;
+  transition: all 0.3s ease;
+}
+
+.buttonBuscar {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 10px;
+  transition: all 0.3s ease;
+}
+
+.buttonBuscar:hover {
+  transform: translateY(-50%) scale(1.1);
+}
+
+.searchIcon {
+  font-size: 18px;
+  color: #333;
+  transition: all 0.3s ease;
+}
+
+.buttonBuscar:hover .searchIcon {
+  color: #343bbf;
+}
+
+.userContainer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.username {
+  font-size: 16px;
+  color: #f5f2f2;
+}
+
+.iconContainer {
+  display: flex;
+  align-items: center;
+}
+
+.icon {
+  font-size: 20px;
+  color: #ecdfdf;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.icon:hover {
+  color: #ff0000;
+  transform: scale(1.2);
+}
+
+.chatbotContainer {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 1000;
+}
+
+.chatbotIcon {
+  width: 100px;
+  height: 100px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+.chatbotIcon:hover {
+  transform: scale(1.1) rotate(5deg);
+  animation: none;
+}
+
+.chatWindow {
+  position: fixed;
+  bottom: 90px;
+  right: 20px;
+  width: 300px;
+  background-color: white;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transform: translateY(20px);
+  opacity: 0;
+  animation: fadeInUp 0.3s ease forwards;
+}
+
+@keyframes fadeInUp {
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.chatHeader {
+  background-color: #007bff;
+  color: white;
+  padding: 10px;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.chatHeader h4 {
+  margin: 0;
+}
+
+.closeChat {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.closeChat:hover {
+  transform: rotate(90deg);
+}
+
+.chatBody {
+  padding: 10px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.chatInput {
+  display: flex;
+  padding: 10px;
+  border-top: 1px solid #ccc;
+}
+
+.chatInput input {
+  flex: 1;
+  padding: 5px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  transition: all 0.3s ease;
+}
+
+.chatInput input:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.2);
+}
+
+.chatInput button {
+  margin-left: 10px;
+  padding: 5px 10px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.chatInput button:hover {
+  background-color: #0056b3;
+  transform: translateY(-2px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.logoContainer {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.logoContainer img {
+  max-width: 80%;
+  height: auto;
+  border-radius: 80px;
+  transition: all 0.3s ease;
+}
+
+.logoContainer:hover img {
+  transform: rotate(5deg) scale(1.05);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.empresarialContainer {
+  text-align: center;
+  margin-bottom: 20px;
+  margin-top: 20px;
+  opacity: 0.4;
+  transition: all 0.3s ease;
+}
+
+.empresarialContainer:hover {
+  opacity: 1;
+  transform: scale(1.05);
+}
+
+.empresarialContainer img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 30px;
+}
+
+.menuButton {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 10px;
+  margin-bottom: 20px;
+  transition: all 0.3s ease;
+}
+
+.menuButton:hover {
+  transform: scale(1.1);
+}
+
+.menuIconos {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.iconosMenu {
+  margin-bottom: 15px;
+  position: relative;
+}
+
+.iconosMenu a {
+  color: rgb(9, 9, 9);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border-radius: 5px;
+  transition: all 0.3s ease;
+}
+
+.iconosMenu a:hover {
+  background-color: #0096c7;
+  color: white;
+  transform: translateX(5px);
+}
+
+.menuIcon {
+  font-size: 24px;
+  min-width: 24px;
+  transition: all 0.3s ease;
+}
+
+.iconosMenu a:hover .menuIcon {
+  transform: rotate(10deg) scale(1.2);
+}
+
+.menuText {
+  white-space: nowrap;
+  opacity: 0;
+  transition: all 0.3s ease;
+}
+
+.submenu {
+  list-style: none; 
+  padding: 0;
+  margin: 0;
+  margin-left: 20px;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+}
+
+.showSubmenu {
+  max-height: 500px;
+}
+
+.submenuLink {
+  color: #333;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 10px;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+.submenuLink:hover {
+  background-color: #0096c7;
+  color: white;
+  padding-left: 15px;
+}
+
+.menuVertical {
+  width: 60px;
+  height: 100vh;
+  background-color: #343bbf;
+  color: white;
+  position: fixed;
+  top: 0;
+  left: 0;
+  transition: all 0.3s ease;
+  overflow: hidden;
+  z-index: 1000;
+}
+
+.menuVertical:hover {
+  width: 200px;
+}
+
+.menuVertical:hover .menuText {
+  opacity: 1;
+}
+
+.containerFluidMenu {
+  padding: 20px 10px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+}
+
+.menuVerticalDesplegable {
+  width: 100%;
+  flex-grow: 1;
+}
+
+.mobileMenuButton {
+  display: none;
+}
+
+.expanded {
+  width: 200px;
+}
+
+.mobileMenuOpen {
+  display: block;
+}
+
+@media (max-width: 768px) {
+  .menuVertical {
+      width: 60px;
+  }
+  
+  .menuVertical:hover {
+      width: 60px;
+  }
+  
+  .mobileMenuButton {
+      display: block;
+      z-index: 1001;
+  }
+  
+  .menuVerticalDesplegable {
+      display: none;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      background-color: #023e8a;
+      width: 200px;
+      padding: 10px;
+      border-radius: 0 0 10px 0;
+      box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
+      z-index: 1000;
+      height: auto;
+      max-height: calc(100vh - 100px);
+  }
+  
+  .menuText {
+      opacity: 1 !important;
+  }
+  
+  .container {
+      padding: 20px;
+      width: calc(100% - 60px);
+  }
+}
+
+@media (min-width: 769px) {
+  .mobileMenuButton {
+      display: none !important;
+  }
+  
+  .menuVerticalDesplegable {
+      display: block !important;
+  }
+}
+
+/*logo empresarial*/
+
+.menuLogoEmpresarial {
+  text-align: center;
+  position: absolute;
+  bottom: 20px; 
+  left: 0;
+  right: 0;
+  opacity: 0.6;
+  transition: all 0.3s ease;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  margin: 0 auto; /* Centrado horizontal */
+
+}
+
+.menuLogoEmpresarial img {
+  max-width: 80%; /* Reducir tamaño para mejor ajuste */
+  height: auto;
+  border-radius: 10px;
+  transition: all 0.3s ease;
+  display: block;
+  margin: 0 auto; /* Centrado horizontal para la imagen */
+}
+
+.menuLogoEmpresarial:hover {
+  opacity: 1;
+}
+
+.menuLogoEmpresarial:hover img {
+  transform: scale(1.05);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Ajustes para el contenedor del menú */
+.menuVerticalDesplegable {
+  position: relative; /* Necesario para el posicionamiento absoluto del logo */
+  height: 100%;
+ 
+}
+
+.menuIconos {
+  height: calc(100% - 80px); /* Ajustar altura considerando el logo */
+  
+}
+
+/* Ajustes para móvil */
+@media (max-width: 768px) {
+  .menuLogoEmpresarial {
+    position: static; /* Cambiar a flujo normal en móvil */
+    margin-top: 20px;
+    width: 100%;
+    border-top: none;
+  }
+  
+  .menuVerticalDesplegable {
+    padding-bottom: 0;
+  }
+  
+  .menuIconos {
+    height: auto;
+  }
+}
+  
+  /* Eliminar el logo empresarial flotante si existe */
+  .floatingLogo {
+    display: none;
+  }
+  
+  /* Ajustes para móvil */
+  @media (max-width: 768px) {
+    .menuLogoEmpresarial {
+      display: none; /* Ocultar en móvil si es necesario */
+    }
+    
+    .menuVerticalDesplegable.mobileMenuOpen .menuLogoEmpresarial {
+      display: block; /* Mostrar cuando el menú móvil está abierto */
+      margin-top: 20px;
+  
+    }
+  }
+  

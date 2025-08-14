@@ -1,0 +1,876 @@
+  /* Variables para breakpoints */
+:root {
+  --mobile: 480px;
+  --tablet: 768px;
+  --desktop: 1024px;
+}
+  .containerPrincipal {
+    width: 100vw;
+    height: 100vh;
+    margin: 0;
+    padding: 0;
+    overflow: auto;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+   
+  }
+
+  .container {
+    width: calc(92% - 60px);
+    height: auto;
+    margin: 20px auto;
+    padding: 80px;
+    background-color: rgb(224, 224, 241);
+    border-radius: 15px;
+    box-shadow: 15px 15px 15px rgba(15, 12, 207, 0.3);
+    margin-top: 9px;
+    transition: margin-left 0.3s ease;
+
+  }
+
+  .containerInicio {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    background-color: #343bbf;
+    border-bottom: 1px solid #ccc;
+    transition: margin-left 0.3s ease;
+    
+  }
+
+ @media (max-width: 1024px) {
+  .containerInicio {
+    width: calc(95% - 40px);
+  }
+}
+
+@media (max-width: 768px) {
+  .containerInicio {
+    width: calc(100% - 30px);
+  
+    border-radius: 10px;
+  }
+}
+
+  .containerInicioImg {
+    display: flex;
+    align-items: center;
+  }
+
+  .linkSinSubrayado {
+    text-decoration: none;
+    color: #333;
+    font-weight: bold;
+    padding: 10px;
+    border-radius: 4px;
+    background-color: #e9ecef;
+    transition: background-color 0.3s ease;
+  }
+
+  .linkSinSubrayado:hover {
+    background-color: #0096c7;
+  }
+
+  .inputContainer {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .searchContainer {
+    display: flex;
+    align-items: center;
+    position: relative;
+  }
+
+  .search {
+    padding: 10px;
+    padding-right: 40px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 16px;
+  }
+
+  .buttonBuscar {
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+
+  }
+
+  .buttonBuscar:hover {
+    transform: translateY(-50%) scale(1.1);
+  }
+
+
+  .searchIcon {
+    font-size: 18px;
+    color: #333;
+    position: relative;
+  }
+
+  .buttonBuscar:hover .searchIcon {
+    color: #343bbf;
+  }
+
+
+  .userContainer {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .username {
+    font-size: 16px;
+    color: #f5f2f2;
+  }
+
+  .iconContainer {
+    display: flex;
+    align-items: center;
+  }
+
+  .icon {
+    font-size: 20px;
+    color: #ecdfdf;
+    cursor: pointer;
+    transition: color 0.3s ease;
+  }
+
+  .icon:hover {
+    color: #ff0000;
+  }
+
+  .sectionContainer {
+    margin-bottom: 40px;
+  }
+
+  .sectionContainer h2 {
+    color: #333;
+    margin-bottom: 20px;
+    font-size: 1.5rem;
+    position: relative;
+    display: inline-block;
+  }
+
+  .cardsContainer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+
+  .card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 150px;
+    padding: 20px;
+    border: 2px solid;
+    border-radius: 10px;
+    background-color: #ffffff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: all 0.5s ease;
+  }
+
+  .card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Estilo para el contador en las tarjetas */
+  .count {
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-top: 5px;
+  }
+
+  /* Estilo para la tarjeta activa */
+  .activeCard {
+    transform: translateY(-5px) scale(1.05);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    border-width: 3px !important;
+  }
+
+  /* Transición suave para mostrar/ocultar tablas */
+  .tablaContainer {
+    margin-top: 20px;
+    background-color: #ffffff;
+    padding: 15px;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    animation: fadeIn 0.3s ease-out;
+  }
+
+  /* Estilos para el enlace de encuesta */
+  .surveyLink {
+    display: inline-block;
+    padding: 6px 12px;
+    background-color: #6f42c1;
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+  }
+
+  .surveyLink:hover {
+    background-color: #5a32a3;
+    transform: translateY(-2px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  .surveyLink:active {
+    background-color: #4a2d8a;
+    transform: translateY(0);
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  th,
+  td {
+    padding: 10px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+  }
+
+  th {
+    background-color: #0044cc;
+    color: white;
+  }
+
+  td {
+    padding: 10px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+  }
+
+  tr:nth-child(odd) td {
+    background-color: #e6f0ff;
+  }
+
+  tr:nth-child(even) td {
+    background-color: #0044cc;
+    color: white;
+  }
+
+
+  .chatbotContainer {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000;
+  }
+
+  .chatbotIcon {
+    width: 100px;
+    height: 100px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0% {
+      transform: scale(1);
+    }
+
+    50% {
+      transform: scale(1.1);
+    }
+
+    100% {
+      transform: scale(1);
+    }
+  }
+
+  .chatbotIcon:hover {
+    transform: scale(1.1) rotate(5deg);
+    animation: none;
+  }
+
+  .chatWindow {
+    position: fixed;
+    bottom: 90px;
+    right: 20px;
+    width: 300px;
+    background-color: white;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transform: translateY(20px);
+    opacity: 0;
+    animation: fadeInUp 0.3s ease forwards;
+  }
+
+  @keyframes fadeInUp {
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  .chatHeader {
+    background-color: #007bff;
+    color: white;
+    padding: 10px;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .chatHeader h4 {
+    margin: 0;
+  }
+
+  .closeChat {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .closeChat:hover {
+    transform: rotate(90deg);
+  }
+
+  .chatBody {
+    padding: 10px;
+    max-height: 200px;
+    overflow-y: auto;
+  }
+
+  .chatInput {
+    display: flex;
+    padding: 10px;
+    border-top: 1px solid #ccc;
+  }
+
+  .chatInput input {
+    flex: 1;
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    transition: all 0.3s ease;
+  }
+
+  .chatInput input:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.2);
+  }
+
+  .chatInput button {
+    margin-left: 10px;
+    padding: 5px 10px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .chatInput button::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 5px;
+    height: 5px;
+    background: rgba(255, 255, 255, 0.5);
+    opacity: 0;
+    border-radius: 100%;
+    transform: scale(1, 1) translate(-50%);
+    transform-origin: 50% 50%;
+  }
+
+  .chatInput button:focus:not(:active)::after {
+    animation: ripple 0.6s ease-out;
+  }
+
+  .chatInput button:hover {
+    background-color: #0056b3;
+    transform: translateY(-2px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  }
+
+  .ticketContainer {
+    margin: 10px 0;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .ticketContainer .creacion {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .ticketContainer .creacion a.creacionDeTicket {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    text-align: center;
+    text-decoration: none;
+    border-radius: 5px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+    font-size: 16px;
+    font-weight: bold;
+  }
+
+  .ticketContainer .creacion a.creacionDeTicket:hover {
+    background-color: #0096c7;
+    border-color: #004080;
+  }
+
+  .ticketContainer .creacion a.creacionDeTicket:active {
+    background-color: #004080;
+  }
+
+  .menuVertical {
+    width: 60px;
+    height: 100vh;
+    background-color: #343bbf;
+    color: white;
+    position: fixed;
+    top: 0;
+    left: 0;
+    transition: width 0.3s ease;
+    overflow: hidden;
+    z-index: 1000;
+  }
+
+  .menuVertical:hover {
+    width: 200px;
+  }
+
+  /* Contenedor principal del menú */
+  .containerFluidMenu {
+    padding: 20px 10px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+
+
+  .logoContainer {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+
+  .logoContainer img {
+    max-width: 80%;
+    height: auto;
+    border-radius: 80px;
+    transition: all 0.3s ease;
+  }
+
+  .logoContainer:hover img {
+    transform: rotate(5deg) scale(1.05);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  }
+
+  .menuButton {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 10px;
+    margin-bottom: 20px;
+  }
+
+  .menuVerticalDesplegable {
+    width: 100%;
+  }
+
+  .menuIconos {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .iconosMenu {
+    margin-bottom: 15px;
+  }
+
+  .iconosMenu a {
+    color: rgb(9, 9, 9);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    border-radius: 5px;
+    transition: background-color 0.3s;
+  }
+
+  .iconosMenu a:hover {
+    background-color: #0096c7;
+  }
+
+  .menuIcon {
+    font-size: 24px;
+    min-width: 24px;
+  }
+
+  .menuText {
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .menuVertical:hover .menuText {
+    opacity: 1;
+  }
+
+  /* Botón de menú para móviles */
+  .mobileMenuButton {
+    display: none;
+    background: none;
+    border: none;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 10px;
+    margin-bottom: 20px;
+    transition: all 0.3s ease;
+  }
+
+  .mobileMenuButton:hover {
+    transform: rotate(90deg);
+  }
+
+  @media (max-width: 768px) {
+    .menuVertical {
+      width: 60px;
+    }
+
+    .menuVertical:hover {
+      width: 60px;
+    }
+
+    .menuVerticalDesplegable {
+      display: none;
+    }
+  }
+
+  /* Estilos responsive */
+  @media (max-width: 768px) {
+    .menuVertical {
+      width: 60px;
+      height: auto;
+      min-height: 100vh;
+      overflow: visible;
+    }
+
+    .menuVertical:hover {
+      width: 60px;
+    }
+
+    .mobileMenuButton {
+      display: block;
+      z-index: 1001;
+    }
+
+    .menuVerticalDesplegable {
+      display: none;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      background-color: #023e8a;
+      width: 200px;
+      padding: 10px;
+      border-radius: 0 0 10px 0;
+      box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+      z-index: 1000;
+      height: auto;
+      max-height: calc(100vh - 100px);
+    }
+
+    .menuVerticalDesplegable.mobileMenuOpen {
+      display: block;
+      animation: slideDown 0.3s ease;
+    }
+
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .menuText {
+      opacity: 1 !important;
+    }
+
+    .iconosMenu .submenu {
+      position: static;
+      background-color: transparent;
+      border: none;
+      margin-left: 10px;
+    }
+
+    .container {
+      padding: 20px;
+      width: calc(100% - 60px);
+    }
+  }
+
+  @media (min-width: 769px) {
+    .mobileMenuButton {
+      display: none !important;
+    }
+
+    .menuVerticalDesplegable {
+      display: block !important;
+    }
+  }
+
+  /* Efecto hover solo para dispositivos que soportan hover */
+  @media (hover: hover) {
+    .menuVertical:hover {
+      width: 200px;
+    }
+
+    .menuVertical:hover .menuText {
+      opacity: 1;
+    }
+  }
+
+  /* Animaciones para los botones del menú principal */
+  .iconosMenu {
+    perspective: 1000px;
+  }
+
+  .iconosMenu a {
+    transform-style: preserve-3d;
+    transform-origin: left center;
+  }
+
+  .iconosMenu a:hover {
+    transform: rotateY(10deg) translateX(5px);
+  }
+
+    /* Animación para las tarjetas de estado */
+  .card {
+    transform-style: preserve-3d;
+  }
+
+  .card:hover {
+    transform: translateY(-5px) rotateX(5deg);
+  }
+
+  /* Animación para las filas de la tabla */
+  tr {
+    transition: all 0.3s ease;
+  }
+
+  tr:hover {
+    transform: scale(1.01);
+    z-index: 1;
+  }
+
+  /* Breadcrumbs styles */
+  .breadcrumbs {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px;
+    padding: 0 15px;
+    font-size: 14px;
+    color: white;
+    flex-grow: 1;
+    margin: 0 15px;
+  }
+
+  .crumb {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .crumb a {
+    color: white;
+    text-decoration: none;
+    transition: color 0.2s ease;
+    white-space: nowrap;
+  }
+
+  .crumb a:hover {
+    color: #ddd;
+    text-decoration: underline;
+  }
+
+  .crumb span {
+    color: white;
+    opacity: 0.9;
+    white-space: nowrap;
+  }
+
+  .separator {
+    margin: 0 4px;
+    color: rgba(255, 255, 255, 0.7);
+  }
+
+  /* Ajustes para el header */
+  .containerInicio {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    background-color: #343bbf;
+    border-bottom: 1px solid #ccc;
+    transition: margin-left 0.3s ease;
+  }
+
+  .containerInicioImg {
+    display: flex;
+    align-items: center;
+    min-width: 120px;
+    /* Asegura espacio para el botón de inicio */
+  }
+
+  .inputContainer {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    min-width: 300px;
+    /* Asegura espacio para la barra de búsqueda */
+  }
+  
+/*logo empresarial*/
+
+.menuLogoEmpresarial {
+  text-align: center;
+  position: absolute;
+  bottom: 20px; 
+  left: 0;
+  right: 0;
+  opacity: 0.6;
+  transition: all 0.3s ease;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  margin: 0 auto; /* Centrado horizontal */
+
+}
+
+.menuLogoEmpresarial img {
+  max-width: 80%; /* Reducir tamaño para mejor ajuste */
+  height: auto;
+  border-radius: 10px;
+  transition: all 0.3s ease;
+  display: block;
+  margin: 0 auto; /* Centrado horizontal para la imagen */
+}
+
+.menuLogoEmpresarial:hover {
+  opacity: 1;
+}
+
+.menuLogoEmpresarial:hover img {
+  transform: scale(1.05);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Ajustes para el contenedor del menú */
+.menuVerticalDesplegable {
+  position: relative; /* Necesario para el posicionamiento absoluto del logo */
+  height: 100%;
+ 
+}
+
+.menuIconos {
+  height: calc(100% - 80px); /* Ajustar altura considerando el logo */
+  
+}
+
+/* Ajustes para móvil */
+@media (max-width: 768px) {
+  .menuLogoEmpresarial {
+    position: static; /* Cambiar a flujo normal en móvil */
+    margin-top: 20px;
+    width: 100%;
+    border-top: none;
+  }
+  
+  .menuVerticalDesplegable {
+    padding-bottom: 0;
+  }
+  
+  .menuIconos {
+    height: auto;
+  }
+}
+  
+  /* Eliminar el logo empresarial flotante si existe */
+  .floatingLogo {
+    display: none;
+  }
+  
+  /* Ajustes para móvil */
+  @media (max-width: 768px) {
+    .menuLogoEmpresarial {
+      display: none; /* Ocultar en móvil si es necesario */
+    }
+    
+    .menuVerticalDesplegable.mobileMenuOpen .menuLogoEmpresarial {
+      display: block; /* Mostrar cuando el menú móvil está abierto */
+      margin-top: 20px;
+  
+    }
+  }
+  

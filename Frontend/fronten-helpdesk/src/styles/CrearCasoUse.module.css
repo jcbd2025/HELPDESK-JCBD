@@ -1,0 +1,1147 @@
+/* Variables para breakpoints */
+:root {
+  --mobile: 480px;
+  --tablet: 768px;
+  --desktop: 1024px;
+}
+
+.containerPrincipal {
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  overflow: auto; /* o 'hidden' si no quieres scroll */
+  position: relative; /* para posicionar hijos absolutos si es necesario */
+  display: flex; /* opcional, para flexbox layout */
+  flex-direction: column; /* opcional, para apilar hijos verticalmente */
+  box-sizing: border-box; /* para incluir padding en el tamaño total */
+}
+.containercaso {
+  width: 87%;
+  margin-right: 780px;
+  padding: 80px;
+  background-color: rgb(224, 224, 241);
+  border-radius: 15px;
+  box-shadow: 15px 15px 15px rgba(15, 12, 207, 0.3);
+  margin-top: 9px;
+  transition: margin-left 0.3s ease;
+
+}
+
+.containerInicio {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  background-color: #343bbf;
+  border-bottom: 1px solid #ccc;
+  transition: margin-left 0.3s ease;
+ 
+}
+@media (max-width: 1024px) {
+  .containerInicio {
+    width: calc(95% - 40px);
+  }
+}
+
+@media (max-width: 768px) {
+  .containerInicio {
+    width: calc(100% - 30px);
+  
+    border-radius: 10px;
+  }
+}
+
+.containerInicioImg {
+  display: flex;
+  align-items: center;
+}
+
+.linkSinSubrayado {
+  text-decoration: none;
+  color: #333;
+  font-weight: bold;
+  padding: 10px;
+  border-radius: 4px;
+  background-color: #e9ecef;
+  transition: background-color 0.3s ease;
+}
+
+.linkSinSubrayado:hover {
+  background-color: #0096c7;
+}
+
+.inputContainer {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.searchContainer {
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.search {
+  padding: 10px;
+  padding-right: 40px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 16px;
+}
+
+.buttonBuscar {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+
+}
+
+.buttonBuscar:hover {
+  transform: translateY(-50%) scale(1.1);
+}
+
+
+.searchIcon {
+  font-size: 18px;
+  color: #333;
+  position: relative;
+}
+
+.buttonBuscar:hover .searchIcon {
+  color: #3a0ca3;
+}
+
+
+.userContainer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.username {
+  font-size: 16px;
+  color: #f5f2f2;
+}
+
+.iconContainer {
+  display: flex;
+  align-items: center;
+}
+
+.icon {
+  font-size: 20px;
+  color: #ecdfdf;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.icon:hover {
+  color: #ff0000;
+}
+
+.sectionContainer {
+  margin-bottom: 40px;
+}
+
+.sectionContainer h2 {
+  color: #333;
+  margin-bottom: 20px;
+  font-size: 1.5rem;
+  position: relative;
+  display: inline-block;
+}
+
+.cardsContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 150px;
+  padding: 20px;
+  border: 2px solid;
+  border-radius: 10px;
+  background-color: #ffffff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+
+}
+
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: all 0.5s ease;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.tablaContainer {
+  margin-top: 20px;
+  background-color: #ffffff;
+  padding: 15px;
+  border-radius: 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  padding: 10px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+th {
+  background-color: #0044cc;
+  color: white;
+}
+
+td {
+  padding: 10px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+tr:nth-child(odd) td {
+  background-color: #e6f0ff;
+}
+
+tr:nth-child(even) td {
+  background-color: #99bff2;
+  color: rgb(26, 24, 24);
+}
+
+
+.chatbotContainer {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 1000;
+}
+
+.chatbotIcon {
+  width: 100px;
+  height: 100px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.1);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+.chatbotIcon:hover {
+  transform: scale(1.1) rotate(5deg);
+  animation: none;
+}
+
+.chatWindow {
+  position: fixed;
+  bottom: 90px;
+  right: 20px;
+  width: 300px;
+  background-color: white;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transform: translateY(20px);
+  opacity: 0;
+  animation: fadeInUp 0.3s ease forwards;
+}
+
+@keyframes fadeInUp {
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.chatHeader {
+  background-color: #007bff;
+  color: white;
+  padding: 10px;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.chatHeader h4 {
+  margin: 0;
+}
+
+.closeChat {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.closeChat:hover {
+  transform: rotate(90deg);
+}
+
+.chatBody {
+  padding: 10px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.chatInput {
+  display: flex;
+  padding: 10px;
+  border-top: 1px solid #ccc;
+}
+
+.chatInput input {
+  flex: 1;
+  padding: 5px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  transition: all 0.3s ease;
+}
+
+.chatInput input:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.2);
+}
+
+.chatInput button {
+  margin-left: 10px;
+  padding: 5px 10px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.chatInput button::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 5px;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.5);
+  opacity: 0;
+  border-radius: 100%;
+  transform: scale(1, 1) translate(-50%);
+  transform-origin: 50% 50%;
+}
+
+.chatInput button:focus:not(:active)::after {
+  animation: ripple 0.6s ease-out;
+}
+
+.chatInput button:hover {
+  background-color: #0056b3;
+  transform: translateY(-2px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.ticketContainer {
+  margin: 10px 0;
+  justify-content: center;
+  text-align: center;
+}
+
+.ticketContainer .creacion {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.ticketContainer .creacion a.creacionDeTicket {
+  display: inline-block;
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: white;
+  text-align: center;
+  text-decoration: none;
+  border-radius: 5px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.ticketContainer .creacion a.creacionDeTicket:hover {
+  background-color: #0096c7;
+  border-color: #004080;
+}
+
+.ticketContainer .creacion a.creacionDeTicket:active {
+  background-color: #004080;
+}
+
+.menuVertical {
+  width: 60px;
+  height: 100vh;
+  background-color: #343bbf;
+  color: white;
+  position: fixed;
+  top: 0;
+  left: 0;
+  transition: width 0.3s ease;
+  overflow: hidden;
+  z-index: 1000;
+}
+
+.menuVertical:hover {
+  width: 200px;
+}
+
+/* Contenedor principal del menú */
+.containerFluidMenu {
+  padding: 20px 10px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+
+
+.logoContainer {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.logoContainer img {
+  max-width: 80%;
+  height: auto;
+  border-radius: 80px;
+  transition: all 0.3s ease;
+}
+
+.logoContainer:hover img {
+  transform: rotate(5deg) scale(1.05);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.empresarialContainer {
+  text-align: center;
+  margin-bottom: 20px;
+  margin-top: 80px;
+  opacity: 0.4;
+  transition: opacity 0.3s ease;
+}
+
+.empresarialContainer img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 30px;
+}
+
+.menuButton {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 10px;
+  margin-bottom: 20px;
+}
+
+.menuVerticalDesplegable {
+  width: 100%;
+}
+
+.menuIconos {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.iconosMenu {
+  margin-bottom: 15px;
+}
+
+.iconosMenu a {
+  color: rgb(9, 9, 9);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border-radius: 5px;
+  transition: background-color 0.3s;
+}
+
+.iconosMenu a:hover {
+  background-color: #0096c7;
+}
+
+.menuIcon {
+  font-size: 24px;
+  min-width: 24px;
+}
+
+.menuText {
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.menuVertical:hover .menuText {
+  opacity: 1;
+}
+
+/* Botón de menú para móviles */
+.mobileMenuButton {
+  display: none;
+  background: none;
+  border: none;
+  color: white;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 10px;
+  margin-bottom: 20px;
+  transition: all 0.3s ease;
+}
+
+.mobileMenuButton:hover {
+  transform: rotate(90deg);
+}
+
+@media (max-width: 768px) {
+  .menuVertical {
+    width: 60px;
+  }
+
+  .menuVertical:hover {
+    width: 60px;
+  }
+
+  .menuVerticalDesplegable {
+    display: none;
+  }
+}
+
+/* Estilos responsive */
+@media (max-width: 768px) {
+  .menuVertical {
+    width: 60px;
+    height: auto;
+    min-height: 100vh;
+    overflow: visible;
+  }
+
+  .menuVertical:hover {
+    width: 60px;
+  }
+
+  .mobileMenuButton {
+    display: block;
+    z-index: 1001;
+  }
+
+  .menuVerticalDesplegable {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background-color: #023e8a;
+    width: 200px;
+    padding: 10px;
+    border-radius: 0 0 10px 0;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+    height: auto;
+    max-height: calc(100vh - 100px);
+  }
+
+  .menuVerticalDesplegable.mobileMenuOpen {
+    display: block;
+    animation: slideDown 0.3s ease;
+  }
+
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-20px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .menuText {
+    opacity: 1 !important;
+  }
+
+  .iconosMenu .submenu {
+    position: static;
+    background-color: transparent;
+    border: none;
+    margin-left: 10px;
+  }
+
+  .container {
+    padding: 20px;
+    width: calc(100% - 60px);
+  }
+}
+
+@media (min-width: 769px) {
+  .mobileMenuButton {
+    display: none !important;
+  }
+
+  .menuVerticalDesplegable {
+    display: block !important;
+  }
+}
+
+/* Efecto hover solo para dispositivos que soportan hover */
+@media (hover: hover) {
+  .menuVertical:hover {
+    width: 200px;
+  }
+
+  .menuVertical:hover .menuText {
+    opacity: 1;
+  }
+}
+
+/* Animaciones para los botones del menú principal */
+.iconosMenu {
+  perspective: 1000px;
+}
+
+.iconosMenu a {
+  transform-style: preserve-3d;
+  transform-origin: left center;
+}
+
+.iconosMenu a:hover {
+  transform: rotateY(10deg) translateX(5px);
+}
+
+/* Animación para el logo empresarial */
+.empresarialContainer img {
+  transition: all 0.5s ease;
+}
+
+.empresarialContainer:hover img {
+  animation: rotateLogo 2s ease;
+}
+
+@keyframes rotateLogo {
+  0% {
+    transform: rotate(0);
+  }
+
+  25% {
+    transform: rotate(5deg);
+  }
+
+  50% {
+    transform: rotate(-5deg);
+  }
+
+  75% {
+    transform: rotate(5deg);
+  }
+
+  100% {
+    transform: rotate(0);
+  }
+}
+
+/* Animación para las tarjetas de estado */
+.card {
+  transform-style: preserve-3d;
+}
+
+.card:hover {
+  transform: translateY(-5px) rotateX(5deg);
+}
+
+/* Animación para las filas de la tabla */
+tr {
+  transition: all 0.3s ease;
+}
+
+tr:hover {
+  transform: scale(1.01);
+  z-index: 1;
+}
+
+/* Contenedor principal del formulario */
+.formContainerCaso {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 30px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Grupo de cada campo del formulario */
+.formGroupCaso {
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Etiquetas de los campos */
+.casoLabel {
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: #333;
+}
+
+/* Estilos comunes para inputs, selects y textarea */
+.casoSelect,
+.casoInput,
+.casoTextarea {
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Estilo específico para selects */
+.casoSelect {
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 16px;
+}
+
+/* Estilo para el textarea */
+.casoTextarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+/* Estilo para el input de archivo */
+.casoFile {
+  padding: 8px 0;
+}
+
+/* Botón de enviar */
+.submitButton {
+  background-color: #3a0ca3;
+  color: white;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 500;
+  width: 100%;
+  transition: background-color 0.3s;
+}
+
+.submitButton:hover {
+  background-color: #2a0a8a;
+}
+
+
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.form {
+  background: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.formGroup {
+  margin-bottom: 15px;
+}
+
+.formGroup label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 600;
+}
+
+.formGroup input,
+.formGroup textarea,
+.formGroup select {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 16px;
+}
+
+.submitButton {
+  background-color: #3d90d9;
+  color: white;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.submitButton:hover {
+  background-color: #343bbf;
+}
+
+/* Estilos para mensajes */
+.errorMessage {
+  background-color: #ffebee;
+  color: #c62828;
+  padding: 10px 15px;
+  border-radius: 4px;
+  margin: 15px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.successMessage {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+  padding: 10px 15px;
+  border-radius: 4px;
+  margin: 15px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.closeMessage {
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  font-size: 1.2em;
+}
+
+/* Spinner de carga */
+.loadingSpinner {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(255,255,255,.3);
+  border-radius: 50%;
+  border-top-color: #fff;
+  animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Nombre de archivo */
+.fileName {
+  display: block;
+  margin-top: 5px;
+  font-size: 0.9em;
+  color: #555;
+}
+
+/* Botón deshabilitado */
+.submitButton:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+/*logo empresarial*/
+
+.menuLogoEmpresarial {
+  text-align: center;
+  position: absolute;
+  bottom: 20px; 
+  left: 0;
+  right: 0;
+  opacity: 0.6;
+  transition: all 0.3s ease;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  margin: 0 auto; /* Centrado horizontal */
+
+}
+
+.menuLogoEmpresarial img {
+  max-width: 80%; /* Reducir tamaño para mejor ajuste */
+  height: auto;
+  border-radius: 10px;
+  transition: all 0.3s ease;
+  display: block;
+  margin: 0 auto; /* Centrado horizontal para la imagen */
+}
+
+.menuLogoEmpresarial:hover {
+  opacity: 1;
+}
+
+.menuLogoEmpresarial:hover img {
+  transform: scale(1.05);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Ajustes para el contenedor del menú */
+.menuVerticalDesplegable {
+  position: relative; /* Necesario para el posicionamiento absoluto del logo */
+  height: 100%;
+ 
+}
+
+.menuIconos {
+  height: calc(100% - 80px); /* Ajustar altura considerando el logo */
+  
+}
+
+/* Ajustes para móvil */
+@media (max-width: 768px) {
+  .menuLogoEmpresarial {
+    position: static; /* Cambiar a flujo normal en móvil */
+    margin-top: 20px;
+    width: 100%;
+    border-top: none;
+  }
+  
+  .menuVerticalDesplegable {
+    padding-bottom: 0;
+  }
+  
+  .menuIconos {
+    height: auto;
+  }
+}
+  
+  /* Eliminar el logo empresarial flotante si existe */
+  .floatingLogo {
+    display: none;
+  }
+  
+  /* Ajustes para móvil */
+  @media (max-width: 768px) {
+    .menuLogoEmpresarial {
+      display: none; /* Ocultar en móvil si es necesario */
+    }
+    
+    .menuVerticalDesplegable.mobileMenuOpen .menuLogoEmpresarial {
+      display: block; /* Mostrar cuando el menú móvil está abierto */
+      margin-top: 20px;
+  
+    }
+  }
+  
+
+  /* Estilos para los modales */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal {
+  background-color: white;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  animation: modalFadeIn 0.3s ease-out;
+  overflow: hidden;
+}
+
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid #eee;
+  background-color: #f8f9fa;
+}
+
+.modalCloseButton {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #666;
+  padding: 0;
+  line-height: 1;
+}
+
+.modalBody {
+  padding: 20px;
+  text-align: center;
+}
+
+.successIcon, .errorIcon {
+  width: 60px;
+  height: 60px;
+  margin: 0 auto 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.successIcon {
+  background-color: #3d90d9;
+}
+
+.errorIcon {
+  background-color: #F44336;
+}
+
+.successIcon svg, .errorIcon svg {
+  width: 36px;
+  height: 36px;
+  color: white;
+}
+
+.ticketIdContainer {
+  margin: 15px 0;
+}
+
+.ticketId {
+  font-size: 24px;
+  font-weight: bold;
+  color: #333;
+  margin: 10px 0;
+}
+
+.modalActions {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.modalButton {
+  padding: 10px 20px;
+  background-color: #3d90d9;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.3s;
+}
+
+.modalButton:hover {
+  background-color: #343bbf;
+}
+
+.modalButtonError {
+  padding: 10px 20px;
+  background-color: #F44336;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.3s;
+}
+
+.modalButtonError:hover {
+  background-color: #d32f2f;
+}
+
+.copyButton {
+  padding: 8px 16px;
+  background-color: #2196F3;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s;
+  margin-top: 10px;
+}
+
+.copyButton:hover {
+  background-color: #0b7dda;
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Estilos para el spinner de carga */
+.loadingSpinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: white;
+  animation: spin 1s ease-in-out infinite;
+  margin-right: 8px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

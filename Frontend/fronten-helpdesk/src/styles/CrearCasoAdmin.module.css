@@ -1,0 +1,663 @@
+/* Variables para breakpoints */
+:root {
+  --mobile: 480px;
+  --tablet: 768px;
+  --desktop: 1024px;
+}
+
+.containerPrincipal {
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  overflow: auto;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+.containerCrearCasoAdmin {
+  width: 98%;
+  padding: 10px;
+  background-color: rgb(224, 224, 241);
+  border-radius: 15px;
+  box-shadow: 15px 15px 15px rgba(15, 12, 207, 0.3);
+  margin-top: 9px;
+  transition: margin-left 0.3s ease;
+}
+
+.containerInicio {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  background-color: #343bbf;
+  border-bottom: 1px solid #ccc;
+  transition: margin-left 0.3s ease;
+}
+
+@media (max-width: 1024px) {
+  .containerInicio {
+    width: calc(95% - 40px);
+  }
+}
+
+@media (max-width: 768px) {
+  .containerInicio {
+    width: calc(100% - 30px);
+  
+    border-radius: 10px;
+  }
+}
+
+.linkSinSubrayado {
+  text-decoration: none;
+  color: #333;
+  font-weight: bold;
+  padding: 10px;
+  border-radius: 4px;
+  background-color: #e9ecef;
+  transition: all 0.3s ease;
+}
+
+
+
+/* Efecto hover solo para dispositivos que soportan hover */
+@media (hover: hover) {
+  .menuVertical:hover {
+    width: 200px;
+  }
+
+  .menuVertical:hover .menuText {
+    opacity: 1;
+  }
+}
+
+/* Animaciones para los botones del menú principal */
+.iconosMenu {
+  perspective: 1000px;
+}
+
+.iconosMenu a {
+  transform-style: preserve-3d;
+  transform-origin: left center;
+}
+
+.iconosMenu a:hover {
+  transform: rotateY(10deg) translateX(5px);
+}
+
+/* Animación para el logo empresarial */
+.empresarialContainer img {
+  transition: all 0.5s ease;
+}
+
+.empresarialContainer:hover img {
+  animation: rotateLogo 2s ease;
+}
+
+@keyframes rotateLogo {
+  0% {
+    transform: rotate(0);
+  }
+  25% {
+    transform: rotate(5deg);
+  }
+  50% {
+    transform: rotate(-5deg);
+  }
+  75% {
+    transform: rotate(5deg);
+  }
+  100% {
+    transform: rotate(0);
+  }
+}
+
+.linkSinSubrayado:hover {
+  background-color: #0096c7;
+  color: white;
+}
+
+.inputContainer {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.searchContainer {
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.search {
+  padding: 10px;
+  padding-right: 40px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 16px;
+  transition: all 0.3s ease;
+}
+
+.buttonBuscar {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 10px;
+  transition: all 0.3s ease;
+}
+
+.searchIcon {
+  font-size: 18px;
+  color: #333;
+}
+
+.userContainer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.username {
+  font-size: 16px;
+  color: #f5f2f2;
+}
+
+.icon {
+  font-size: 20px;
+  color: #ecdfdf;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.icon:hover {
+  color: #ff0000;
+  transform: scale(1.2);
+}
+
+
+/* Contenedor de creación de ticket */
+.containersolucion {
+  width: 94%;
+  margin: 0 auto;
+  padding: 1rem;
+  background-color: #f8f9fa;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.title {
+  color: #343bbf;
+  text-align: center;
+  margin-bottom: 2rem;
+  font-size: 1.8rem;
+}
+
+.layoutContainer {
+  display: flex;
+  gap: 20px;
+  margin-top: 20px;
+  width: 100%;
+  align-items: flex-start;
+}
+
+/* Estilos del globo de creación de caso */
+.crearCasoContainer {
+  display: flex;
+  justify-content: center;
+  padding: 20px;
+  flex: 1;
+  position: relative;
+ 
+}
+
+.gloBoContainer {
+  position: relative;
+  background-color: #afd3f7;
+  border-radius: 20px;
+  padding: 25px;
+  width: 150%;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid #dee2e6;
+  margin-top: 30px;
+  
+}
+
+.gloBoHeader {
+  text-align: center;
+  margin-bottom: 20px;
+  color: #2c3e50;
+  position: relative;
+  /* Para posicionar el nombre del usuario */
+}
+
+.userIndicator {
+  position: absolute;
+  top: -5px;
+  left: 80px;
+  font-size: 14px;
+  color: #343bbf;
+  font-weight: 500;
+}
+
+.gloBoBody {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+/* Punta del globo  */
+.gloBoPointer {
+  position: absolute;
+  top: -20px;
+  left: 50px;
+  width: 0;
+  height: 0;
+  border-left: 20px solid transparent;
+  border-right: 20px solid transparent;
+  border-bottom: 20px solid #f8f9fa;
+  filter: drop-shadow(0 -2px 2px rgba(0, 0, 0, 0.1));
+}
+
+.formGroup {
+  margin-bottom: 15px;
+}
+
+.formGroup label {
+  width: 50%;
+  margin-bottom: 5px;
+  font-weight: 100;
+  color: #555;
+  
+}
+
+.formGroup input,
+.formGroup select,
+.formGroup textarea {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.inputField {
+  padding: 10px 15px;
+  border: 1px solid #ced4da;
+  border-radius: 8px;
+  font-size: 16px;
+  transition: border-color 0.3s;
+}
+
+.inputField:focus {
+  outline: none;
+  border-color: #80bdff;
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.textareaField {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.fileUploadContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.fileInput {
+  display: none;
+}
+
+.fileUploadButton {
+  padding: 10px 15px;
+  background-color: #e9ecef;
+  color: #495057;
+  border: 1px dashed #adb5bd;
+  border-radius: 8px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.fileUploadButton:hover {
+  background-color: #dee2e6;
+}
+
+.fileList {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.fileItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background-color: #e9ecef;
+  border-radius: 6px;
+}
+
+.removeFileButton {
+  background: none;
+  border: none;
+  color: #dc3545;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 0 5px;
+}
+
+.formActions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 15px;
+}
+
+.submitButton {
+  padding: 10px 20px;
+  background-color: #3d90d9;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.3s;
+}
+
+.submitButton:hover {
+  background-color: #343bbf;
+}
+
+/* Panel de información del ticket */
+.ticketInfoContainer {
+  flex: 0 0 30%; /* 30% de ancho, sin crecimiento */
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  order: 1; /* Columna izquierda */
+  height: auto; /* Altura según contenido */
+}
+
+/* Responsive design */
+@media (max-width: 1200px) {
+  .layoutContainer {
+    flex-direction: column;
+  }
+  
+  .ticketInfoContainer,
+  .gloBoContainer {
+    flex: 1 1 100%;
+    width: 90%;
+  }
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  border-bottom: 3px solid #eee;
+  padding-bottom: 10px;
+}
+
+.editButton {
+  background-color: #343bbf;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s;
+}
+
+.editButton:hover {
+  background-color: #2a0a8a;
+}
+
+.successMessage {
+  background-color: #dff0d8;
+  color: #3c763d;
+  padding: 10px;
+  border-radius: 4px;
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+.verticalForm {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.verticalForm h4 {
+  margin: 20px 0 10px 0;
+  color: #555;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 8px;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #eee;
+}
+
+.saveButton {
+  background-color: #3d90d9;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.saveButton:hover {
+  background-color: #343bbf;
+}
+
+.cancelButton {
+  background-color: #f44336;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.cancelButton:hover {
+  background-color: #d32f2f;
+}
+
+.loading {
+  text-align: center;
+  padding: 20px;
+  color: #666;
+}
+
+.errorMessage {
+  color: #dc3545;
+  padding: 10px;
+  background-color: #f8d7da;
+  border-radius: 4px;
+  margin-top: 10px;
+}
+
+
+
+/* Modal de éxito */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.successModal {
+  background-color: white;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  animation: modalFadeIn 0.3s ease-out;
+}
+
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid #eee;
+}
+
+.modalCloseButton {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #666;
+  padding: 0;
+  line-height: 1;
+}
+
+.modalBody {
+  padding: 20px;
+  text-align: center;
+}
+
+.successIcon, .errorIcon {
+  width: 60px;
+  height: 60px;
+  margin: 0 auto 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.successIcon {
+  background-color: #3d90d9;
+}
+
+.errorIcon {
+  background-color: #F44336;
+}
+
+.successIcon svg, .errorIcon svg {
+  width: 36px;
+  height: 36px;
+  color: white;
+}
+
+.ticketIdContainer {
+  margin: 15px 0;
+}
+
+.ticketId {
+  font-size: 24px;
+  font-weight: bold;
+  color: #333;
+  margin: 10px 0;
+}
+
+.modalActions {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.modalButton {
+  padding: 10px 20px;
+  background-color: #3d90d9;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.3s;
+}
+
+.modalButton:hover {
+  background-color: #343bbf;
+}
+
+.modalButtonError {
+  padding: 10px 20px;
+  background-color: #F44336;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.3s;
+}
+
+.modalButtonError:hover {
+  background-color: #d32f2f;
+}
+
+.copyButton {
+  padding: 8px 16px;
+  background-color: #2196F3;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s;
+  margin-top: 10px;
+}
+
+.copyButton:hover {
+  background-color: #0b7dda;
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Estilos para el spinner de carga */
+.loadingSpinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: white;
+  animation: spin 1s ease-in-out infinite;
+  margin-right: 8px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
