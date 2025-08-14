@@ -283,7 +283,7 @@ const SolucionTickets = () => {
                     disabled={!isEditing || !isAdminOrTech}
                   >
                     <option value="alta">Alta</option>
-                    <option value="mediana">Mediana</option>
+                    <option value="media">Media</option>
                     <option value="baja">Baja</option>
                   </select>
                 </div>

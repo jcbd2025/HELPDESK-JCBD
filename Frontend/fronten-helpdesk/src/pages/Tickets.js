@@ -416,8 +416,8 @@ const Tickets = () => {
                   <select name="estado" value={filters.estado} onChange={(e) => setFilters({ ...filters, estado: e.target.value })}>
                     <option value="">Seleccione...</option>
                     <option value="nuevo">Nuevo</option>
-                    <option value="en_curso">En curso</option>
-                    <option value="en_espera">En espera</option>
+                    <option value="encurso">En curso</option>
+                    <option value="enespera">En espera</option>
                     <option value="resuelto">Resuelto</option>
                     <option value="cerrado">Cerrado</option>
                   </select>

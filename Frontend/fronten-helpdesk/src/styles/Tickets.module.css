@@ -1038,13 +1038,13 @@ tr:hover {
 
 }
 
-.status.en_curso {
+.status.encurso {
   background-color: #ffb13b;
   color: rgb(14, 13, 13);
 
 }
 
-.status.en_espera {
+.status.enespera {
   background-color: #fafd34;
   color: rgb(14, 13, 13);
 
