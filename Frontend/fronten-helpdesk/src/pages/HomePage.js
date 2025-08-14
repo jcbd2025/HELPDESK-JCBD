@@ -528,7 +528,7 @@ const HomePage = () => {
 
           {/* Mostrar la tabla correspondiente al tab activo */}
           {activeTab === "nuevo" && renderTable(tableData.nuevo, "Nuevo")}
-          {activeTab === "enProceso" && renderTable(tableData.enProceso, "En proceso")}
+          {activeTab === "enCurso" && renderTable(tableData.enCurso, "En curso")}
           {activeTab === "enEspera" && renderTable(tableData.enEspera, "En Espera")}
           {activeTab === "resueltos" && renderTable(tableData.resueltos, "Resueltos")}
           {activeTab === "cerrados" && renderTable(tableData.cerrados, "Cerrados")}

@@ -44,7 +44,7 @@ const CrearCasoAdmin = () => {
     titulo: "",
     descripcion: "",
     archivos: [],
-    solicitante: nombre || "",
+    solicitante: "", // Cambiar para que se seleccione del select
     elementos: "",
     entidad: "",
     estado: "nuevo",
@@ -107,6 +107,8 @@ const CrearCasoAdmin = () => {
 
   // Envío del formulario
 const handleSubmit = async (e) => {
+  console.log("se esta enviando el formulario", formData);
+  
   e.preventDefault();
   setIsLoading(true);
   setError(null);
@@ -122,9 +124,9 @@ const handleSubmit = async (e) => {
       }
     });
 
-    // Agregar archivos
+    // Cambiar el nombre del campo de archivos a 'archivo' para que coincida con el backend
     formData.archivos.forEach(file => {
-      formDataToSend.append("archivos", file);
+      formDataToSend.append("archivo", file);
     });
 
     const response = await axios.post(
@@ -153,7 +155,7 @@ const handleSubmit = async (e) => {
         titulo: "",
         descripcion: "",
         archivos: [],
-        solicitante: nombre || "",
+        solicitante: "",
         elementos: "",
         entidad: "",
         estado: "nuevo",
@@ -176,6 +178,16 @@ const handleSubmit = async (e) => {
 
   // Validación del formulario
   const validateForm = () => {
+    if (location.state?.ticketData) {
+      // En modo edición, validar solo los campos básicos
+      return (
+        formData.titulo &&
+        formData.descripcion &&
+        formData.ubicacion
+      );
+    }
+
+    // En modo creación, validar todos los campos necesarios
     return (
       formData.tipo &&
       formData.origen &&
@@ -213,12 +225,12 @@ const handleSubmit = async (e) => {
       setLoading(true);
       
       // Usar Promise.all para llamadas paralelas
-      const [usuariosRes, deptosRes, catsRes, grupoRes, tecnicosRes] = await Promise.all([
+      const [usuariosRes, deptosRes, catsRes, grupoRes, /*tecnicosRes*/] = await Promise.all([
         axios.get("http://localhost:5000/usuarios/obtener"),
         axios.get("http://localhost:5000/usuarios/obtenerEntidades"),
         axios.get("http://localhost:5000/usuarios/obtenerCategorias"),
         axios.get("http://localhost:5000/usuarios/obtenerGrupos"),
-        axios.get("http://localhost:5000/usuarios/obtenerTecnicos")
+        /*axios.get("http://localhost:5000/usuarios/obtenerTecnicos")*/
       ]);
 
       setUsuarios(usuariosRes.data);
@@ -263,7 +275,7 @@ const handleSubmit = async (e) => {
                 </div>
 
                 <div className={styles.gloBoBody}>
-                  <form onSubmit={handleSubmit}>
+                  <form onSubmit= {  handleSubmit }>
                     <div className={styles.formGroup}>
                       <label>Entidad:*</label>
                       <select
@@ -494,21 +506,15 @@ const handleSubmit = async (e) => {
                   <h4>Asignaciones</h4>
 
                   <div className={styles.formGroup}>
-                    <label>Solicitante*</label>
-                    <select
-                      name="solicitante"
-                      value={formData.solicitante}
-                      onChange={handleChange}
-                      required
-                    >
-                      <option value="">Seleccione un usuario...</option>
-                      {usuarios.map(usuario => (
-                        <option key={usuario.id_usuario} value={usuario.id_usuario}>
-                          {`${usuario.nombre_completo}`} ({usuario.correo})
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                                    <label className={styles.casoLabel}>Solicitante*</label>
+                                    <input
+                                      className={styles.casoInput}
+                                      type="text"
+                                      value={nombre}
+                                      readOnly
+                                      disabled
+                                    />
+                                  </div>
 
                   <div className={styles.formGroup}>
                     <label>Observador*</label>
