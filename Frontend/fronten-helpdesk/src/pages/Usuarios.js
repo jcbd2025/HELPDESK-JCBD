@@ -6,10 +6,7 @@ import { FiAlignJustify } from "react-icons/fi";
 import { FcHome, FcAssistant, FcBusinessman, FcAutomatic, FcAnswers, FcCustomerSupport, FcGenealogy, FcBullish, FcConferenceCall, FcPortraitMode, FcOrganization, FcPrint } from "react-icons/fc";
 import axios from "axios";
 import styles from "../styles/Usuarios.module.css";
-import Logo from "../imagenes/logo proyecto color.jpeg";
-import Logoempresarial from "../imagenes/logo empresarial.png";
 import ChatBot from "../Componentes/ChatBot";
-import { NotificationContext } from "../context/NotificationContext";
 import MenuVertical from "../Componentes/MenuVertical";
 
 const Usuarios = () => {
@@ -36,6 +33,10 @@ const Usuarios = () => {
   const [formErrors, setFormErrors] = useState({});
   const [entidades, setEntidades] = useState([]);
 
+// Estados para modales
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [modalMessage, setModalMessage] = useState("");
 
   // Paginación
   const [currentPage, setCurrentPage] = useState(1);
@@ -54,13 +55,15 @@ const Usuarios = () => {
     contrasena: '',
     estado: 'activo',
     id_entidad: '',
-    rol: ''
+    rol: '',
+    grupo: ''
   });
 
   // Efectos
   useEffect(() => {
     fetchUsers();
     fetchEntidades();
+    fetchGrupos();
   }, []);
 
   useEffect(() => {
@@ -146,6 +149,20 @@ const Usuarios = () => {
       setEntidades(response.data);
     } catch (error) {
       console.error("Error al cargar entidades:", error);
+    }
+  };
+
+   const fetchGrupos = async () => {
+    setIsLoading(true);
+    try {
+      const response = await axios.get("http://localhost:5000/grupos/obtener");
+      setGrupos(response.data);
+      setFilteredGrupos(response.data);
+    } catch (error) {
+      console.error("Error al cargar grupos:", error);
+      showNotificationModal("Error", "Error al cargar los grupos", "error");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -254,7 +271,11 @@ const Usuarios = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!validateForm()) return;
+    if (!validateForm()) {
+      setModalMessage("Por favor complete todos los campos requeridos correctamente");
+      setShowErrorModal(true);
+      return;
+    }
 
     setIsLoading(true);
     try {
@@ -266,28 +287,46 @@ const Usuarios = () => {
       const response = await axios[method.toLowerCase()](url, formData);
 
       if (response.data.success) {
-        alert(editingId ? 'Usuario actualizado' : 'Usuario creado');
+        setModalMessage(editingId
+          ? '¡Usuario actualizado correctamente!'
+          : '¡Usuario creado con éxito!');
+        setShowSuccessModal(true);
         resetForm();
         fetchUsers();
       }
     } catch (error) {
       console.error('Error:', error);
+      let errorMessage = 'Error al procesar la solicitud';
+
+      if (error.response?.data?.message) {
+        if (error.response.data.message.includes('ya existe')) {
+          errorMessage = 'El nombre de usuario ya está en uso';
+        } else {
+          errorMessage = error.response.data.message;
+        }
+      }
+
+      setModalMessage(errorMessage);
+      setShowErrorModal(true);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm("¿Eliminar este usuario?")) return;
+   const handleDelete = async (id) => {
+    if (!window.confirm("¿Estás seguro de eliminar este usuario?")) return;
 
     try {
       const response = await axios.delete(`http://localhost:5000/usuarios/eliminar/${id}`);
       if (response.data.success) {
-        alert("Usuario eliminado");
+        setModalMessage("Usuario eliminado correctamente");
+        setShowSuccessModal(true);
         fetchUsers();
       }
     } catch (error) {
       console.error("Error al eliminar:", error);
+      setModalMessage(error.response?.data?.message || "Error al eliminar el usuario");
+      setShowErrorModal(true);
     }
   };
 
@@ -378,15 +417,21 @@ const Usuarios = () => {
     );
   }
 
+  // Cerrar modales
+  const handleCloseSuccessModal = () => {
+    setShowSuccessModal(false);
+  };
+
+  const handleCloseErrorModal = () => {
+    setShowErrorModal(false);
+  };
+
   return (
     <MenuVertical>
       <>
 
-
         {/* Contenido */}
-        <div className={styles.container} style={{
-          marginLeft: isMenuExpanded ? "200px" : "60px"
-        }}>
+        <div className={styles.container}>
           {isLoading && (
             <div className={styles.loadingOverlay}>
               <FaSpinner className={styles.spinner} />
@@ -528,6 +573,25 @@ const Usuarios = () => {
                     </select>
                     {formErrors.rol && <span className={styles.errorMessage}>{formErrors.rol}</span>}
                   </div>
+
+                  <div className={styles.formGroup}>
+                    <label className={styles.label}>Grupo</label>
+                    <select
+                      className={`${styles.select} ${formErrors.id_grupo ? styles.inputError : ''}`}
+                      name="id_grupo"
+                      value={formData.id_grupo}
+                      onChange={handleChange}
+                      required
+                    >
+                      <option value="">Seleccione un grupo</option>
+                      {entidades.map(grupo => (
+                        <option key={grupo.id_grupo} value={grupo.id_grupo}>
+                          {grupo.nombre_grupo}
+                        </option>
+                      ))}
+                    </select>
+                    {formErrors.id_grupo && <span className={styles.errorMessage}>{formErrors.id_grupo}</span>}
+                  </div>
                 </div>
 
                 <div className={styles.botonesContainer}>
@@ -651,6 +715,7 @@ const Usuarios = () => {
                         <th>Teléfono</th>
                         <th>Rol</th>
                         <th>Estado</th>
+                        <th>Grupo</th>
                         <th>Entidad</th>
                         <th>Acciones</th>
                       </tr>
@@ -670,6 +735,8 @@ const Usuarios = () => {
                             <td>{user.correo}</td>
                             <td>{user.telefono || '-'}</td>
                             <td>{user.rol}</td>
+                            <td>{user.grupo}</td>
+
                             <td>
                               <span className={`${styles.statusBadge} ${user.estado === 'activo' ? styles.active : styles.inactive}`}>
                                 {user.estado === 'activo' ? 'Activo' : 'Inactivo'}
@@ -767,9 +834,79 @@ const Usuarios = () => {
               </div>
             </>
           )}
-        </div>
-        <ChatBot />
+          {/* Modal de éxito */}
+          {showSuccessModal && (
+            <div className={styles.modalOverlay}>
+              <div className={styles.modal}>
+                <div className={styles.modalHeader}>
+                  <h3>Operación Exitosa</h3>
+                  <button
+                    onClick={handleCloseSuccessModal}
+                    className={styles.modalCloseButton}
+                  >
+                    &times;
+                  </button>
+                </div>
 
+                <div className={styles.modalBody}>
+                  <div className={styles.successIcon}>
+                    <svg viewBox="0 0 24 24">
+                      <path fill="currentColor" d="M12 2C6.5 2 2 6.5 2 12S6.5 22 12 22 22 17.5 22 12 17.5 2 12 2M10 17L5 12L6.41 10.59L10 14.17L17.59 6.58L19 8L10 17Z" />
+                    </svg>
+                  </div>
+                  <p>{modalMessage}</p>
+
+                  <div className={styles.modalActions}>
+                    <button
+                      onClick={handleCloseSuccessModal}
+                      className={styles.modalButton}
+                    >
+                      Aceptar
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Modal de error */}
+          {showErrorModal && (
+            <div className={styles.modalOverlay}>
+              <div className={styles.modal}>
+                <div className={styles.modalHeader}>
+                  <h3>Error</h3>
+                  <button
+                    onClick={handleCloseErrorModal}
+                    className={styles.modalCloseButton}
+                  >
+                    &times;
+                  </button>
+                </div>
+
+                <div className={styles.modalBody}>
+                  <div className={styles.errorIcon}>
+                    <svg viewBox="0 0 24 24">
+                      <path fill="currentColor" d="M12,2C17.53,2 22,6.47 22,12C22,17.53 17.53,22 12,22C6.47,22 2,17.53 2,12C2,6.47 6.47,2 12,2M15.59,7L12,10.59L8.41,7L7,8.41L10.59,12L7,15.59L8.41,17L12,13.41L15.59,17L17,15.59L13.41,12L17,8.41L15.59,7Z" />
+                    </svg>
+                  </div>
+                  <p>{modalMessage}</p>
+
+                  <div className={styles.modalActions}>
+                    <button
+                      onClick={handleCloseErrorModal}
+                      className={styles.modalButtonError}
+                    >
+                      Entendido
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+
+          <ChatBot />
+        </div>
       </>
     </MenuVertical>
   );

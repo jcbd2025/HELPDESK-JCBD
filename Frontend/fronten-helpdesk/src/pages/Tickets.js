@@ -317,7 +317,7 @@ const Tickets = () => {
       <>
 
         {/* Contenido principal - Tabla de tickets */}
-        <div className={styles.containerticket} style={{ marginLeft: isMenuExpanded ? "200px" : "60px" }}>
+        <div className={styles.containerticket} >
           {/* Barra de herramientas */}
           <div className={styles.toolbar}>
             <div className={styles.searchContainer}>
@@ -407,7 +407,7 @@ const Tickets = () => {
                   <select name="prioridad" value={filters.prioridad} onChange={(e) => setFilters({ ...filters, prioridad: e.target.value })}>
                     <option value="">Seleccione...</option>
                     <option value="alta">Alta</option>
-                    <option value="mediana">Mediana</option>
+                    <option value="media">Media</option>
                     <option value="baja">Baja</option>
                   </select>
                 </div>
@@ -416,8 +416,8 @@ const Tickets = () => {
                   <select name="estado" value={filters.estado} onChange={(e) => setFilters({ ...filters, estado: e.target.value })}>
                     <option value="">Seleccione...</option>
                     <option value="nuevo">Nuevo</option>
-                    <option value="en_curso">En curso</option>
-                    <option value="en_espera">En espera</option>
+                    <option value="encurso">En curso</option>
+                    <option value="enespera">En espera</option>
                     <option value="resuelto">Resuelto</option>
                     <option value="cerrado">Cerrado</option>
                   </select>

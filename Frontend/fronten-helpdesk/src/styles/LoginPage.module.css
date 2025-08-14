@@ -151,3 +151,157 @@ p {
   margin-top: 20px;
   /* Espacio entre el mensaje y el texto adicional */
 }
+
+/* Estilos para el modal */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal {
+  background-color: white;
+  border-radius: 8px;
+  width: 400px;
+  max-width: 90%;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  animation: modalFadeIn 0.3s ease-out;
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.modalHeader {
+  padding: 16px;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modalErrorTitle {
+  color: #dc3545;
+  margin: 0;
+}
+
+.modalWarningTitle {
+  color: #ffc107;
+  margin: 0;
+}
+
+.modalInfoTitle {
+  color: #17a2b8;
+  margin: 0;
+}
+
+.modalCloseButton {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #666;
+  transition: color 0.2s;
+}
+
+.modalCloseButton:hover {
+  color: #333;
+}
+
+.modalBody {
+  padding: 20px;
+  text-align: center;
+}
+
+.errorIcon, .warningIcon, .infoIcon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  display: inline-block;
+}
+
+.errorIcon svg {
+  color: #dc3545;
+  width: 48px;
+  height: 48px;
+}
+
+.warningIcon svg {
+  color: #ffc107;
+  width: 48px;
+  height: 48px;
+}
+
+.infoIcon svg {
+  color: #17a2b8;
+  width: 48px;
+  height: 48px;
+}
+
+.modalActions {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+}
+
+.modalButtonError {
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.modalButtonError:hover {
+  background-color: #c82333;
+}
+
+.modalButtonWarning {
+  background-color: #ffc107;
+  color: #212529;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.modalButtonWarning:hover {
+  background-color: #e0a800;
+}
+
+.modalButtonInfo {
+  background-color: #17a2b8;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.modalButtonInfo:hover {
+  background-color: #138496;
+}
+
+/* Estilos para el botón de carga */
+.buttonLogin:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}

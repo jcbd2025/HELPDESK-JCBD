@@ -9,7 +9,7 @@ import MenuVertical from "../Componentes/MenuVertical";
 const CrearCasoAdmin = () => {
   // Obtener datos del usuario
   const userRole = localStorage.getItem("rol") || "";
-  const nombre = localStorage.getItem("nombre") || "";
+  const userNombre = localStorage.getItem("nombre") || "";
   const { addNotification } = useNotification();
 
   // Estados
@@ -70,7 +70,6 @@ const CrearCasoAdmin = () => {
     );
   }
 
-
   // Manejar búsqueda
   const handleSearch = (e) => {
     e.preventDefault();
@@ -108,36 +107,65 @@ const CrearCasoAdmin = () => {
   // Envío del formulario
 const handleSubmit = async (e) => {
   console.log("se esta enviando el formulario", formData);
-  
+  // Validar campos obligatorios
+  const missingFields = [];
+  const requiredFields = {
+    entidad: 'Entidad',
+    titulo: 'Título',
+    descripcion: 'Descripción',
+    fechaApertura: 'Fecha de apertura',
+    tipo: 'Tipo',
+    categoria: 'Categoría',
+    estado: 'Estado',
+    prioridad: 'Prioridad',
+    ubicacion: 'Ubicación',
+    solicitante: 'Solicitante',
+    grupo_asignado: 'Grupo asignado',
+    asignado_a: 'Asignado a'
+  };
+
+  Object.keys(requiredFields).forEach(field => {
+    if (!formData[field]) {
+      missingFields.push(requiredFields[field]);
+    }
+  });
+
+  if (missingFields.length > 0) {
+    addNotification(
+      `Por favor complete los siguientes campos obligatorios: ${missingFields.join(', ')}`,
+      "error"
+    );
+    return;
+  }
   e.preventDefault();
   setIsLoading(true);
   setError(null);
   setSuccessMessage('');
 
-  try {
-    const formDataToSend = new FormData();
-    
-    // Agregar campos al FormData
-    Object.keys(formData).forEach(key => {
-      if (key !== "archivos" && formData[key] !== undefined && formData[key] !== null) {
-        formDataToSend.append(key, formData[key]);
-      }
-    });
+    try {
+      const formDataToSend = new FormData();
 
-    // Cambiar el nombre del campo de archivos a 'archivo' para que coincida con el backend
-    formData.archivos.forEach(file => {
-      formDataToSend.append("archivo", file);
-    });
-
-    const response = await axios.post(
-      "http://localhost:5000/usuarios/tickets",
-      formDataToSend,
-      {
-        headers: {
-          "Content-Type": "multipart/form-data"
+      // Agregar campos al FormData
+      Object.keys(formData).forEach(key => {
+        if (key !== "archivos" && formData[key] !== undefined && formData[key] !== null) {
+          formDataToSend.append(key, formData[key]);
         }
-      }
-    );
+      });
+
+    // Agregar archivos
+    formData.archivos.forEach(file => {
+      formDataToSend.append("archivos", file);
+    });
+
+      const response = await axios.post(
+        "http://localhost:5000/usuarios/tickets",
+        formDataToSend,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data"
+          }
+        }
+      );
 
 
    // Mostrar modal de éxito
@@ -155,7 +183,7 @@ const handleSubmit = async (e) => {
         titulo: "",
         descripcion: "",
         archivos: [],
-        solicitante: "",
+        solicitante: nombre || "",
         elementos: "",
         entidad: "",
         estado: "nuevo",
@@ -178,16 +206,6 @@ const handleSubmit = async (e) => {
 
   // Validación del formulario
   const validateForm = () => {
-    if (location.state?.ticketData) {
-      // En modo edición, validar solo los campos básicos
-      return (
-        formData.titulo &&
-        formData.descripcion &&
-        formData.ubicacion
-      );
-    }
-
-    // En modo creación, validar todos los campos necesarios
     return (
       formData.tipo &&
       formData.origen &&
@@ -200,12 +218,12 @@ const handleSubmit = async (e) => {
   };
 
   const handleCloseModal = () => {
-  setShowSuccessModal(false);
-  // Solo redirige si estamos creando un nuevo ticket, no editando
-  if (!location.state?.ticketData) {
-    navigate('/Tickets');
-  }
-};
+    setShowSuccessModal(false);
+    // Solo redirige si estamos creando un nuevo ticket, no editando
+    if (!location.state?.ticketData) {
+      navigate('/Tickets');
+    }
+  };
 
   const formatDateTimeForInput = (dateString) => {
     if (!dateString) return '';
@@ -233,32 +251,31 @@ const handleSubmit = async (e) => {
         /*axios.get("http://localhost:5000/usuarios/obtenerTecnicos")*/
       ]);
 
-      setUsuarios(usuariosRes.data);
-      setDepartamentos(deptosRes.data);
-      setCategorias(catsRes.data);
-      setGrupos(grupoRes.data);
-      setTecnicos(tecnicosRes.data);
+        setUsuarios(usuariosRes.data);
+        setDepartamentos(deptosRes.data);
+        setCategorias(catsRes.data);
+        setGrupos(grupoRes.data);
+        setTecnicos(tecnicosRes.data);
 
-      if (location.state?.ticketData) {
-        setFormData(prev => ({
-          ...prev,
-          ...location.state.ticketData,
-          fechaApertura: formatDateTimeForInput(location.state.ticketData.fechaApertura)
-        }));
+        if (location.state?.ticketData) {
+          setFormData(prev => ({
+            ...prev,
+            ...location.state.ticketData,
+            fechaApertura: formatDateTimeForInput(location.state.ticketData.fechaApertura)
+          }));
+        }
+      } catch (error) {
+        addNotification(
+          error.response?.data?.message || "Error al cargar datos iniciales",
+          "error"
+        );
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      addNotification(
-        error.response?.data?.message || "Error al cargar datos iniciales",
-        "error"
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
 
-  fetchInitialData();
-}, [location.state]); 
-
+    fetchInitialData();
+  }, [location.state]);
 
   return (
     <MenuVertical>
@@ -356,7 +373,7 @@ const handleSubmit = async (e) => {
                       <button
                         type="submit"
                         className={styles.submitButton}
-                        disabled={!validateForm() || isLoading}
+                        disabled={isLoading}
                       >
                         {isLoading ? 'Procesando...' : (location.state?.ticketData ? 'Actualizar Ticket' : 'Crear Ticket')}
                       </button>
@@ -415,8 +432,6 @@ const handleSubmit = async (e) => {
                 <div className={styles.header}>
                   <h3>Información del Ticket</h3>
                 </div>
-
-
 
                 <div className={styles.verticalForm}>
                   <h4>Casos</h4>
@@ -517,12 +532,11 @@ const handleSubmit = async (e) => {
                                   </div>
 
                   <div className={styles.formGroup}>
-                    <label>Observador*</label>
+                    <label>Observador</label>
                     <select
                       name="observador"
                       value={formData.observador}
                       onChange={handleChange}
-                      required
                     >
                       <option value="">Seleccione un usuario...</option>
                       {usuarios.map(usuario => (
@@ -561,7 +575,7 @@ const handleSubmit = async (e) => {
                       <option value="">Seleccione un usuario...</option>
                       {usuarios.map(usuario => (
                         <option key={usuario.id_usuario} value={usuario.id_usuario}>
-                          {`${usuario.nombre_completo}`} ({usuario.correo})
+                          {`${usuario.Nombre_completo}`} ({usuario.correo})
                         </option>
                       ))}
                     </select>

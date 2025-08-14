@@ -307,10 +307,9 @@ const HomePage = () => {
     { label: "En espera", color: "orange", icon: "🟡", count: tableData.enEspera.length, key: "enEspera" },
     { label: "Resueltos", color: "gray", icon: "✔️", count: tableData.resueltos.length, key: "resueltos" },
     { label: "Cerrado", color: "black", icon: "✅", count: tableData.cerrados.length, key: "cerrados" },
-    { label: "Borrado", color: "red", icon: "🗑", count: tableData.borrados.length, key: "borrados" },
     { label: "Encuesta", color: "purple", icon: "📅", count: tableData.encuesta.length, key: "encuesta" },
     { label: "Abiertos", color: "#4CAF50", icon: "📝", count: tableData.abiertos.length, key: "abiertos" },
-    { label: "Pendientes", color: "#FF5722", icon: "⚠️", count: tableData.pendientes.length, key: "pendientes" },
+    
   ];
 
   const handleTabClick = (tabKey) => {
@@ -497,7 +496,7 @@ const HomePage = () => {
         {/* Contenido principal */}
         <div
           className={styles.container}
-          style={{ marginLeft: isMenuExpanded ? "200px" : "60px" }}
+          
         >
           <div className={styles.sectionContainer}>
             <div className={styles.ticketContainer}>
