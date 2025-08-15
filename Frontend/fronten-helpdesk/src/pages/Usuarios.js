@@ -32,6 +32,7 @@ const Usuarios = () => {
   const [editingId, setEditingId] = useState(null);
   const [formErrors, setFormErrors] = useState({});
   const [entidades, setEntidades] = useState([]);
+  const [grupos, setGrupos] = useState([]);
 
 // Estados para modales
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -155,7 +156,7 @@ const Usuarios = () => {
    const fetchGrupos = async () => {
     setIsLoading(true);
     try {
-      const response = await axios.get("http://localhost:5000/grupos/obtener");
+      const response = await axios.get("http://localhost:5000/usuarios/obtenerGrupos");
       setGrupos(response.data);
       setFilteredGrupos(response.data);
     } catch (error) {
@@ -584,7 +585,7 @@ const Usuarios = () => {
                       required
                     >
                       <option value="">Seleccione un grupo</option>
-                      {entidades.map(grupo => (
+                      {grupos.map(grupo => (
                         <option key={grupo.id_grupo} value={grupo.id_grupo}>
                           {grupo.nombre_grupo}
                         </option>
