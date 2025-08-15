@@ -1,6 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { Outlet, Link, useParams, useNavigate, useLocation } from "react-router-dom";
-import axios from 'axios';
+import {
+  Outlet,
+  Link,
+  useParams,
+  useNavigate,
+  useLocation,
+} from "react-router-dom";
+import axios from "axios";
 import ChatBot from "../Componentes/ChatBot";
 import { useNotification } from "../context/NotificationContext";
 import styles from "../styles/CrearCasoAdmin.module.css";
@@ -26,7 +32,7 @@ const CrearCasoAdmin = () => {
   const [grupos, setGrupos] = useState([]);
   const [tecnicos, setTecnicos] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [successMessage, setSuccessMessage] = useState('');
+  const [successMessage, setSuccessMessage] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -52,7 +58,7 @@ const CrearCasoAdmin = () => {
     observador: "",
     asignado_a: "",
     grupo_asignado: "",
-    fechaApertura: new Date().toISOString().slice(0, 16)
+    fechaApertura: new Date().toISOString().slice(0, 16),
   });
 
   // Verificación de rol
@@ -84,20 +90,20 @@ const CrearCasoAdmin = () => {
     const { name, value, files } = e.target;
 
     if (name === "archivos" && files) {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        archivos: Array.from(files)
+        archivos: Array.from(files),
       }));
     } else {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        [name]: value
+        [name]: value,
       }));
     }
   };
 
   const removeFile = (index) => {
-    setFormData(prev => {
+    setFormData((prev) => {
       const newFiles = [...prev.archivos];
       newFiles.splice(index, 1);
       return { ...prev, archivos: newFiles };
@@ -105,104 +111,109 @@ const CrearCasoAdmin = () => {
   };
 
   // Envío del formulario
-const handleSubmit = async (e) => {
-  console.log("se esta enviando el formulario", formData);
-  // Validar campos obligatorios
-  const missingFields = [];
-  const requiredFields = {
-    entidad: 'Entidad',
-    titulo: 'Título',
-    descripcion: 'Descripción',
-    fechaApertura: 'Fecha de apertura',
-    tipo: 'Tipo',
-    categoria: 'Categoría',
-    estado: 'Estado',
-    prioridad: 'Prioridad',
-    ubicacion: 'Ubicación',
-    solicitante: 'Solicitante',
-    grupo_asignado: 'Grupo asignado',
-    asignado_a: 'Asignado a'
-  };
+  const handleSubmit = async (e) => {
+    console.log("se esta enviando el formulario", formData);
+    // Validar campos obligatorios
+    const missingFields = [];
+    const requiredFields = {
+      entidad: "Entidad",
+      titulo: "Título",
+      descripcion: "Descripción",
+      fechaApertura: "Fecha de apertura",
+      tipo: "Tipo",
+      categoria: "Categoría",
+      estado: "Estado",
+      prioridad: "Prioridad",
+      ubicacion: "Ubicación",
+      solicitante: "Solicitante",
+      grupo_asignado: "Grupo asignado",
+      asignado_a: "Asignado a",
+    };
 
-  Object.keys(requiredFields).forEach(field => {
-    if (!formData[field]) {
-      missingFields.push(requiredFields[field]);
+    Object.keys(requiredFields).forEach((field) => {
+      if (!formData[field]) {
+        missingFields.push(requiredFields[field]);
+      }
+    });
+
+    if (missingFields.length > 0) {
+      addNotification(
+        `Por favor complete los siguientes campos obligatorios: ${missingFields.join(
+          ", "
+        )}`,
+        "error"
+      );
+      return;
     }
-  });
-
-  if (missingFields.length > 0) {
-    addNotification(
-      `Por favor complete los siguientes campos obligatorios: ${missingFields.join(', ')}`,
-      "error"
-    );
-    return;
-  }
-  e.preventDefault();
-  setIsLoading(true);
-  setError(null);
-  setSuccessMessage('');
+    e.preventDefault();
+    setIsLoading(true);
+    setError(null);
+    setSuccessMessage("");
 
     try {
       const formDataToSend = new FormData();
 
       // Agregar campos al FormData
-      Object.keys(formData).forEach(key => {
-        if (key !== "archivos" && formData[key] !== undefined && formData[key] !== null) {
+      Object.keys(formData).forEach((key) => {
+        if (
+          key !== "archivos" &&
+          formData[key] !== undefined &&
+          formData[key] !== null
+        ) {
           formDataToSend.append(key, formData[key]);
         }
       });
 
-    // Agregar archivos
-    formData.archivos.forEach(file => {
-      formDataToSend.append("archivos", file);
-    });
+      // Agregar archivos
+      formData.archivos.forEach((file) => {
+        formDataToSend.append("archivos", file);
+      });
 
       const response = await axios.post(
         "http://localhost:5000/usuarios/tickets",
         formDataToSend,
         {
           headers: {
-            "Content-Type": "multipart/form-data"
-          }
+            "Content-Type": "multipart/form-data",
+          },
         }
       );
 
+      // Mostrar modal de éxito
+      setCreatedTicketId(response.data.id_ticket);
+      setShowSuccessModal(true);
 
-   // Mostrar modal de éxito
-    setCreatedTicketId(response.data.id_ticket);
-    setShowSuccessModal(true);
-    
-    // Opcional: resetear el formulario después de crear el ticket
-    if (!location.state?.ticketData) {
-      setFormData({
-        id: "",
-        tipo: "incidencia",
-        origen: "",
-        prioridad: "mediana",
-        categoria: "",
-        titulo: "",
-        descripcion: "",
-        archivos: [],
-        solicitante: nombre || "",
-        elementos: "",
-        entidad: "",
-        estado: "nuevo",
-        ubicacion: "",
-        observador: "",
-        asignado_a: "",
-        grupo_asignado: "",
-        fechaApertura: new Date().toISOString().slice(0, 16)
-      });
+      // Opcional: resetear el formulario después de crear el ticket
+      if (!location.state?.ticketData) {
+        setFormData({
+          id: "",
+          tipo: "incidencia",
+          origen: "",
+          prioridad: "mediana",
+          categoria: "",
+          titulo: "",
+          descripcion: "",
+          archivos: [],
+          solicitante: userNombre || "",
+          elementos: "",
+          entidad: "",
+          estado: "nuevo",
+          ubicacion: "",
+          observador: "",
+          asignado_a: "",
+          grupo_asignado: "",
+          fechaApertura: new Date().toISOString().slice(0, 16),
+        });
+      }
+    } catch (error) {
+      addNotification(
+        error.response?.data?.detail || "Error al procesar la solicitud",
+        "error"
+      );
+    } finally {
+      setIsLoading(false);
     }
-  } catch (error) {
-    addNotification(
-      error.response?.data?.detail || "Error al procesar la solicitud",
-      "error"
-    );
-  } finally {
-    setIsLoading(false);
-  }
-};
+  };
 
   // Validación del formulario
   const validateForm = () => {
@@ -221,47 +232,49 @@ const handleSubmit = async (e) => {
     setShowSuccessModal(false);
     // Solo redirige si estamos creando un nuevo ticket, no editando
     if (!location.state?.ticketData) {
-      navigate('/Tickets');
+      navigate("/Tickets");
     }
   };
 
   const formatDateTimeForInput = (dateString) => {
-    if (!dateString) return '';
-    if (dateString.includes('T')) return dateString.substring(0, 16);
+    if (!dateString) return "";
+    if (dateString.includes("T")) return dateString.substring(0, 16);
 
     const date = new Date(dateString);
-    if (isNaN(date.getTime())) return '';
+    if (isNaN(date.getTime())) return "";
 
-    const pad = (num) => num.toString().padStart(2, '0');
-    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+    const pad = (num) => num.toString().padStart(2, "0");
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(
+      date.getDate()
+    )}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
   };
 
   // Obtener datos iniciales al cargar el componente
   useEffect(() => {
-  const fetchInitialData = async () => {
-    try {
-      setLoading(true);
-      
-      // Usar Promise.all para llamadas paralelas
-      const [usuariosRes, deptosRes, catsRes, grupoRes, /*tecnicosRes*/] = await Promise.all([
-        axios.get("http://localhost:5000/usuarios/obtener"),
-        axios.get("http://localhost:5000/usuarios/obtenerEntidades"),
-        axios.get("http://localhost:5000/usuarios/obtenerCategorias"),
-        axios.get("http://localhost:5000/usuarios/obtenerGrupos"),
-        /*axios.get("http://localhost:5000/usuarios/obtenerTecnicos")*/
-      ]);
+    const fetchInitialData = async () => {
+      try {
+        setLoading(true);
+
+        // Usar Promise.all para llamadas paralelas
+        const [usuariosRes, deptosRes, catsRes, grupoRes] = await Promise.all([
+          axios.get("http://localhost:5000/usuarios/obtener"),
+          axios.get("http://localhost:5000/usuarios/obtenerEntidades"),
+          axios.get("http://localhost:5000/usuarios/obtenerCategorias"),
+          axios.get("http://localhost:5000/usuarios/obtenerGrupos"),
+        ]);
 
         setUsuarios(usuariosRes.data);
         setDepartamentos(deptosRes.data);
         setCategorias(catsRes.data);
         setGrupos(grupoRes.data);
-        setTecnicos(tecnicosRes.data);
 
         if (location.state?.ticketData) {
-          setFormData(prev => ({
+          setFormData((prev) => ({
             ...prev,
             ...location.state.ticketData,
-            fechaApertura: formatDateTimeForInput(location.state.ticketData.fechaApertura)
+            fechaApertura: formatDateTimeForInput(
+              location.state.ticketData.fechaApertura
+            ),
           }));
         }
       } catch (error) {
@@ -281,18 +294,26 @@ const handleSubmit = async (e) => {
     <MenuVertical>
       <>
         {/* Contenido Principal */}
-        <div className={styles.containerCrearCasoAdmin} >
+        <div className={styles.containerCrearCasoAdmin}>
           <div className={styles.containersolucion}>
-            <h1 className={styles.title}>{location.state?.ticketData ? 'Editar Ticket' : 'Creación de Ticket'}</h1>
+            <h1 className={styles.title}>
+              {location.state?.ticketData
+                ? "Editar Ticket"
+                : "Creación de Ticket"}
+            </h1>
 
             <div className={styles.layoutContainer}>
               <div className={styles.gloBoContainer}>
                 <div className={styles.gloBoHeader}>
-                  <h2>{location.state?.ticketData ? 'Editar Caso' : 'Crear Nuevo Caso'}</h2>
+                  <h2>
+                    {location.state?.ticketData
+                      ? "Editar Caso"
+                      : "Crear Nuevo Caso"}
+                  </h2>
                 </div>
 
                 <div className={styles.gloBoBody}>
-                  <form onSubmit= {  handleSubmit }>
+                  <form onSubmit={handleSubmit}>
                     <div className={styles.formGroup}>
                       <label>Entidad:*</label>
                       <select
@@ -303,8 +324,11 @@ const handleSubmit = async (e) => {
                         required
                       >
                         <option value="">Seleccione una entidad</option>
-                        {departamentos.map(depto => (
-                          <option key={depto.id_entidad} value={depto.id_entidad}>
+                        {departamentos.map((depto) => (
+                          <option
+                            key={depto.id_entidad}
+                            value={depto.id_entidad}
+                          >
                             {depto.nombre_entidad}
                           </option>
                         ))}
@@ -347,7 +371,10 @@ const handleSubmit = async (e) => {
                           name="archivos"
                           multiple
                         />
-                        <label htmlFor="fileUpload" className={styles.fileUploadButton}>
+                        <label
+                          htmlFor="fileUpload"
+                          className={styles.fileUploadButton}
+                        >
                           Seleccionar archivos
                         </label>
                         {formData.archivos.length > 0 && (
@@ -375,7 +402,11 @@ const handleSubmit = async (e) => {
                         className={styles.submitButton}
                         disabled={isLoading}
                       >
-                        {isLoading ? 'Procesando...' : (location.state?.ticketData ? 'Actualizar Ticket' : 'Crear Ticket')}
+                        {isLoading
+                          ? "Procesando..."
+                          : location.state?.ticketData
+                          ? "Actualizar Ticket"
+                          : "Crear Ticket"}
                       </button>
                     </div>
                   </form>
@@ -388,7 +419,11 @@ const handleSubmit = async (e) => {
                 <div className={styles.modalOverlay}>
                   <div className={styles.successModal}>
                     <div className={styles.modalHeader}>
-                      <h3>¡Ticket {location.state?.ticketData ? 'actualizado' : 'creado'} exitosamente!</h3>
+                      <h3>
+                        ¡Ticket{" "}
+                        {location.state?.ticketData ? "actualizado" : "creado"}{" "}
+                        exitosamente!
+                      </h3>
                       <button
                         onClick={handleCloseModal}
                         className={styles.modalCloseButton}
@@ -400,17 +435,29 @@ const handleSubmit = async (e) => {
                     <div className={styles.modalBody}>
                       <div className={styles.successIcon}>
                         <svg viewBox="0 0 24 24">
-                          <path fill="currentColor" d="M12 2C6.5 2 2 6.5 2 12S6.5 22 12 22 22 17.5 22 12 17.5 2 12 2M10 17L5 12L6.41 10.59L10 14.17L17.59 6.58L19 8L10 17Z" />
+                          <path
+                            fill="currentColor"
+                            d="M12 2C6.5 2 2 6.5 2 12S6.5 22 12 22 22 17.5 22 12 17.5 2 12 2M10 17L5 12L6.41 10.59L10 14.17L17.59 6.58L19 8L10 17Z"
+                          />
                         </svg>
                       </div>
-                      <p>El ticket fue {location.state?.ticketData ? 'actualizado' : 'creado'} con el número:</p>
-                      <p className={styles.ticketId}><strong>{createdTicketId}</strong></p>
+                      <p>
+                        El ticket fue{" "}
+                        {location.state?.ticketData ? "actualizado" : "creado"}{" "}
+                        con el número:
+                      </p>
+                      <p className={styles.ticketId}>
+                        <strong>{createdTicketId}</strong>
+                      </p>
 
                       <div className={styles.modalActions}>
                         <button
                           onClick={() => {
                             navigator.clipboard.writeText(createdTicketId);
-                            addNotification("Número de ticket copiado", "success");
+                            addNotification(
+                              "Número de ticket copiado",
+                              "success"
+                            );
                           }}
                           className={styles.copyButton}
                         >
@@ -469,8 +516,11 @@ const handleSubmit = async (e) => {
                       required
                     >
                       <option value="">Seleccione...</option>
-                      {categorias?.map(categoria => (
-                        <option key={categoria.id_categoria} value={categoria.id_categoria}>
+                      {categorias?.map((categoria) => (
+                        <option
+                          key={categoria.id_categoria}
+                          value={categoria.id_categoria}
+                        >
                           {categoria.nombre_categoria}
                         </option>
                       ))}
@@ -521,15 +571,15 @@ const handleSubmit = async (e) => {
                   <h4>Asignaciones</h4>
 
                   <div className={styles.formGroup}>
-                                    <label className={styles.casoLabel}>Solicitante*</label>
-                                    <input
-                                      className={styles.casoInput}
-                                      type="text"
-                                      value={nombre}
-                                      readOnly
-                                      disabled
-                                    />
-                                  </div>
+                    <label className={styles.casoLabel}>Solicitante*</label>
+                    <input
+                      className={styles.casoInput}
+                      type="text"
+                      value={userNombre}
+                      readOnly
+                      disabled
+                    />
+                  </div>
 
                   <div className={styles.formGroup}>
                     <label>Observador</label>
@@ -539,8 +589,11 @@ const handleSubmit = async (e) => {
                       onChange={handleChange}
                     >
                       <option value="">Seleccione un usuario...</option>
-                      {usuarios.map(usuario => (
-                        <option key={usuario.id_usuario} value={usuario.id_usuario}>
+                      {usuarios.map((usuario) => (
+                        <option
+                          key={usuario.id_usuario}
+                          value={usuario.id_usuario}
+                        >
                           {`${usuario.nombre_completo}`} ({usuario.correo})
                         </option>
                       ))}
@@ -556,7 +609,7 @@ const handleSubmit = async (e) => {
                       required
                     >
                       <option value="">Seleccione un grupo...</option>
-                      {grupos.map(grupo => (
+                      {grupos.map((grupo) => (
                         <option key={grupo.id_grupo} value={grupo.id_grupo}>
                           {grupo.nombre_grupo}
                         </option>
@@ -573,8 +626,11 @@ const handleSubmit = async (e) => {
                       required
                     >
                       <option value="">Seleccione un usuario...</option>
-                      {usuarios.map(usuario => (
-                        <option key={usuario.id_usuario} value={usuario.id_usuario}>
+                      {usuarios.map((usuario) => (
+                        <option
+                          key={usuario.id_usuario}
+                          value={usuario.id_usuario}
+                        >
                           {`${usuario.Nombre_completo}`} ({usuario.correo})
                         </option>
                       ))}

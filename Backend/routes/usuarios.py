@@ -8,11 +8,14 @@ usuarios_bp = Blueprint("usuarios", __name__)
 
 # Configuración para archivos adjuntos
 UPLOAD_FOLDER = 'uploads'
-ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'xlsx', 'doc', 'docx'}
+ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png',
+                      'jpg', 'jpeg', 'xlsx', 'doc', 'docx'}
+
 
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
 
 @usuarios_bp.route("/creacion", methods=["POST"])
 def crear_usuario():
@@ -29,17 +32,17 @@ def crear_usuario():
 
         # Validar campos requeridos
         campos_requeridos = [
-            nombre_usuario, 
-            nombre_completo, 
-            telefono, 
-            correo, 
-            rol, 
+            nombre_usuario,
+            nombre_completo,
+            telefono,
+            correo,
+            rol,
             contrasena
         ]
-        
+
         if not all(campos_requeridos):
             return jsonify({
-                "success": False, 
+                "success": False,
                 "message": "Faltan campos requeridos"
             }), 400
 
@@ -47,18 +50,20 @@ def crear_usuario():
         cursor = conn.cursor()
 
         # Verificar si el nombre de usuario ya existe
-        cursor.execute("SELECT id_usuario FROM usuarios WHERE nombre_usuario = %s", (nombre_usuario,))
+        cursor.execute(
+            "SELECT id_usuario FROM usuarios WHERE nombre_usuario = %s", (nombre_usuario,))
         if cursor.fetchone():
             return jsonify({
-                "success": False, 
+                "success": False,
                 "message": "El nombre de usuario ya existe"
             }), 400
 
         # Verificar si el correo ya existe
-        cursor.execute("SELECT id_usuario FROM usuarios WHERE correo = %s", (correo,))
+        cursor.execute(
+            "SELECT id_usuario FROM usuarios WHERE correo = %s", (correo,))
         if cursor.fetchone():
             return jsonify({
-                "success": False, 
+                "success": False,
                 "message": "El correo ya está registrado"
             }), 400
 
@@ -75,13 +80,13 @@ def crear_usuario():
             ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
         """
         cursor.execute(query, (
-            nombre_usuario, 
-            nombre_completo, 
-            correo, 
-            telefono, 
-            contrasena, 
-            rol, 
-            estado, 
+            nombre_usuario,
+            nombre_completo,
+            correo,
+            telefono,
+            contrasena,
+            rol,
+            estado,
             id_entidad
         ))
         conn.commit()
@@ -92,7 +97,7 @@ def crear_usuario():
         conn.close()
 
         return jsonify({
-            "success": True, 
+            "success": True,
             "message": "Usuario creado correctamente",
             "id_usuario": nuevo_id
         }), 201
@@ -100,9 +105,10 @@ def crear_usuario():
     except Exception as e:
         print("Error al crear usuario:", e)
         return jsonify({
-            "success": False, 
+            "success": False,
             "message": "Error interno del servidor"
         }), 500
+
 
 @usuarios_bp.route("/actualizacion/<int:usuario_id>", methods=["PUT"])
 def actualizar_usuario(usuario_id):
@@ -119,16 +125,16 @@ def actualizar_usuario(usuario_id):
 
         # Validar campos requeridos
         campos_requeridos = [
-            nombre_usuario, 
-            nombre_completo, 
-            telefono, 
-            correo, 
+            nombre_usuario,
+            nombre_completo,
+            telefono,
+            correo,
             rol
         ]
-        
+
         if not all(campos_requeridos):
             return jsonify({
-                "success": False, 
+                "success": False,
                 "message": "Faltan campos requeridos"
             }), 400
 
@@ -136,32 +142,33 @@ def actualizar_usuario(usuario_id):
         cursor = conn.cursor()
 
         # Verificar si el usuario existe
-        cursor.execute("SELECT id_usuario FROM usuarios WHERE id_usuario = %s", (usuario_id,))
+        cursor.execute(
+            "SELECT id_usuario FROM usuarios WHERE id_usuario = %s", (usuario_id,))
         if not cursor.fetchone():
             return jsonify({
-                "success": False, 
+                "success": False,
                 "message": "Usuario no encontrado"
             }), 404
 
         # Verificar si el nuevo nombre de usuario ya existe (excluyendo el actual)
         cursor.execute(
-            "SELECT id_usuario FROM usuarios WHERE nombre_usuario = %s AND id_usuario != %s", 
+            "SELECT id_usuario FROM usuarios WHERE nombre_usuario = %s AND id_usuario != %s",
             (nombre_usuario, usuario_id)
         )
         if cursor.fetchone():
             return jsonify({
-                "success": False, 
+                "success": False,
                 "message": "El nombre de usuario ya está en uso"
             }), 400
 
         # Verificar si el nuevo correo ya existe (excluyendo el actual)
         cursor.execute(
-            "SELECT id_usuario FROM usuarios WHERE correo = %s AND id_usuario != %s", 
+            "SELECT id_usuario FROM usuarios WHERE correo = %s AND id_usuario != %s",
             (correo, usuario_id)
         )
         if cursor.fetchone():
             return jsonify({
-                "success": False, 
+                "success": False,
                 "message": "El correo ya está registrado"
             }), 400
 
@@ -181,14 +188,14 @@ def actualizar_usuario(usuario_id):
                 WHERE id_usuario = %s
             """
             params = (
-                nombre_usuario, 
-                nombre_completo, 
-                correo, 
+                nombre_usuario,
+                nombre_completo,
+                correo,
                 telefono,
-                contrasena, 
-                rol, 
-                estado, 
-                id_entidad, 
+                contrasena,
+                rol,
+                estado,
+                id_entidad,
                 usuario_id
             )
         else:
@@ -205,13 +212,13 @@ def actualizar_usuario(usuario_id):
                 WHERE id_usuario = %s
             """
             params = (
-                nombre_usuario, 
-                nombre_completo, 
+                nombre_usuario,
+                nombre_completo,
                 correo,
-                telefono, 
-                rol, 
-                estado, 
-                id_entidad, 
+                telefono,
+                rol,
+                estado,
+                id_entidad,
                 usuario_id
             )
 
@@ -220,7 +227,7 @@ def actualizar_usuario(usuario_id):
 
         if cursor.rowcount == 0:
             return jsonify({
-                "success": False, 
+                "success": False,
                 "message": "No se realizaron cambios"
             }), 400
 
@@ -228,23 +235,24 @@ def actualizar_usuario(usuario_id):
         conn.close()
 
         return jsonify({
-            "success": True, 
+            "success": True,
             "message": "Usuario actualizado correctamente"
         }), 200
 
     except Exception as e:
         print("Error al actualizar usuario:", e)
         return jsonify({
-            "success": False, 
+            "success": False,
             "message": "Error interno del servidor"
         }), 500
+
 
 @usuarios_bp.route("/obtener", methods=["GET"])
 def obtener_usuarios():
     try:
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
-        
+
         # Obtener usuarios con información de entidad
         query = """
             SELECT 
@@ -264,16 +272,17 @@ def obtener_usuarios():
         """
         cursor.execute(query)
         usuarios = cursor.fetchall()
-        
+
         cursor.close()
         conn.close()
         return jsonify(usuarios)
     except Exception as e:
         print("Error al obtener usuarios:", e)
         return jsonify({
-            "success": False, 
+            "success": False,
             "message": "Error al obtener usuarios"
         }), 500
+
 
 @usuarios_bp.route("/eliminar/<int:usuario_id>", methods=["DELETE"])
 def eliminar_usuario(usuario_id):
@@ -281,41 +290,44 @@ def eliminar_usuario(usuario_id):
     cursor = conn.cursor()
     try:
         # Verificar si el usuario existe
-        cursor.execute("SELECT id_usuario FROM usuarios WHERE id_usuario = %s", (usuario_id,))
+        cursor.execute(
+            "SELECT id_usuario FROM usuarios WHERE id_usuario = %s", (usuario_id,))
         usuario = cursor.fetchone()
-        
+
         if not usuario:
             return jsonify({
-                "success": False, 
+                "success": False,
                 "message": "Usuario no encontrado"
             }), 404
 
         # Eliminar el usuario
-        cursor.execute("DELETE FROM usuarios WHERE id_usuario = %s", (usuario_id,))
+        cursor.execute(
+            "DELETE FROM usuarios WHERE id_usuario = %s", (usuario_id,))
         conn.commit()
 
         if cursor.rowcount == 0:
             return jsonify({
-                "success": False, 
+                "success": False,
                 "message": "No se pudo eliminar el usuario"
             }), 400
 
         return jsonify({
-            "success": True, 
+            "success": True,
             "message": "Usuario eliminado correctamente"
         }), 200
-        
+
     except Exception as e:
         print("Error al eliminar usuario:", e)
         conn.rollback()
         return jsonify({
-            "success": False, 
+            "success": False,
             "message": "Error al eliminar el usuario"
         }), 500
-        
+
     finally:
         cursor.close()
         conn.close()
+
 
 @usuarios_bp.route("/obtenerEntidades", methods=["GET"])
 def obtener_entidades():
@@ -330,33 +342,36 @@ def obtener_entidades():
     except Exception as e:
         print("Error al obtener entidades:", e)
         return jsonify({
-            "success": False, 
+            "success": False,
             "message": "Error al obtener entidades"
         }), 500
+
 
 @usuarios_bp.route("/verificar-estado/<string:nombre_usuario>", methods=["GET"])
 def verificar_estado_usuario(nombre_usuario):
     try:
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
-        
-        cursor.execute("SELECT estado FROM usuarios WHERE nombre_usuario = %s", (nombre_usuario,))
+
+        cursor.execute(
+            "SELECT estado FROM usuarios WHERE nombre_usuario = %s", (nombre_usuario,))
         usuario = cursor.fetchone()
-        
+
         cursor.close()
         conn.close()
-        
+
         if not usuario:
             return jsonify({"success": False, "message": "Usuario no encontrado"}), 404
-            
+
         return jsonify({
             "success": True,
             "estado": usuario['estado']
         }), 200
-        
+
     except Exception as e:
         print("Error al verificar estado:", e)
         return jsonify({"success": False, "message": "Error interno del servidor"}), 500
+
 
 @usuarios_bp.route("/obtenerGrupos", methods=["GET"])
 def obtener_grupos():
@@ -371,9 +386,10 @@ def obtener_grupos():
     except Exception as e:
         print("Error al obtener grupos:", e)
         return jsonify({
-            "success": False, 
+            "success": False,
             "message": "Error al obtener grupos"
         }), 500
+
 
 @usuarios_bp.route("/obtenerCategorias", methods=["GET"])
 def obtener_categorias():
@@ -388,16 +404,17 @@ def obtener_categorias():
     except Exception as e:
         print("Error al obtener categorías:", e)
         return jsonify({
-            "success": False, 
+            "success": False,
             "message": "Error al obtener categorías"
         }), 500
+
 
 @usuarios_bp.route("/obtenerUsuario/<int:usuario_id>", methods=["GET"])
 def obtener_usuario(usuario_id):
     try:
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
-        
+
         cursor.execute("""
             SELECT 
                 u.id_usuario,
@@ -413,20 +430,21 @@ def obtener_usuario(usuario_id):
             LEFT JOIN entidades e ON u.id_entidad1 = e.id_entidad
             WHERE u.id_usuario = %s
         """, (usuario_id,))
-        
+
         usuario = cursor.fetchone()
         cursor.close()
         conn.close()
-        
+
         if not usuario:
             return jsonify({"success": False, "message": "Usuario no encontrado"}), 404
-            
+
         return jsonify(usuario)
-        
+
     except Exception as e:
         print("Error al obtener usuario:", e)
         return jsonify({"success": False, "message": "Error al obtener usuario"}), 500
-    
+
+
 @usuarios_bp.route("/tickets", methods=["POST"])
 def crear_ticket():
     try:
@@ -442,7 +460,7 @@ def crear_ticket():
         # Validación de campos requeridos
         if not all([prioridad, titulo, descripcion, ubicacion, tipo, categoria, solicitante]):
             return jsonify({
-                "success": False, 
+                "success": False,
                 "message": "Faltan campos requeridos"
             }), 400
 
@@ -463,11 +481,11 @@ def crear_ticket():
             ) VALUES (%s, %s, %s, %s, %s, %s, %s, 'nuevo')
         """
         cursor.execute(query_ticket, (
-            prioridad, 
-            tipo, 
-            titulo, 
+            prioridad,
+            tipo,
+            titulo,
             descripcion,
-            ubicacion, 
+            ubicacion,
             categoria,
             solicitante
         ))
@@ -485,11 +503,11 @@ def crear_ticket():
             # Crear directorio si no existe
             if not os.path.exists(UPLOAD_FOLDER):
                 os.makedirs(UPLOAD_FOLDER)
-                
+
             filename = secure_filename(archivo.filename)
             filepath = os.path.join(UPLOAD_FOLDER, filename)
             archivo.save(filepath)
-            
+
             query_adjunto = """
                 INSERT INTO adjuntos_tickets (
                     id_ticket1, 
@@ -512,7 +530,7 @@ def crear_ticket():
         conn.close()
 
         return jsonify({
-            "success": True, 
+            "success": True,
             "message": "Ticket creado correctamente",
             "ticket_id": ticket_id
         }), 201
@@ -523,19 +541,20 @@ def crear_ticket():
             conn.rollback()
             conn.close()
         return jsonify({
-            "success": False, 
+            "success": False,
             "message": "Error interno del servidor"
         }), 500
+
 
 @usuarios_bp.route("/tickets", methods=["GET"])
 def obtener_tickets():
     try:
         usuario_id = request.args.get("usuario_id")
         rol = request.args.get("rol")
-        
+
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
-        
+
         query = """
             SELECT 
                 t.id_ticket as id,
@@ -559,34 +578,37 @@ def obtener_tickets():
             LEFT JOIN usuarios tec ON t.id_tecnico_asignado = tec.id_usuario
             LEFT JOIN grupos g ON t.id_grupo1 = g.id_grupo
         """
-        
+
         params = []
         if rol and rol.lower() not in ['administrador', 'tecnico'] and usuario_id:
             query += " WHERE ut.id_usuario1 = %s"
             params.append(usuario_id)
-        
+
         # Ordenar por fecha de creación descendente (más reciente primero)
         query += " ORDER BY t.fecha_creacion DESC"
-        
+
         cursor.execute(query, params)
         tickets = cursor.fetchall()
-        
+
         for ticket in tickets:
-            ticket['fecha_creacion'] = ticket['fecha_creacion'].strftime('%Y-%m-%d %H:%M:%S')
+            ticket['fecha_creacion'] = ticket['fecha_creacion'].strftime(
+                '%Y-%m-%d %H:%M:%S')
             if ticket['ultimaActualizacion']:
-                ticket['ultimaActualizacion'] = ticket['ultimaActualizacion'].strftime('%Y-%m-%d %H:%M:%S')
-        
+                ticket['ultimaActualizacion'] = ticket['ultimaActualizacion'].strftime(
+                    '%Y-%m-%d %H:%M:%S')
+
         cursor.close()
         conn.close()
-        
+
         return jsonify(tickets)
 
     except Exception as e:
         print("Error al obtener tickets:", e)
         return jsonify({
-            "success": False, 
+            "success": False,
             "message": "Error al obtener tickets"
         }), 500
+
 
 @usuarios_bp.route("/tickets/<int:id_ticket>", methods=["GET"])
 def obtener_ticket_por_id(id_ticket):
@@ -620,13 +642,15 @@ def obtener_ticket_por_id(id_ticket):
         """, (id_ticket,))
 
         ticket = cursor.fetchone()
-        
+
         if ticket:
             # Formatear fechas
-            ticket['fechaApertura'] = ticket['fechaApertura'].strftime('%Y-%m-%d %H:%M:%S')
+            ticket['fechaApertura'] = ticket['fechaApertura'].strftime(
+                '%Y-%m-%d %H:%M:%S')
             if ticket['ultimaActualizacion']:
-                ticket['ultimaActualizacion'] = ticket['ultimaActualizacion'].strftime('%Y-%m-%d %H:%M:%S')
-            
+                ticket['ultimaActualizacion'] = ticket['ultimaActualizacion'].strftime(
+                    '%Y-%m-%d %H:%M:%S')
+
             # Obtener adjuntos si existen
             cursor.execute("""
                 SELECT * FROM adjuntos_tickets 
@@ -640,7 +664,7 @@ def obtener_ticket_por_id(id_ticket):
 
         if not ticket:
             return jsonify({
-                "success": False, 
+                "success": False,
                 "message": "Ticket no encontrado"
             }), 404
 
@@ -649,9 +673,10 @@ def obtener_ticket_por_id(id_ticket):
     except Exception as e:
         print("Error al obtener el ticket:", e)
         return jsonify({
-            "success": False, 
+            "success": False,
             "message": "Error al obtener el ticket"
         }), 500
+
 
 @usuarios_bp.route("/tickets/<int:id_ticket>", methods=["PUT"])
 def actualizar_ticket(id_ticket):
@@ -667,7 +692,7 @@ def actualizar_ticket(id_ticket):
         # Validar campos requeridos
         user_id = data.get("user_id")
         user_role = data.get("user_role")
-        
+
         if not user_id or not user_role:
             return jsonify({
                 "success": False,
@@ -683,7 +708,7 @@ def actualizar_ticket(id_ticket):
             WHERE id_ticket = %s
         """, (id_ticket,))
         ticket = cursor.fetchone()
-        
+
         if not ticket:
             return jsonify({
                 "success": False,
@@ -700,12 +725,12 @@ def actualizar_ticket(id_ticket):
         # Preparar actualización
         updates = []
         params = []
-        
+
         # Campos actualizables por todos
         if 'titulo' in data:
             updates.append("titulo = %s")
             params.append(data['titulo'])
-        
+
         if 'descripcion' in data:
             updates.append("descripcion = %s")
             params.append(data['descripcion'])
@@ -719,15 +744,15 @@ def actualizar_ticket(id_ticket):
             if 'prioridad' in data:
                 updates.append("prioridad = %s")
                 params.append(data['prioridad'])
-            
+
             if 'tipo' in data:
                 updates.append("tipo = %s")
                 params.append(data['tipo'])
-            
+
             if 'ubicacion' in data:
                 updates.append("ubicacion = %s")
                 params.append(data['ubicacion'])
-            
+
             if 'categoria' in data:
                 updates.append("id_categoria1 = %s")
                 params.append(data['categoria'])
@@ -746,17 +771,17 @@ def actualizar_ticket(id_ticket):
         if archivo and allowed_file(archivo.filename):
             filename = secure_filename(archivo.filename)
             filepath = os.path.join(UPLOAD_FOLDER, filename)
-            
+
             # Crear directorio si no existe
             os.makedirs(UPLOAD_FOLDER, exist_ok=True)
             archivo.save(filepath)
-            
+
             # Eliminar adjuntos anteriores
             cursor.execute("""
                 DELETE FROM adjuntos_tickets 
                 WHERE id_ticket1 = %s
             """, (id_ticket,))
-            
+
             # Insertar nuevo adjunto
             cursor.execute("""
                 INSERT INTO adjuntos_tickets 
@@ -782,14 +807,15 @@ def actualizar_ticket(id_ticket):
             "success": False,
             "message": f"Error al actualizar ticket: {str(e)}"
         }), 500
-        
+
     finally:
         cursor.close()
         conn.close()
 
+
 @usuarios_bp.route("/estado_tickets", methods=["GET"])
 def obtener_estado_tickets():
-    estado = request.args.get("estado")  
+    estado = request.args.get("estado")
     usuario_id = request.args.get("usuario_id")
     rol = request.args.get("rol")
 
@@ -836,12 +862,14 @@ def obtener_estado_tickets():
 
         cursor.execute(query, params)
         tickets = cursor.fetchall()
-        
+
         # Formatear fechas
         for ticket in tickets:
-            ticket['fecha_creacion'] = ticket['fecha_creacion'].strftime('%Y-%m-%d %H:%M:%S')
+            ticket['fecha_creacion'] = ticket['fecha_creacion'].strftime(
+                '%Y-%m-%d %H:%M:%S')
             if ticket['ultimaActualizacion']:
-                ticket['ultimaActualizacion'] = ticket['ultimaActualizacion'].strftime('%Y-%m-%d %H:%M:%S')
+                ticket['ultimaActualizacion'] = ticket['ultimaActualizacion'].strftime(
+                    '%Y-%m-%d %H:%M:%S')
 
         cursor.close()
         conn.close()
@@ -851,6 +879,59 @@ def obtener_estado_tickets():
     except Exception as e:
         print("Error al obtener tickets:", e)
         return jsonify({
-            "success": False, 
+            "success": False,
             "message": "Error al obtener tickets"
+        }), 500
+
+
+@usuarios_bp.route("/tickets/tecnico/<int:id_tecnico>", methods=["GET"])
+def obtener_tickets_por_tecnico(id_tecnico):
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+
+        query = """
+    SELECT 
+        t.id_ticket as id,
+        t.titulo,
+        t.descripcion,
+        t.prioridad,
+        t.estado_ticket as estado,
+        t.tipo,
+        t.ubicacion,
+        t.fecha_creacion,
+        t.fecha_actualizacion as ultimaActualizacion,
+        t.id_tecnico_asignado,  -- <--- aquí lo agregas
+        c.nombre_categoria AS categoria,
+        u.nombre_completo AS solicitante,
+        u.id_usuario AS solicitanteId
+    FROM tickets t
+    LEFT JOIN categorias c ON t.id_categoria1 = c.id_categoria
+    LEFT JOIN usuarios_tickets ut ON t.id_ticket = ut.id_ticket3
+    LEFT JOIN usuarios u ON ut.id_usuario1 = u.id_usuario
+    WHERE t.id_tecnico_asignado = %s
+    ORDER BY t.fecha_creacion DESC
+"""
+
+        cursor.execute(query, (id_tecnico,))
+        tickets = cursor.fetchall()
+        print(tickets)
+        # Formatear fechas
+        for ticket in tickets:
+            ticket['fecha_creacion'] = ticket['fecha_creacion'].strftime(
+                '%Y-%m-%d %H:%M:%S')
+            if ticket['ultimaActualizacion']:
+                ticket['ultimaActualizacion'] = ticket['ultimaActualizacion'].strftime(
+                    '%Y-%m-%d %H:%M:%S')
+
+        cursor.close()
+        conn.close()
+
+        return jsonify(tickets)
+
+    except Exception as e:
+        print("Error al obtener tickets por técnico:", e)
+        return jsonify({
+            "success": False,
+            "message": "Error al obtener tickets por técnico"
         }), 500

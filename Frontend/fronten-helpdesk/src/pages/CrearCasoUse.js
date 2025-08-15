@@ -131,18 +131,21 @@ const CrearCasoUse = () => {
           );
           const ticketData = response.data;
 
+          // Buscar el ID de la categoría correspondiente al nombre recibido
+          const categoriaId = categorias.find(cat => cat.nombre_categoria === ticketData.categoria)?.id_categoria;
+
           setFormData({
             id: ticketData.id,
             tipo: ticketData.tipo,
             origen: ticketData.origen || userData.entidad,
             ubicacion: ticketData.ubicacion,
             prioridad: ticketData.prioridad,
-            categoria: ticketData.id_categoria1,
+            categoria: categoriaId || "", // Asignar el ID de la categoría si se encuentra
             titulo: ticketData.titulo,
             descripcion: ticketData.descripcion,
             archivo: null,
             solicitante: userId,
-            estado: ticketData.estado_ticket
+            estado: ticketData.estado
           });
         } else {
           // En modo creación, establecer el origen con la entidad del usuario
@@ -159,7 +162,7 @@ const CrearCasoUse = () => {
     };
 
     fetchInitialData();
-  }, [id, location.state, isEditMode, userId]);
+  }, [id, location.state, isEditMode, userId, categorias]);
 
   // Manejo de cambios en el formulario
   const handleChange = (e) => {

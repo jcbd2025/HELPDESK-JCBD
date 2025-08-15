@@ -63,6 +63,8 @@ const HomePage = () => {
   const userRole = localStorage.getItem("rol") || "usuario";
   const nombre = localStorage.getItem("nombre");
   const userId = localStorage.getItem("id_usuario");
+  console.log("verificando el userId:", userId);
+  
   const { addNotification } = useContext(NotificationContext);
 
   const roleToPath = {
