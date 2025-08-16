@@ -1,14 +1,10 @@
-import React, { useState, useEffect, useMemo, useCallback } from "react";
-import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
-import { FaPowerOff, FaFileExcel, FaFilePdf, FaFileCsv, FaChevronDown, FaChevronLeft, FaChevronRight } from "react-icons/fa";
-import { FiAlignJustify } from "react-icons/fi";
+import React, { useState, useEffect, useCallback } from "react";
+import { useLocation, useNavigate, Link } from "react-router-dom";
+import { FaFileExcel, FaFilePdf, FaFileCsv, FaChevronDown, FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import { FaMagnifyingGlass } from "react-icons/fa6";
-import { FcEmptyFilter, FcHome, FcAssistant, FcBusinessman, FcAutomatic, FcAnswers, FcCustomerSupport, FcBullish, FcPortraitMode, FcConferenceCall, FcOrganization, FcGenealogy, FcPrint } from "react-icons/fc";
+import { FcEmptyFilter, FcPrint } from "react-icons/fc";
 import axios from "axios";
-import Logo from "../imagenes/logo proyecto color.jpeg";
-import Logoempresarial from "../imagenes/logo empresarial.png";
 import ChatBot from "../Componentes/ChatBot";
-import { NotificationContext } from "../context/NotificationContext";
 import styles from "../styles/Tickets.module.css";
 import MenuVertical from "../Componentes/MenuVertical";
 
@@ -21,43 +17,20 @@ const Tickets = () => {
   const location = useLocation();
 
   // 2. Estados principales
-  const [isChatOpen, setIsChatOpen] = useState(false);
-  const [isMenuExpanded, setIsMenuExpanded] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isSupportOpen, setIsSupportOpen] = useState(false);
-  const [isAdminOpen, setIsAdminOpen] = useState(false);
-  const [isConfigOpen, setIsConfigOpen] = useState(false);
   const [isExportDropdownOpen, setIsExportDropdownOpen] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [searchTerm, setSearchTerm] = useState("");
   const [toolbarSearchTerm, setToolbarSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(15);
   const [usuarios, setUsuarios] = useState([]);
   const [grupos, setGrupos] = useState([]);
   const [categorias, setCategorias] = useState([]);
+  const [tickets, setTickets] = useState([]);
+  const [filteredTickets, setFilteredTickets] = useState([]);
 
-  // 3. Datos y filtros
-  const initialData = useMemo(() => Array.from({ length: 100 }, (_, i) => ({
-    id: `2503290${(1000 - i).toString().padStart(3, "0")}`,
-    id_ticket: `2503290${(1000 - i).toString().padStart(3, "0")}`,
-    titulo: `CREACION DE USUARIOS - PARALELO ACADEMICO ${i + 1}`,
-    solicitante: "Jenyfer Quintero Calixto",
-    descripcion: "ALIMENTAR EL EXCEL DE DELOGIN",
-    prioridad: ["Mediana", "Alta", "Baja"][i % 3],
-    estado: ["Nuevo", "En Espera", "Cerrado", "Resuelto", "En Curso"][i % 5],
-    tecnico: "Jenyfer Quintero Calixto",
-    grupo: "EDQ B",
-    categoria: "CREACION DE USUARIO",
-    ultimaActualizacion: "2025-03-29 03:40",
-    fecha_creacion: "2025-03-29 03:19",
-    fechaApertura: "2025-03-29 03:19",
-  })), []);
-
-  const [tickets, setTickets] = useState(initialData);
-  const [filteredTickets, setFilteredTickets] = useState(initialData);
+  // 3. Estado de filtros
   const [filters, setFilters] = useState({
     id: "",
     titulo: "",
@@ -68,52 +41,8 @@ const Tickets = () => {
     grupo: "",
     categoria: "",
   });
-  const [formData, setFormData] = useState({
-    id: "",
-    tipo: "incidencia",
-    origen: "",
-    prioridad: "mediana",
-    categoria: "",
-    titulo: "",
-    descripcion: "",
-    archivos: [],
-    solicitante: nombre || "",
-    elementos: "",
-    entidad: "",
-    estado: "nuevo",
-    ubicacion: "",
-    observador: "",
-    asignado_a: "",
-    grupo_asignado: "",
-    fechaApertura: new Date().toISOString().slice(0, 16)
-  });
 
-  // Manejo de cambios en el formulario
-  const handleChange = (e) => {
-    const { name, value, files } = e.target;
-
-    if (name === "archivos" && files) {
-      setFormData(prev => ({
-        ...prev,
-        archivos: Array.from(files)
-      }));
-    } else {
-      setFormData(prev => ({
-        ...prev,
-        [name]: value
-      }));
-    }
-  };
-
-  const removeFile = (index) => {
-    setFormData(prev => {
-      const newFiles = [...prev.archivos];
-      newFiles.splice(index, 1);
-      return { ...prev, archivos: newFiles };
-    });
-  };
-
-  // 4. Funciones principales
+  // 4. Obtener tickets de la API
   const fetchTickets = useCallback(async () => {
     setIsLoading(true);
     setError(null);
@@ -142,50 +71,25 @@ const Tickets = () => {
       setFilteredTickets(normalizedTickets);
     } catch (err) {
       setError("Error al cargar tickets");
-      setTickets(initialData);
-      setFilteredTickets(initialData);
+      console.error("Error fetching tickets:", err);
     } finally {
       setIsLoading(false);
     }
-  }, [initialData]);
+  }, []);
 
-  const handleSearch = useCallback((searchValue) => {
-    const term = searchValue.toLowerCase().trim();
-    setSearchTerm(term);
-    if (term) {
-      navigate(`/busqueda-global?query=${encodeURIComponent(term)}`);
-    }
-  }, [navigate]);
-
-  const handleToolbarSearch = useCallback((searchValue) => {
-    const term = searchValue.toLowerCase().trim();
-    setToolbarSearchTerm(term);
-
-    if (!term) {
-      setFilteredTickets(tickets);
-      return;
-    }
-
-    const filtered = tickets.filter((item) =>
-      Object.values(item).some((val) =>
-        val !== null && val !== undefined && String(val).toLowerCase().includes(term)
-      )
-    );
-
-    setFilteredTickets(filtered);
-    setCurrentPage(1);
-  }, [tickets]);
-
+  // 5. Aplicar filtros
   const applyFilters = useCallback(() => {
-    const filteredData = tickets.filter((item) =>
-      Object.keys(filters).every((key) =>
-        !filters[key] || String(item[key] || "").toLowerCase().includes(filters[key].toLowerCase())
-      )
-    );
+    const filteredData = tickets.filter((item) => {
+      return Object.keys(filters).every((key) => {
+        if (!filters[key]) return true;
+        return String(item[key] || "").toLowerCase().includes(filters[key].toLowerCase());
+      });
+    });
     setFilteredTickets(filteredData);
     setCurrentPage(1);
   }, [filters, tickets]);
 
+  // 6. Limpiar filtros
   const clearFilters = useCallback(() => {
     setFilters({
       id: "",
@@ -201,10 +105,30 @@ const Tickets = () => {
     setCurrentPage(1);
   }, [tickets]);
 
-  // 5. Efectos secundarios
+  // 7. Buscar en la barra de herramientas
+  const handleToolbarSearch = useCallback((searchValue) => {
+    const term = searchValue.toLowerCase().trim();
+    setToolbarSearchTerm(term);
+
+    if (!term) {
+      setFilteredTickets(tickets);
+      return;
+    }
+
+    const filtered = tickets.filter((item) =>
+      Object.values(item).some((val) =>
+        val !== null && val !== undefined && String(val).toLowerCase().includes(term)
+      )
+    )
+
+    setFilteredTickets(filtered);
+    setCurrentPage(1);
+  }, [tickets]);
+
+  // 8. Efectos secundarios
   useEffect(() => {
     fetchTickets();
-  }, []);
+  }, [fetchTickets]);
 
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
@@ -215,69 +139,14 @@ const Tickets = () => {
     }
   }, [location.search, handleToolbarSearch]);
 
-  // 6. Funciones de UI
-  const toggleChat = () => setIsChatOpen(!isChatOpen);
-  const toggleMenu = () => setIsMenuExpanded(!isMenuExpanded);
-  const toggleMobileMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);
-  const toggleExportDropdown = () => setIsExportDropdownOpen(!isExportDropdownOpen);
+  // 9. Aplicar filtros cuando cambian
+  useEffect(() => {
+    applyFilters();
+  }, [filters, applyFilters]);
 
-  const toggleSupport = (e) => {
-    e?.stopPropagation();
-    setIsSupportOpen(!isSupportOpen);
-    setIsAdminOpen(false);
-    setIsConfigOpen(false);
-  };
 
-  const toggleAdmin = (e) => {
-    e?.stopPropagation();
-    setIsAdminOpen(!isAdminOpen);
-    setIsSupportOpen(false);
-    setIsConfigOpen(false);
-  };
 
-  const toggleConfig = (e) => {
-    e?.stopPropagation();
-    setIsConfigOpen(!isConfigOpen);
-    setIsSupportOpen(false);
-    setIsAdminOpen(false);
-  };
-
-  // 7. Funciones de paginación
-  const indexOfLastRow = currentPage * rowsPerPage;
-  const indexOfFirstRow = indexOfLastRow - rowsPerPage;
-  const currentRows = useMemo(() =>
-    filteredTickets.slice(indexOfFirstRow, indexOfLastRow),
-    [filteredTickets, indexOfFirstRow, indexOfLastRow]
-  );
-
-  const totalPages = Math.ceil(filteredTickets.length / rowsPerPage);
-
-  const paginate = (pageNumber) => setCurrentPage(pageNumber);
-  const nextPage = () => currentPage < totalPages && setCurrentPage(currentPage + 1);
-  const prevPage = () => currentPage > 1 && setCurrentPage(currentPage - 1);
-
-  // 8. Funciones de exportación
-  const exportToExcel = () => {
-    console.log("Exportando a Excel", filteredTickets);
-    setIsExportDropdownOpen(false);
-  };
-
-  const exportToPdf = () => {
-    console.log("Exportando a PDF", filteredTickets);
-    setIsExportDropdownOpen(false);
-  };
-
-  const exportToCsv = () => {
-    console.log("Exportando a CSV", filteredTickets);
-    setIsExportDropdownOpen(false);
-  };
-
-  const printTable = () => {
-    window.print();
-    setIsExportDropdownOpen(false);
-  };
-
-  // 9. Render condicional temprano
+  // 10. Render condicional temprano
   if (!isAdminOrTech) {
     return (
       <div className={styles.accessDenied}>
@@ -290,8 +159,13 @@ const Tickets = () => {
     );
   }
 
+  // 11. Paginación
+  const indexOfLastRow = currentPage * rowsPerPage;
+  const indexOfFirstRow = indexOfLastRow - rowsPerPage;
+  const currentRows = filteredTickets.slice(indexOfFirstRow, indexOfLastRow);
+  const totalPages = Math.ceil(filteredTickets.length / rowsPerPage);
 
-  // 11. Formateador de fechas
+  // 12. Formateador de fechas
   const formatDate = (dateString) => {
     if (!dateString) return 'Sin fecha';
     try {
@@ -311,207 +185,236 @@ const Tickets = () => {
     }
   };
 
-  // 12. Render principal
+  // 13. Exportar datos
+  const exportData = (type) => {
+    console.log(`Exportando a ${type}`, filteredTickets);
+    setIsExportDropdownOpen(false);
+  };
+
   return (
     <MenuVertical>
-      <>
-
-        {/* Contenido principal - Tabla de tickets */}
-        <div className={styles.containerticket} >
-          {/* Barra de herramientas */}
-          <div className={styles.toolbar}>
-            <div className={styles.searchContainer}>
-              <input
-                className={styles.search}
-                type="text"
-                placeholder="Buscar en tickets..."
-                value={toolbarSearchTerm}
-                onChange={(e) => setToolbarSearchTerm(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleToolbarSearch(toolbarSearchTerm)}
-              />
-              <button
-                type="button"
-                className={styles.buttonBuscar}
-                title="Buscar"
-                onClick={() => handleToolbarSearch(toolbarSearchTerm)}
-              >
-                <FaMagnifyingGlass className={styles.searchIcon} />
-              </button>
-            </div>
-
-            <div className={styles.actions}>
-              <button
-                onClick={() => setShowFilters(!showFilters)}
-                className={styles.Buttonfiltros}
-                title="Alternar filtros"
-              >
-                <FcEmptyFilter />
-                <span className={styles.mostrasfiltros}>
-                  {showFilters ? "Ocultar" : "Mostrar"} filtros
-                </span>
-              </button>
-
-              {/* Dropdown de exportación */}
-              <div className={styles.exportDropdown}>
-                <button
-                  onClick={toggleExportDropdown}
-                  className={styles.exportButton}
-                  title="Opciones de exportación"
-                >
-                  Exportar <FaChevronDown className={styles.dropdownIcon} />
-                </button>
-                {isExportDropdownOpen && (
-                  <div className={styles.exportDropdownContent} onMouseLeave={() => setIsExportDropdownOpen(false)}>
-                    <button onClick={exportToExcel} className={styles.exportOption}><FaFileExcel /> Excel</button>
-                    <button onClick={exportToPdf} className={styles.exportOption}><FaFilePdf /> PDF</button>
-                    <button onClick={exportToCsv} className={styles.exportOption}><FaFileCsv /> CSV</button>
-                    <button onClick={printTable} className={styles.exportOption}><FcPrint /> Imprimir</button>
-                  </div>
-                )}
-              </div>
-            </div>
+      <div className={styles.containerticket}>
+        {/* Barra de herramientas */}
+        <div className={styles.toolbar}>
+          <div className={styles.searchContainer}>
+            <input
+              className={styles.search}
+              type="text"
+              placeholder="Buscar en tickets..."
+              value={toolbarSearchTerm}
+              onChange={(e) => setToolbarSearchTerm(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && handleToolbarSearch(toolbarSearchTerm)}
+            />
+            <button
+              type="button"
+              className={styles.buttonBuscar}
+              title="Buscar"
+              onClick={() => handleToolbarSearch(toolbarSearchTerm)}
+            >
+              <FaMagnifyingGlass className={styles.searchIcon} />
+            </button>
           </div>
 
-          {/* Panel de filtros */}
-          {showFilters && (
-            <div className={styles.filterPanel}>
-              <div className={styles.filterRow}>
-                <div className={styles.filterGroup}>
-                  <label>ID</label>
-                  <input type="text" name="id" value={filters.id} onChange={(e) => setFilters({ ...filters, id: e.target.value })} />
+          <div className={styles.actions}>
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className={styles.Buttonfiltros}
+              title="Alternar filtros"
+            >
+              <FcEmptyFilter />
+              <span className={styles.mostrasfiltros}>
+                {showFilters ? "Ocultar" : "Mostrar"} filtros
+              </span>
+            </button>
+
+            {/* Dropdown de exportación */}
+            <div className={styles.exportDropdown}>
+              <button
+                onClick={() => setIsExportDropdownOpen(!isExportDropdownOpen)}
+                className={styles.exportButton}
+                title="Opciones de exportación"
+              >
+                Exportar <FaChevronDown className={styles.dropdownIcon} />
+              </button>
+              {isExportDropdownOpen && (
+                <div
+                  className={styles.exportDropdownContent}
+                  onMouseLeave={() => setIsExportDropdownOpen(false)}
+                >
+                  <button onClick={() => exportData('Excel')} className={styles.exportOption}>
+                    <FaFileExcel /> Excel
+                  </button>
+                  <button onClick={() => exportData('PDF')} className={styles.exportOption}>
+                    <FaFilePdf /> PDF
+                  </button>
+                  <button onClick={() => exportData('CSV')} className={styles.exportOption}>
+                    <FaFileCsv /> CSV
+                  </button>
+                  <button onClick={() => window.print()} className={styles.exportOption}>
+                    <FcPrint /> Imprimir
+                  </button>
                 </div>
-                <div className={styles.filterGroup}>
-                  <label>Título</label>
-                  <input type="text" name="titulo" value={filters.titulo} onChange={(e) => setFilters({ ...filters, titulo: e.target.value })} />
-                </div>
-                <div className={styles.filterGroup}>
-                  <label>Solicitante:</label>
-                  <select
-                    name="solicitante"
-                    value={formData.solicitante}
-                    onChange={handleChange}
-                    required
-                  >
-                    <option value="">Seleccione un usuario...</option>
-                    {usuarios.map(usuario => (
-                      <option key={usuario.id_usuario} value={usuario.id_usuario}>
-                        {`${usuario.nombre_completo}`} ({usuario.correo})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-              <div className={styles.filterRow}>
-                <div className={styles.filterGroup}>
-                  <label>Prioridad:</label>
-                  <select name="prioridad" value={filters.prioridad} onChange={(e) => setFilters({ ...filters, prioridad: e.target.value })}>
-                    <option value="">Seleccione...</option>
-                    <option value="alta">Alta</option>
-                    <option value="media">Media</option>
-                    <option value="baja">Baja</option>
-                  </select>
-                </div>
-                <div className={styles.filterGroup}>
-                  <label>Estado:</label>
-                  <select name="estado" value={filters.estado} onChange={(e) => setFilters({ ...filters, estado: e.target.value })}>
-                    <option value="">Seleccione...</option>
-                    <option value="nuevo">Nuevo</option>
-                    <option value="encurso">En curso</option>
-                    <option value="enespera">En espera</option>
-                    <option value="resuelto">Resuelto</option>
-                    <option value="cerrado">Cerrado</option>
-                  </select>
-                </div>
-                <div className={styles.filterGroup}>
-                  <label>Asignado a:</label>
-                  <select
-                    name="asignado_a"
-                    value={formData.asignado_a}
-                    onChange={handleChange}
-                    required
-                  >
-                    <option value="">Seleccione un usuario...</option>
-                    {usuarios.map(usuario => (
-                      <option key={usuario.id_usuario} value={usuario.id_usuario}>
-                        {`${usuario.nombre_completo}`} ({usuario.correo})
-                      </option>
-                    ))}
-                  </select>
-                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Panel de filtros */}
+        {showFilters && (
+          <div className={styles.filterPanel}>
+            <div className={styles.filterGrid}>
+              {/* Fila 1 */}
+              <div className={styles.filterGroup}>
+                <label>ID</label>
+                <input
+                  type="text"
+                  name="id"
+                  value={filters.id}
+                  onChange={(e) => setFilters({ ...filters, id: e.target.value })}
+                  placeholder="Filtrar por ID"
+                />
               </div>
               <div className={styles.filterGroup}>
-                <label>Grupo asignado:</label>
+                <label>Título</label>
+                <input
+                  type="text"
+                  name="titulo"
+                  value={filters.titulo}
+                  onChange={(e) => setFilters({ ...filters, titulo: e.target.value })}
+                  placeholder="Filtrar por título"
+                />
+              </div>
+              <div className={styles.filterGroup}>
+                <label>Solicitante</label>
+               <select
+                      name="asignado_a"
+                      value={filters.usuario}
+                      onChange={(e) => setFilters({ ...filters, usuario: e.target.value })}
+                      required
+                    >
+                      <option value="">Seleccione un usuario...</option>
+                      {usuarios.map((usuario) => (
+                        <option
+                          key={usuario.id_usuario}
+                          value={usuario.id_usuario}
+                        >
+                          {`${usuario.Nombre_completo}`} ({usuario.correo})
+                        </option>
+                      ))}
+                    </select>
+              </div>
+
+              {/* Fila 2 */}
+              <div className={styles.filterGroup}>
+                <label>Prioridad</label>
                 <select
-                  name="grupo_asignado"
-                  value={formData.grupo_asignado}
-                  onChange={handleChange}
-                  required
+                  name="prioridad"
+                  value={filters.prioridad}
+                  onChange={(e) => setFilters({ ...filters, prioridad: e.target.value })}
+                  className={styles.filterSelect}
                 >
-                  <option value="">Seleccione un grupo...</option>
-                  {grupos.map(grupo => (
-                    <option key={grupo.id_grupo} value={grupo.id_grupo}>
-                      {grupo.nombre_grupo}
-                    </option>
-                  ))}
+                  <option value="">Todas las prioridades</option>
+                  <option value="alta">Alta</option>
+                  <option value="media">Media</option>
+                  <option value="baja">Baja</option>
                 </select>
-                <div className={styles.filterGroup}>
-                  <label>Categoría:</label>
-                  <select
-                    name="categoria"
-                    value={formData.categoria}
-                    onChange={handleChange}
-                    required
-                  >
-                    <option value="">Seleccione...</option>
-                    {categorias?.map(categoria => (
-                      <option key={categoria.id_categoria} value={categoria.id_categoria}>
-                        {categoria.nombre_categoria}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className={styles.filterActions}>
-                  <button onClick={applyFilters} className={styles.applyButton}>Aplicar Filtros</button>
-                  <button onClick={clearFilters} className={styles.clearButton}>Limpiar Filtros</button>
-                </div>
+              </div>
+              <div className={styles.filterGroup}>
+                <label>Estado</label>
+                <select
+                  name="estado"
+                  value={filters.estado}
+                  onChange={(e) => setFilters({ ...filters, estado: e.target.value })}
+                >
+                  <option value="">Todos los estados</option>
+                  <option value="nuevo">Nuevo</option>
+                  <option value="en-curso">En curso</option>
+                  <option value="en-espera">En espera</option>
+                  <option value="resuelto">Resuelto</option>
+                  <option value="cerrado">Cerrado</option>
+                </select>
+              </div>
+              <div className={styles.filterGroup}>
+                <label>Asignado a*</label>
+                    <select
+                      name="asignado_a"
+                      value={filters.usuario}
+                      onChange={(e) => setFilters({ ...filters, usuario: e.target.value })}
+                      required
+                    >
+                      <option value="">Seleccione un usuario...</option>
+                      {usuarios.map((usuario) => (
+                        <option
+                          key={usuario.id_usuario}
+                          value={usuario.id_usuario}
+                        >
+                          {`${usuario.Nombre_completo}`} ({usuario.correo})
+                        </option>
+                      ))}
+                    </select>
+                
               </div>
             </div>
-          )}
 
-          {/* Tabla de tickets */}
-          <div className={styles.tableContainer}>
+            <div className={styles.filterActions}>
+              <button onClick={applyFilters} className={styles.applyButton}>
+                Aplicar Filtros
+              </button>
+              <button onClick={clearFilters} className={styles.clearButton}>
+                Limpiar Filtros
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Tabla de tickets */}
+        <div className={styles.tableContainer}>
+          {isLoading ? (
+            <div className={styles.loadingContainer}>
+              <div className={styles.loadingSpinner}></div>
+              <p>Cargando tickets...</p>
+            </div>
+          ) : error ? (
+            <div className={styles.errorContainer}>
+              <p>{error}</p>
+              <button onClick={fetchTickets} className={styles.retryButton}>
+                Reintentar
+              </button>
+            </div>
+          ) : (
             <table className={styles.tableticket}>
               <thead>
                 <tr>
                   <th>ID</th>
                   <th>Título</th>
                   <th>Solicitante</th>
-                  <th>Descripción</th>
                   <th>Prioridad</th>
                   <th>Estado</th>
                   <th>Técnico</th>
-                  <th>Grupo</th>
-                  <th>Categoría</th>
                   <th>Fecha Apertura</th>
-                  <th>Última Actualización</th>
                 </tr>
               </thead>
               <tbody>
                 {currentRows.length > 0 ? (
                   currentRows.map((ticket, index) => (
-                    <tr key={index}>
+                    <tr key={index} className={styles.clickableRow}>
                       <td>
-                        <span className={styles.clickableCell} onClick={() => navigate(`/tickets/solucion/${ticket.id || ticket.id_ticket}`)}>
+                        <span
+                          className={styles.clickableCell}
+                          onClick={() => navigate(`/tickets/solucion/${ticket.id || ticket.id_ticket}`)}
+                        >
                           {ticket.id || ticket.id_ticket || 'N/A'}
                         </span>
                       </td>
                       <td>
-                        <span className={styles.clickableCell} onClick={() => navigate(`/tickets/solucion/${ticket.id || ticket.id_ticket}`)}>
+                        <span
+                          className={styles.clickableCell}
+                          onClick={() => navigate(`/tickets/solucion/${ticket.id || ticket.id_ticket}`)}
+                        >
                           {String(ticket.titulo || 'Sin título').toUpperCase()}
                         </span>
                       </td>
                       <td>{String(ticket.solicitante || 'Sin solicitante').toUpperCase()}</td>
-                      <td>{String(ticket.descripcion || 'Sin descripción').toUpperCase()}</td>
                       <td>
                         <span className={`${styles.priority} ${styles[String(ticket.prioridad || '').toLowerCase()] || ''}`}>
                           {String(ticket.prioridad || 'Sin prioridad').toUpperCase()}
@@ -523,24 +426,23 @@ const Tickets = () => {
                         </span>
                       </td>
                       <td>{String(ticket.tecnico || 'No asignado').toUpperCase()}</td>
-                      <td>{String(ticket.grupo || 'Sin grupo').toUpperCase()}</td>
-                      <td>{String(ticket.categoria || 'Sin categoría').toUpperCase()}</td>
                       <td>{formatDate(ticket.fecha_creacion || ticket.fechaApertura)}</td>
-                      <td>{formatDate(ticket.ultimaActualizacion)}</td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="11" className={styles.noResults}>
-                      No se encontraron tickets que coincidan con los criterios de búsqueda
+                    <td colSpan="7" className={styles.noResults}>
+                      No se encontraron tickets que coincidan con los filtros
                     </td>
                   </tr>
                 )}
               </tbody>
             </table>
-          </div>
+          )}
+        </div>
 
-          {/* Controles de paginación */}
+        {/* Controles de paginación */}
+        {!isLoading && !error && filteredTickets.length > 0 && (
           <div className={styles.paginationControls}>
             <div className={styles.rowsPerPageSelector}>
               <span>Filas por página:</span>
@@ -562,7 +464,11 @@ const Tickets = () => {
             </div>
 
             <div className={styles.pagination}>
-              <button onClick={prevPage} disabled={currentPage === 1} className={styles.paginationButton}>
+              <button
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className={styles.paginationButton}
+              >
                 <FaChevronLeft />
               </button>
 
@@ -581,7 +487,7 @@ const Tickets = () => {
                 return (
                   <button
                     key={pageNumber}
-                    onClick={() => paginate(pageNumber)}
+                    onClick={() => setCurrentPage(pageNumber)}
                     className={`${styles.paginationButton} ${currentPage === pageNumber ? styles.active : ""}`}
                   >
                     {pageNumber}
@@ -595,22 +501,25 @@ const Tickets = () => {
 
               {totalPages > 5 && currentPage < totalPages - 2 && (
                 <button
-                  onClick={() => paginate(totalPages)}
+                  onClick={() => setCurrentPage(totalPages)}
                   className={`${styles.paginationButton} ${currentPage === totalPages ? styles.active : ""}`}
                 >
                   {totalPages}
                 </button>
               )}
 
-              <button onClick={nextPage} disabled={currentPage === totalPages} className={styles.paginationButton}>
+              <button
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+                className={styles.paginationButton}
+              >
                 <FaChevronRight />
               </button>
             </div>
           </div>
-        </div>
-        <ChatBot />
-
-      </>
+        )}
+      </div>
+      <ChatBot />
     </MenuVertical>
   );
 };

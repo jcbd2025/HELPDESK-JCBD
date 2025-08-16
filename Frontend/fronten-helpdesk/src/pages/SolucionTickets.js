@@ -47,7 +47,6 @@ const SolucionTickets = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
-
   const userRole = localStorage.getItem("rol");
   const isAdminOrTech = ["administrador", "tecnico"].includes(userRole);
   const isUser = userRole === "usuario";
@@ -58,7 +57,6 @@ const SolucionTickets = () => {
         const ticketRes = await axios.get(
           `http://localhost:5000/usuarios/tickets/${id}`
         );
-        console.log("Ticket recibido:", ticketRes.data);
         setTicket(ticketRes.data);
 
         const categoriasRes = await axios.get(
@@ -68,12 +66,11 @@ const SolucionTickets = () => {
 
         setLoading(false);
       } catch (error) {
-        console.error("Error al cargar datos:", error);
+        showNotificationModal("Error al cargar datos:", error);
         setTicket({
           id: id || "TKT-001",
           titulo: "Problema con el sistema de impresión",
-          descripcion:
-            "El sistema no imprime correctamente los documentos largos",
+          descripcion: "El sistema no imprime correctamente los documentos largos",
           solicitante: "Usuario Ejemplo",
           prioridad: "Alta",
           estado: "Abierto",
@@ -114,31 +111,27 @@ const SolucionTickets = () => {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!solucion.trim()) {
-      alert("Por favor ingrese la solución");
+      alert("Por favor ingrese la solución o seguimiento");
       return;
     }
 
-    console.log({
-      ticketId: id,
-      solucion,
-      accion,
-      fecha: new Date().toISOString(),
-    });
-
-    if (accion === "solucion") {
-      alert(
-        "Solución guardada. El ticket se ha cerrado y se enviará una encuesta de satisfacción."
-      );
-      navigate(`/EncuestaSatisfaccion/${id}`);
-    } else {
-      alert("Seguimiento guardado. El ticket permanece abierto.");
+    try {
+      // Lógica para guardar el seguimiento o solución
+      if (accion === "solucion") {
+        alert("Solución guardada. El ticket se ha cerrado.");
+        navigate(`/EncuestaSatisfaccion/${id}`);
+      } else {
+        alert("Seguimiento guardado correctamente.");
+      }
+      navigate("/Tickets");
+    } catch (error) {
+      console.error("Error al guardar:", error);
+      alert("Error al procesar la solicitud");
     }
-
-    navigate("/Tickets");
   };
 
   const handleSurveySubmit = (e) => {
@@ -415,53 +408,17 @@ const SolucionTickets = () => {
                 </div>
               </div>
 
-              <div className={styles.formGroup}>
-                <label className={styles.label}>Acción a realizar:</label>
-                <div className={styles.buttonRadioGroup}>
-                  <button
-                    type="button"
-                    className={`${styles.actionButton} ${
-                      accion === "seguimiento" ? styles.active : ""
-                    }`}
-                    onClick={() => setAccion("seguimiento")}
-                  >
-                    <div className={styles.buttonContent}>
-                      <FaRegClock className={styles.buttonIcon} />
-                      <div>
-                        <div className={styles.buttonTitle}>Seguimiento</div>
-                        <div className={styles.buttonSubtitle}>
-                          El ticket permanece abierto
-                        </div>
-                      </div>
-                    </div>
-                  </button>
-
-                  {isAdminOrTech && (
-                    <button
-                      type="button"
-                      className={`${styles.actionButton} ${
-                        accion === "solucion" ? styles.active : ""
-                      }`}
-                      onClick={() => setAccion("solucion")}
-                    >
-                      <div className={styles.buttonContent}>
-                        <FaCheckCircle className={styles.buttonIcon} />
-                        <div>
-                          <div className={styles.buttonTitle}>Solución</div>
-                          <div className={styles.buttonSubtitle}></div>
-                        </div>
-                      </div>
-                    </button>
-                  )}
-                </div>
-              </div>
 
               <form onSubmit={handleSubmit} className={styles.solutionForm}>
-                <h2 className={styles.solutionTitle}>Seguimiento </h2>
+                <h2 className={styles.solutionTitle}>
+                  {accion === "solucion" ? "Solución del Caso" : "Seguimiento"}
+                </h2>
 
                 <div className={styles.formGroup}>
                   <label htmlFor="solucion" className={styles.label}>
-                    Detalle de la solución o seguimiento:
+                    {accion === "solucion"
+                      ? "Detalle de la solución aplicada:"
+                      : "Descripción del seguimiento:"}
                   </label>
                   <textarea
                     id="solucion"
@@ -469,27 +426,33 @@ const SolucionTickets = () => {
                     onChange={(e) => setSolucion(e.target.value)}
                     required
                     className={styles.textarea}
-                    placeholder="Describa la solución aplicada o los pasos realizados..."
-                    disabled={!isAdminOrTech && !isUser} // Permitir a todos los roles editar
+                    placeholder={
+                      accion === "solucion"
+                        ? "Describa la solución aplicada al problema..."
+                        : "Describa los pasos realizados en el seguimiento..."
+                    }
                   />
                 </div>
 
                 <div className={styles.buttonGroup}>
-                  {isAdminOrTech && (
-                    <>
-                      <button type="submit" className={styles.submitButton}>
-                        {accion === "solucion"
-                          ? "Cerrar Ticket con Solución"
-                          : "Guardar Seguimiento"}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => navigate("/EncuestaSatisfaccion/:surveyId")}
-                        className={styles.cancelButton}
-                      >
-                        Caso Gestionado
-                      </button>
-                    </>
+                  {/* Botón visible para todos los roles */}
+                  <button type="submit" className={styles.submitButton}>
+                    {accion === "solucion"
+                      ? "Cerrar Ticket con Solución"
+                      : "Guardar Seguimiento"}
+                  </button>
+                </div>
+
+                <div className={styles.buttonGroup}>
+                  {/* Botón solo para admin/tecnico cuando es solución */}
+                  {isAdminOrTech && accion === "solucion" && (
+                    <button
+                      type="submit"
+                      onClick={() => navigate("/EncuestaSatisfaccion/:surveyId")}
+                      className={styles.cancelButton}
+                    >
+                      Caso Gestionado
+                    </button>
                   )}
                 </div>
               </form>

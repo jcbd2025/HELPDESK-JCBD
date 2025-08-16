@@ -383,11 +383,11 @@ const CrearCasoAdmin = () => {
                               <div key={index} className={styles.fileItem}>
                                 <span>{file.name}</span>
                                 <button
-                                  type="button"
+                                  type="submit"
                                   onClick={() => removeFile(index)}
                                   className={styles.removeFileButton}
                                 >
-                                  ×
+                                  
                                 </button>
                               </div>
                             ))}
@@ -401,6 +401,7 @@ const CrearCasoAdmin = () => {
                         type="submit"
                         className={styles.submitButton}
                         disabled={isLoading}
+             
                       >
                         {isLoading
                           ? "Procesando..."

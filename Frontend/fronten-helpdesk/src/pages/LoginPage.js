@@ -98,7 +98,7 @@ const Login = () => {
       } else {
         showNotificationModal(
           "Error", 
-          "Ocurrió un error inesperado", 
+          "Usuario no existe, comuniquese con el administrador", 
           "error"
         );
       }
