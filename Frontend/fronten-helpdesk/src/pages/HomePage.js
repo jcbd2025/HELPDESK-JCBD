@@ -1,91 +1,17 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
-import Logo from "../imagenes/logo proyecto color.jpeg";
-import Logoempresarial from "../imagenes/logo empresarial.png";
-import { Outlet, Link, useNavigate, useLocation } from "react-router-dom";
-import { FaMagnifyingGlass, FaPowerOff } from "react-icons/fa6";
-import { FiAlignJustify } from "react-icons/fi";
-import { FcHome, FcAssistant, FcBusinessman, FcAutomatic, FcAnswers, FcCustomerSupport, FcExpired, FcGenealogy, FcBullish, FcConferenceCall, FcPortraitMode, FcOrganization } from "react-icons/fc";
+import { Link, useNavigate } from "react-router-dom";
+import { FcCustomerSupport } from "react-icons/fc";
 import ChatBot from "../Componentes/ChatBot";
-import { NotificationContext } from "../context/NotificationContext";
 import styles from "../styles/HomePage.module.css";
 import MenuVertical from "../Componentes/MenuVertical";
 
-
-const Breadcrumbs = () => {
-  const location = useLocation();
-  const pathNameMap = {
-    CrearCasoUse: "Crear Caso",
-    Tickets: "Tickets",
-    EncuestaSatisfaccion: "Encuesta de Satisfacción",
-    SolucionTickets: "Solución de Tickets",
-  };
-
-  const formatCrumbName = (crumb) => {
-    if (pathNameMap[crumb]) return pathNameMap[crumb];
-    if (/^\d+$/.test(crumb)) return `#${crumb}`;
-    return crumb.replace(/-/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
-  };
-
-  let currentLink = "";
-  const crumbs = location.pathname
-    .split("/")
-    .filter((crumb) => crumb !== "" && crumb !== "home")
-    .map((crumb, index, array) => {
-      currentLink += `/${crumb}`;
-      const isLast = index === array.length - 1;
-      return (
-        <div className={styles.crumb} key={crumb}>
-          {isLast ? (
-            <span>{formatCrumbName(crumb)}</span>
-          ) : (
-            <Link to={currentLink}>{formatCrumbName(crumb)}</Link>
-          )}
-          {!isLast && <span className={styles.separator}>/</span>}
-        </div>
-      );
-    });
-
-  return (
-    <div className={styles.breadcrumbs}>
-      <div className={styles.crumb}>
-        <Link to="/home">Inicio</Link>
-        {crumbs.length > 0 && <span className={styles.separator}>/</span>}
-      </div>
-      {crumbs}
-    </div>
-  );
-};
-
 const HomePage = () => {
-
   // Obtener datos del usuario
   const userRole = localStorage.getItem("rol") || "usuario";
-  const nombre = localStorage.getItem("nombre");
   const userId = localStorage.getItem("id_usuario");
   console.log("verificando el userId:", userId);
   
-  const { addNotification } = useContext(NotificationContext);
-
-  const roleToPath = {
-    usuario: '/home',
-    tecnico: '/HomeTecnicoPage',
-    administrador: '/HomeAdmiPage'
-  };
-
-
-  const [isChatOpen, setIsChatOpen] = useState(false);
-  const [isMenuExpanded, setIsMenuExpanded] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [activeTab, setActiveTab] = useState(null);
-  const [searchResults, setSearchResults] = useState([]);
-  const [completedSurveys, setCompletedSurveys] = useState([]);
-  const [isSupportOpen, setIsSupportOpen] = useState(false);
-  const [isAdminOpen, setIsAdminOpen] = useState(false);
-  const [isConfigOpen, setIsConfigOpen] = useState(false);
   const navigate = useNavigate();
   const [tableData, setTableData] = useState({
     nuevo: [],
@@ -99,9 +25,8 @@ const HomePage = () => {
     pendientes: [],
   });
 
-
-
-
+  const [activeTab, setActiveTab] = useState(null);
+  const [completedSurveys, setCompletedSurveys] = useState([]);
 
   const handleTicketClick = (ticket) => {
     const editRoute = userRole === "usuario" ? "/CrearCasoUse" : "/CrearCasoAdmin";
@@ -159,7 +84,6 @@ const HomePage = () => {
               break;
             case 'en_espera':
             case 'espera':
-            case 'pendiente':
               estadoFrontend = 'enEspera';
               break;
             case 'resuelto':
@@ -311,7 +235,6 @@ const HomePage = () => {
     { label: "Cerrado", color: "black", icon: "✅", count: tableData.cerrados.length, key: "cerrados" },
     { label: "Encuesta", color: "purple", icon: "📅", count: tableData.encuesta.length, key: "encuesta" },
     { label: "Abiertos", color: "#4CAF50", icon: "📝", count: tableData.abiertos.length, key: "abiertos" },
-    
   ];
 
   const handleTabClick = (tabKey) => {
@@ -332,174 +255,11 @@ const HomePage = () => {
     return "/";
   };
 
-  const renderMenuByRole = () => {
-    switch (userRole) {
-      case 'administrador':
-        return (
-          <ul className={styles.menuIconos}>
-            <li className={styles.iconosMenu}>
-              <Link to="/HomeAdmiPage" className={styles.linkSinSubrayado}>
-                <FcHome className={styles.menuIcon} />
-                <span className={styles.menuText}>Inicio</span>
-              </Link>
-            </li>
-
-            <li className={styles.iconosMenu}>
-              <div className={styles.linkSinSubrayado} onClick={toggleSupport}>
-                <FcAssistant className={styles.menuIcon} />
-                <span className={styles.menuText}> Soporte</span>
-              </div>
-              <ul className={`${styles.submenu} ${isSupportOpen ? styles.showSubmenu : ''}`}>
-                <li>
-                  <Link to="/Tickets" className={styles.submenuLink}>
-                    <FcAnswers className={styles.menuIcon} />
-                    <span className={styles.menuText}>Tickets</span>
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/CrearCasoAdmin" className={styles.submenuLink}>
-                    <FcCustomerSupport className={styles.menuIcon} />
-                    <span className={styles.menuText}>Crear Caso</span>
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/Estadisticas" className={styles.submenuLink}>
-                    <FcBullish className={styles.menuIcon} />
-                    <span className={styles.menuText}>Estadísticas</span>
-                  </Link>
-                </li>
-              </ul>
-            </li>
-
-            <li className={styles.iconosMenu}>
-              <div className={styles.linkSinSubrayado} onClick={toggleAdmin}>
-                <FcBusinessman className={styles.menuIcon} />
-                <span className={styles.menuText}> Administración</span>
-              </div>
-              <ul className={`${styles.submenu} ${isAdminOpen ? styles.showSubmenu : ''}`}>
-                <li>
-                  <Link to="/Usuarios" className={styles.submenuLink}>
-                    <FcPortraitMode className={styles.menuIcon} />
-                    <span className={styles.menuText}> Usuarios</span>
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/Grupos" className={styles.submenuLink}>
-                    <FcConferenceCall className={styles.menuIcon} />
-                    <span className={styles.menuText}> Grupos</span>
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/Entidades" className={styles.submenuLink}>
-                    <FcOrganization className={styles.menuIcon} />
-                    <span className={styles.menuText}> Entidades</span>
-                  </Link>
-                </li>
-              </ul>
-            </li>
-
-            <li className={styles.iconosMenu}>
-              <div className={styles.linkSinSubrayado} onClick={toggleConfig}>
-                <FcAutomatic className={styles.menuIcon} />
-                <span className={styles.menuText}> Configuración</span>
-              </div>
-              <ul className={`${styles.submenu} ${isConfigOpen ? styles.showSubmenu : ''}`}>
-                <li>
-                  <Link to="/Categorias" className={styles.submenuLink}>
-                    <FcGenealogy className={styles.menuIcon} />
-                    <span className={styles.menuText}>Categorias</span>
-                  </Link>
-                </li>
-              </ul>
-            </li>
-          </ul>
-        );
-
-      case 'tecnico':
-        return (
-          <ul className={styles.menuIconos}>
-            <li className={styles.iconosMenu}>
-              <Link to="/HomeTecnicoPage" className={styles.linkSinSubrayado}>
-                <FcHome className={styles.menuIcon} />
-                <span className={styles.menuText}>Inicio</span>
-              </Link>
-            </li>
-
-            <li className={styles.iconosMenu}>
-              <div className={styles.linkSinSubrayado} onClick={toggleSupport}>
-                <FcAssistant className={styles.menuIcon} />
-                <span className={styles.menuText}> Soporte</span>
-              </div>
-              <ul className={`${styles.submenu} ${isSupportOpen ? styles.showSubmenu : ''}`}>
-                <li>
-                  <Link to="/Tickets" className={styles.submenuLink}>
-                    <FcAnswers className={styles.menuIcon} />
-                    <span className={styles.menuText}>Tickets</span>
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/CrearCasoAdmin" className={styles.submenuLink}>
-                    <FcCustomerSupport className={styles.menuIcon} />
-                    <span className={styles.menuText}>Crear Caso</span>
-                  </Link>
-                </li>
-              </ul>
-            </li>
-
-            <li className={styles.iconosMenu}>
-              <div className={styles.linkSinSubrayado} onClick={toggleAdmin}>
-                <FcBusinessman className={styles.menuIcon} />
-                <span className={styles.menuText}> Administración</span>
-              </div>
-              <ul className={`${styles.submenu} ${isAdminOpen ? styles.showSubmenu : ''}`}>
-                <li>
-                  <Link to="/Usuarios" className={styles.submenuLink}>
-                    <FcPortraitMode className={styles.menuIcon} />
-                    <span className={styles.menuText}> Usuarios</span>
-                  </Link>
-                </li>
-              </ul>
-            </li>
-          </ul>
-        );
-
-      case 'usuario':
-      default:
-        return (
-          <ul className={styles.menuIconos}>
-            <li className={styles.iconosMenu}>
-              <Link to="/home" className={styles.linkSinSubrayado}>
-                <FcHome className={styles.menuIcon} />
-                <span className={styles.menuText}>Inicio</span>
-              </Link>
-            </li>
-
-            <li className={styles.iconosMenu}>
-              <Link to="/CrearCasoUse" className={styles.linkSinSubrayado}>
-                <FcCustomerSupport className={styles.menuIcon} />
-                <span className={styles.menuText}>Crear Caso</span>
-              </Link>
-            </li>
-
-            <li className={styles.iconosMenu}>
-              <Link to="/Tickets" className={styles.linkSinSubrayado}>
-                <FcAnswers className={styles.menuIcon} />
-                <span className={styles.menuText}>Tickets</span>
-              </Link>
-            </li>
-          </ul>
-        );
-    }
-  };
-
   return (
     <MenuVertical>
       <>
         {/* Contenido principal */}
-        <div
-          className={styles.container}
-          
-        >
+        <div className={styles.container}>
           <div className={styles.sectionContainer}>
             <div className={styles.ticketContainer}>
               <li className={styles.creacion}>
@@ -541,8 +301,6 @@ const HomePage = () => {
         <ChatBot />
       </>
     </MenuVertical>
-
-
   );
 };
 

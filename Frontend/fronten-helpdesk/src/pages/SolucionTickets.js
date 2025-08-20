@@ -6,6 +6,8 @@ import styles from "../styles/SolucionTickets.module.css";
 import ChatBot from "../Componentes/ChatBot";
 import MenuVertical from "../Componentes/MenuVertical";
 
+const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:5000";
+
 const SolucionTickets = () => {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const { id } = useParams();
@@ -46,27 +48,97 @@ const SolucionTickets = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [showOptions, setShowOptions] = useState(false);
+  const [showSolutionForm, setShowSolutionForm] = useState(false);
+  const [selectedOption, setSelectedOption] = useState(null);
+  const [solutionFormData, setSolutionFormData] = useState({
+    descripcion: "",
+    archivos: []
+  });
 
   const userRole = localStorage.getItem("rol");
   const isAdminOrTech = ["administrador", "tecnico"].includes(userRole);
   const isUser = userRole === "usuario";
 
+  const SeguimientoItem = ({ seguimiento }) => {
+    const isSolucion = seguimiento.tipo === 'solucion';
+    
+    return (
+      <div className={isSolucion ? styles.solucionItem : styles.seguimientoItem}>
+        <div className={isSolucion ? styles.solucionHeader : styles.seguimientoHeader}>
+          <span className={isSolucion ? styles.solucionUsuario : styles.seguimientoUsuario}>
+            {seguimiento.usuario}
+          </span>
+          <span className={isSolucion ? styles.solucionFecha : styles.seguimientoFecha}>
+            {new Date(seguimiento.fecha).toLocaleString()}
+          </span>
+        </div>
+        <div className={isSolucion ? styles.solucionContent : styles.seguimientoContent}>
+          <p>{seguimiento.descripcion}</p>
+          {seguimiento.archivos && seguimiento.archivos.length > 0 && (
+            <div className={styles.archivosContainer}>
+              <strong>Archivos adjuntos:</strong>
+              <ul>
+                {seguimiento.archivos.map((archivo, index) => (
+                  <li key={index}>
+                    <a href={`${API_BASE_URL}/uploads/${archivo}`} target="_blank" rel="noopener noreferrer">
+                      {archivo}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  const handleOptionSelect = (option) => {
+    setSelectedOption(option);
+    setShowOptions(false);
+
+    if (option === 'solucion' || option === 'seguimiento') {
+      setShowSolutionForm(true);
+    } else {
+      setShowSolutionForm(false);
+    }
+  };
+
+  const handleSolutionFileChange = (e) => {
+    const { files } = e.target;
+    if (files) {
+      setSolutionFormData(prev => ({
+        ...prev,
+        archivos: Array.from(files)
+      }));
+    }
+  };
+
+  const removeSolutionFile = (index) => {
+    setSolutionFormData(prev => {
+      const newFiles = [...prev.archivos];
+      newFiles.splice(index, 1);
+      return { ...prev, archivos: newFiles };
+    });
+  };
+
   useEffect(() => {
     const fetchAllData = async () => {
       try {
-        const ticketRes = await axios.get(
-          `http://localhost:5000/usuarios/tickets/${id}`
-        );
+        setIsLoading(true);
+        const [ticketRes, categoriasRes, seguimientosRes] = await Promise.all([
+          axios.get(`${API_BASE_URL}/usuarios/tickets/${id}`),
+          axios.get(`${API_BASE_URL}/usuarios/obtenerCategorias`),
+          axios.get(`${API_BASE_URL}/usuarios/tickets/${id}/seguimientos`)
+        ]);
+
         setTicket(ticketRes.data);
-
-        const categoriasRes = await axios.get(
-          "http://localhost:5000/usuarios/obtenerCategorias"
-        );
         setCategorias(categoriasRes.data);
-
-        setLoading(false);
+        setSeguimientos(seguimientosRes.data);
       } catch (error) {
-        showNotificationModal("Error al cargar datos:", error);
+        console.error("Error al cargar datos:", error);
+        setError("Error al cargar los datos del ticket");
         setTicket({
           id: id || "TKT-001",
           titulo: "Problema con el sistema de impresión",
@@ -85,76 +157,114 @@ const SolucionTickets = () => {
           asignadoA: "Técnico Asignado",
           grupoAsignado: "Soporte Técnico",
         });
+      } finally {
         setLoading(false);
+        setIsLoading(false);
       }
     };
 
     fetchAllData();
   }, [id]);
 
-  const handleAgregarSeguimiento = async () => {
-    if (!nuevoSeguimiento.trim()) return;
-
-    try {
-      await axios.post(`http://localhost:5000/api/tickets/${id}/seguimientos`, {
-        descripcion: nuevoSeguimiento,
-        usuario: localStorage.getItem("nombre"),
-      });
-
-      const response = await axios.get(
-        `http://localhost:5000/api/tickets/${id}/seguimientos`
-      );
-      setSeguimientos(response.data);
-      setNuevoSeguimiento("");
-    } catch (error) {
-      console.error("Error al agregar seguimiento:", error);
-    }
+  const handleTicketInfoChange = (e) => {
+    const { name, value } = e.target;
+    setTicket(prev => ({
+      ...prev,
+      [name]: value,
+      ultimaActualizacion: new Date().toLocaleString()
+    }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!solucion.trim()) {
-      alert("Por favor ingrese la solución o seguimiento");
+    if (!solutionFormData.descripcion.trim()) {
+      setError("Por favor ingrese la solución o seguimiento");
       return;
     }
 
     try {
-      // Lógica para guardar el seguimiento o solución
-      if (accion === "solucion") {
-        alert("Solución guardada. El ticket se ha cerrado.");
-        navigate(`/EncuestaSatisfaccion/${id}`);
+      setIsLoading(true);
+
+      const endpoint = selectedOption === "solucion"
+        ? `${API_BASE_URL}/usuarios/tickets/${id}/solucionar`
+        : `${API_BASE_URL}/usuarios/tickets/${id}/seguimientos`;
+
+      const formDataToSend = new FormData();
+      formDataToSend.append('descripcion', solutionFormData.descripcion);
+      formDataToSend.append('usuario', localStorage.getItem("nombre"));
+
+      if (selectedOption === "solucion") {
+        formDataToSend.append('estado', 'resuelto');
+        formDataToSend.append('tipo', 'solucion');
       } else {
-        alert("Seguimiento guardado correctamente.");
+        formDataToSend.append('tipo', 'seguimiento');
       }
-      navigate("/Tickets");
+
+      solutionFormData.archivos.forEach(file => {
+        formDataToSend.append('archivos', file);
+      });
+
+      await axios.post(endpoint, formDataToSend, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+
+      // Refrescar los datos del ticket y seguimientos
+      const [ticketRes, seguimientosRes] = await Promise.all([
+        axios.get(`${API_BASE_URL}/usuarios/tickets/${id}`),
+        axios.get(`${API_BASE_URL}/usuarios/tickets/${id}/seguimientos`)
+      ]);
+
+      setTicket(ticketRes.data);
+      setSeguimientos(seguimientosRes.data);
+      setSolutionFormData({ descripcion: "", archivos: [] });
+      setShowSolutionForm(false);
+
+      setSuccessMessage(
+        selectedOption === "solucion"
+          ? "Solución guardada. El ticket se ha cerrado."
+          : "Seguimiento guardado correctamente."
+      );
+
+      if (selectedOption === "solucion") {
+        navigate(`/EncuestaSatisfaccion/${id}`);
+      }
     } catch (error) {
       console.error("Error al guardar:", error);
-      alert("Error al procesar la solicitud");
+      setError("Error al procesar la solicitud");
+    } finally {
+      setIsLoading(false);
+      setTimeout(() => setSuccessMessage(""), 3000);
+      setTimeout(() => setError(null), 3000);
     }
   };
 
-  const handleSurveySubmit = (e) => {
-    e.preventDefault();
-    alert(
-      `Encuesta enviada: ${surveyRating} estrellas, Comentario: ${surveyComment}`
-    );
-  };
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setTicket((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSave = async () => {
+  const handleSaveChanges = async () => {
     try {
-      await axios.put(`http://localhost:5000/api/tickets/${id}`, ticket);
+      setIsLoading(true);
+
+      if (!ticket.titulo || !ticket.descripcion) {
+        setError("Título y descripción son campos obligatorios");
+        return;
+      }
+
+      const response = await axios.post(
+        `${API_BASE_URL}/usuarios/tickets/${id}/actualizar`,
+        ticket
+      );
+
+      setTicket(response.data);
       setSuccessMessage("Cambios guardados correctamente");
       setIsEditing(false);
-      setTimeout(() => setSuccessMessage(""), 3000);
     } catch (error) {
       console.error("Error al guardar cambios:", error);
-      alert("Error al guardar cambios");
+      setError(error.response?.data?.message || "Error al guardar cambios");
+    } finally {
+      setIsLoading(false);
+      setTimeout(() => setSuccessMessage(""), 3000);
+      setTimeout(() => setError(null), 3000);
     }
   };
 
@@ -188,7 +298,11 @@ const SolucionTickets = () => {
         <div className={styles.containersolucion}>
           <h1 className={styles.title}>Solución del Ticket #{ticket.id}</h1>
 
-          <div className={styles.layoutContainer}>
+          {isLoading && <div className={styles.loadingIndicator}>Guardando cambios...</div>}
+          {successMessage && <div className={styles.successMessage}>{successMessage}</div>}
+          {error && <div className={styles.errorMessage}>{error}</div>}
+
+          <div className={styles.mainLayout}>
             {/* Columna izquierda - Información del ticket */}
             <div className={styles.ticketInfoContainer}>
               <div className={styles.header}>
@@ -197,15 +311,12 @@ const SolucionTickets = () => {
                   <button
                     onClick={() => setIsEditing(true)}
                     className={styles.editButton}
+                    disabled={isLoading}
                   >
                     Editar
                   </button>
                 )}
               </div>
-
-              {successMessage && (
-                <div className={styles.successMessage}>{successMessage}</div>
-              )}
 
               <div className={styles.verticalForm}>
                 <h4>Datos del Ticket</h4>
@@ -216,7 +327,7 @@ const SolucionTickets = () => {
                     type="datetime-local"
                     name="fechaApertura"
                     value={formatDateTimeForInput(ticket.fechaApertura)}
-                    onChange={handleChange}
+                    onChange={handleTicketInfoChange}
                     disabled={!isEditing || !isAdminOrTech}
                   />
                 </div>
@@ -226,7 +337,7 @@ const SolucionTickets = () => {
                   <select
                     name="tipo"
                     value={ticket.tipo}
-                    onChange={handleChange}
+                    onChange={handleTicketInfoChange}
                     disabled={!isEditing || !isAdminOrTech}
                   >
                     <option value="incidencia">Incidencia</option>
@@ -239,7 +350,7 @@ const SolucionTickets = () => {
                   <select
                     name="categoria"
                     value={ticket.categoria}
-                    onChange={handleChange}
+                    onChange={handleTicketInfoChange}
                     disabled={!isEditing || !isAdminOrTech}
                   >
                     <option value="">Seleccione...</option>
@@ -256,7 +367,7 @@ const SolucionTickets = () => {
                   <select
                     name="estado"
                     value={ticket.estado}
-                    onChange={handleChange}
+                    onChange={handleTicketInfoChange}
                     disabled={!isEditing || !isAdminOrTech}
                   >
                     <option value="nuevo">Nuevo</option>
@@ -272,7 +383,7 @@ const SolucionTickets = () => {
                   <select
                     name="prioridad"
                     value={ticket.prioridad}
-                    onChange={handleChange}
+                    onChange={handleTicketInfoChange}
                     disabled={!isEditing || !isAdminOrTech}
                   >
                     <option value="alta">Alta</option>
@@ -287,7 +398,7 @@ const SolucionTickets = () => {
                     type="text"
                     name="ubicacion"
                     value={ticket.ubicacion}
-                    onChange={handleChange}
+                    onChange={handleTicketInfoChange}
                     disabled={!isEditing || !isAdminOrTech}
                   />
                 </div>
@@ -300,7 +411,7 @@ const SolucionTickets = () => {
                     type="text"
                     name="solicitante"
                     value={ticket.solicitante}
-                    onChange={handleChange}
+                    onChange={handleTicketInfoChange}
                     disabled={!isEditing || !isAdminOrTech}
                   />
                 </div>
@@ -311,7 +422,7 @@ const SolucionTickets = () => {
                     type="text"
                     name="observador"
                     value={ticket.observador}
-                    onChange={handleChange}
+                    onChange={handleTicketInfoChange}
                     disabled={!isEditing || !isAdminOrTech}
                   />
                 </div>
@@ -322,7 +433,7 @@ const SolucionTickets = () => {
                     <select
                       name="asignadoA"
                       value={ticket.asignadoA}
-                      onChange={handleChange}
+                      onChange={handleTicketInfoChange}
                       disabled={!isEditing || !isAdminOrTech}
                     >
                       <option value="">Seleccionar técnico</option>
@@ -343,7 +454,7 @@ const SolucionTickets = () => {
                     <select
                       name="grupoAsignado"
                       value={ticket.grupoAsignado}
-                      onChange={handleChange}
+                      onChange={handleTicketInfoChange}
                       disabled={!isEditing || !isAdminOrTech}
                     >
                       <option value="">Seleccionar grupo</option>
@@ -361,14 +472,19 @@ const SolucionTickets = () => {
 
               {isEditing && isAdminOrTech && (
                 <div className={styles.actions}>
-                  <button onClick={handleSave} className={styles.saveButton}>
-                    Guardar Cambios
+                  <button
+                    onClick={handleSaveChanges}
+                    className={styles.saveButton}
+                    disabled={isLoading}
+                  >
+                    {isLoading ? 'Guardando...' : 'Guardar Cambios'}
                   </button>
                   <button
                     onClick={() => setIsEditing(false)}
                     className={styles.cancelButton}
+                    disabled={isLoading}
                   >
-                    Cancelar
+                    Cerrar
                   </button>
                 </div>
               )}
@@ -378,17 +494,51 @@ const SolucionTickets = () => {
             <div className={styles.mainContentContainer}>
               <div className={styles.ticketInfo}>
                 <div className={styles.ticketHeader}>
-                  <span className={styles.ticketTitle}>{ticket.titulo}</span>
-                  <span
-                    className={styles.ticketPriority}
-                    data-priority={ticket.prioridad.toLowerCase()}
-                  >
-                    {ticket.prioridad}
-                  </span>
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      name="titulo"
+                      value={ticket.titulo}
+                      onChange={handleTicketInfoChange}
+                      className={styles.editInput}
+                    />
+                  ) : (
+                    <span className={styles.ticketTitle}>{ticket.titulo}</span>
+                  )}
+
+                  {isEditing ? (
+                    <select
+                      name="prioridad"
+                      value={ticket.prioridad}
+                      onChange={handleTicketInfoChange}
+                      className={styles.editSelect}
+                      data-priority={ticket.prioridad.toLowerCase()}
+                    >
+                      <option value="alta">Alta</option>
+                      <option value="media">Media</option>
+                      <option value="baja">Baja</option>
+                    </select>
+                  ) : (
+                    <span
+                      className={styles.ticketPriority}
+                      data-priority={ticket.prioridad.toLowerCase()}
+                    >
+                      {ticket.prioridad}
+                    </span>
+                  )}
                 </div>
 
                 <div className={styles.ticketDescription}>
-                  <p>{ticket.descripcion}</p>
+                  {isEditing ? (
+                    <textarea
+                      name="descripcion"
+                      value={ticket.descripcion}
+                      onChange={handleTicketInfoChange}
+                      className={styles.editTextarea}
+                    />
+                  ) : (
+                    <p>{ticket.descripcion}</p>
+                  )}
                 </div>
 
                 <div className={styles.ticketMeta}>
@@ -403,102 +553,211 @@ const SolucionTickets = () => {
                     {ticket.ultimaActualizacion}
                   </div>
                   <div>
-                    <strong>Categoría:</strong> {ticket.categoria}
+                    <strong>Categoría:</strong>
+                    {isEditing ? (
+                      <input
+                        type="text"
+                        name="categoria"
+                        value={ticket.categoria}
+                        onChange={handleTicketInfoChange}
+                        className={styles.editInput}
+                      />
+                    ) : (
+                      ticket.categoria
+                    )}
                   </div>
                 </div>
-              </div>
 
-
-              <form onSubmit={handleSubmit} className={styles.solutionForm}>
-                <h2 className={styles.solutionTitle}>
-                  {accion === "solucion" ? "Solución del Caso" : "Seguimiento"}
-                </h2>
-
-                <div className={styles.formGroup}>
-                  <label htmlFor="solucion" className={styles.label}>
-                    {accion === "solucion"
-                      ? "Detalle de la solución aplicada:"
-                      : "Descripción del seguimiento:"}
-                  </label>
-                  <textarea
-                    id="solucion"
-                    value={solucion}
-                    onChange={(e) => setSolucion(e.target.value)}
-                    required
-                    className={styles.textarea}
-                    placeholder={
-                      accion === "solucion"
-                        ? "Describa la solución aplicada al problema..."
-                        : "Describa los pasos realizados en el seguimiento..."
-                    }
-                  />
-                </div>
-
-                <div className={styles.buttonGroup}>
-                  {/* Botón visible para todos los roles */}
-                  <button type="submit" className={styles.submitButton}>
-                    {accion === "solucion"
-                      ? "Cerrar Ticket con Solución"
-                      : "Guardar Seguimiento"}
-                  </button>
-                </div>
-
-                <div className={styles.buttonGroup}>
-                  {/* Botón solo para admin/tecnico cuando es solución */}
-                  {isAdminOrTech && accion === "solucion" && (
+                <div className={styles.ticketActions}>
+                  {isEditing ? (
+                    <>
+                      <button
+                        onClick={handleSaveChanges}
+                        className={styles.saveButton}
+                        disabled={isLoading}
+                      >
+                        {isLoading ? 'Guardando...' : 'Guardar'}
+                      </button>
+                      <button
+                        onClick={() => setIsEditing(false)}
+                        className={styles.cancelButtons}
+                        disabled={isLoading}
+                      >
+                        Cerrar
+                      </button>
+                    </>
+                  ) : (
                     <button
-                      type="submit"
-                      onClick={() => navigate("/EncuestaSatisfaccion/:surveyId")}
-                      className={styles.cancelButton}
+                      onClick={() => setIsEditing(true)}
+                      className={styles.editButton}
+                      disabled={isLoading}
                     >
-                      Caso Gestionado
+                      Editar
                     </button>
                   )}
                 </div>
-              </form>
+              </div>
+
+              {/* Mostrar seguimientos existentes */}
+              <div className={styles.seguimientosContainer}>
+                <h3 className={styles.seguimientosTitle}>
+                  {seguimientos.length > 0 ? 'Historial de Seguimientos' : 'No hay seguimientos aún'}
+                </h3>
+                {seguimientos.map((seguimiento, index) => (
+                  <SeguimientoItem key={index} seguimiento={seguimiento} />
+                ))}
+              </div>
+
+              {/* Botón de opciones y formulario */}
+              <div className={styles.optionsContainers}>
+                <button
+                  className={styles.optionsButtons}
+                  onClick={() => setShowOptions(!showOptions)}
+                >
+                  Acciones
+                  <span className={styles.arrowIcon}>
+                    {showOptions ? '▲' : '▼'}
+                  </span>
+                </button>
+
+                {showOptions && (
+                  <div className={styles.optionsDropdowns}>
+                    <button
+                      className={styles.optionItems}
+                      onClick={() => handleOptionSelect('solucion')}
+                    >
+                      Agregar solución
+                    </button>
+
+                    <button
+                      className={styles.optionItems}
+                      onClick={() => handleOptionSelect('seguimiento')}
+                    >
+                      Seguimiento
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {showSolutionForm && (
+                <div className={styles.solutionForms}>
+                  <h3>
+                    {selectedOption === 'solucion' ? 'Agregar Solución' : 'Agregar Seguimiento'}
+                  </h3>
+
+                  <form onSubmit={handleSubmit}>
+                    <div className={styles.formGroup}>
+                      <label>Descripción:</label>
+                      <textarea
+                        className={styles.textarea}
+                        placeholder={
+                          selectedOption === 'solucion'
+                            ? 'Describa la solución al problema...'
+                            : 'Agregue detalles del seguimiento...'
+                        }
+                        value={solutionFormData.descripcion}
+                        onChange={(e) => setSolutionFormData({
+                          ...solutionFormData,
+                          descripcion: e.target.value
+                        })}
+                        rows="5"
+                        required
+                      />
+                    </div>
+
+                    <div className={styles.formGroup}>
+                      <label>Archivos adjuntos:</label>
+                      <input
+                        type="file"
+                        multiple
+                        onChange={handleSolutionFileChange}
+                        className={styles.fileInput}
+                      />
+                      {solutionFormData.archivos.length > 0 && (
+                        <div className={styles.fileList}>
+                          <strong>Archivos seleccionados:</strong>
+                          <ul>
+                            {solutionFormData.archivos.map((file, index) => (
+                              <li key={index} className={styles.fileItem}>
+                                {file.name}
+                                <button
+                                  type="button"
+                                  onClick={() => removeSolutionFile(index)}
+                                  className={styles.removeFileButton}
+                                >
+                                  ×
+                                </button>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className={styles.formActions}>
+                      <button
+                        type="submit"
+                        className={styles.submitButton}
+                        disabled={isLoading}
+                      >
+                        {isLoading ? 'Procesando...' : 'Guardar'}
+                      </button>
+                      <button
+                        type="button"
+                        className={styles.cancelButton}
+                        onClick={() => {
+                          setShowSolutionForm(false);
+                          setSolutionFormData({ descripcion: "", archivos: [] });
+                        }}
+                        disabled={isLoading}
+                      >
+                        Cancelar
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              )}
             </div>
 
-            {/* Columna derecha - Opciones adicionales */}
-            <div className={styles.optionsColumn}>
-              <div className={styles.optionsContainer}>
-                <h3>Opciones del Ticket</h3>
+            {/* Columna derecha - Opciones del ticket */}
+            <div className={styles.optionsContainer}>
+              <h3>Opciones del Ticket</h3>
 
-                <div className={styles.optionGroup}>
-                  <label className={styles.optionLabel}>Casos</label>
-                  <div className={styles.optionContent}>
-                    <Link
-                      to="/tickets/solucion/:id"
-                      className={styles.optionLink}
-                    >
-                      Caso Actual
-                    </Link>
-                  </div>
+              <div className={styles.optionGroup}>
+                <label className={styles.optionLabel}>Casos</label>
+                <div className={styles.optionContent}>
+                  <Link
+                    to="/tickets/solucion/:id"
+                    className={styles.optionLink}
+                  >
+                    Caso Actual
+                  </Link>
                 </div>
+              </div>
 
-                <div className={styles.optionGroup}>
-                  <label className={styles.optionLabel}>
-                    Encuesta de satisfacción
-                  </label>
-                  <div className={styles.optionContent}>
-                    <Link
-                      to="/EncuestaSatisfaccion/:surveyId"
-                      className={styles.optionLink}
-                    >
-                      Encuesta
-                    </Link>
-                  </div>
+              <div className={styles.optionGroup}>
+                <label className={styles.optionLabel}>
+                  Encuesta de satisfacción
+                </label>
+                <div className={styles.optionContent}>
+                  <Link
+                    to="/EncuestaSatisfaccion/:surveyId"
+                    className={styles.optionLink}
+                  >
+                    Encuesta
+                  </Link>
                 </div>
+              </div>
 
-                <div className={styles.optionGroup}>
-                  <label className={styles.optionLabel}>Histórico</label>
-                  <div className={styles.optionContent}>
-                    <Link
-                      to={`/tickets/${ticket.id}/historial`}
-                      className={styles.optionLink}
-                    >
-                      <FaHistory /> Historial
-                    </Link>
-                  </div>
+              <div className={styles.optionGroup}>
+                <label className={styles.optionLabel}>Histórico</label>
+                <div className={styles.optionContent}>
+                  <Link
+                    to={`/tickets/${ticket.id}/historial`}
+                    className={styles.optionLink}
+                  >
+                    <FaHistory /> Historial
+                  </Link>
                 </div>
               </div>
             </div>

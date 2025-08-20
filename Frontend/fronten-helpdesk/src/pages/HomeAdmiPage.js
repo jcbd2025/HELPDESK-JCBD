@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useContext } from "react";
-import { Link, Outlet } from "react-router-dom";
+import React, { useState, useEffect, useContext, useCallback } from "react";
+import { Link, useLocation } from "react-router-dom";
 import {
   BarChart,
   Bar,
@@ -65,15 +65,17 @@ const demoStats = {
 const Dashboard = () => {
   const [stats, setStats] = useState(demoStats);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
   const [timeRange, setTimeRange] = useState("month");
   const { addNotification } = useContext(NotificationContext);
 
-  // Obtener userId y userRole del localStorage
+  // Obtener userId del localStorage
   const userId = localStorage.getItem("id_usuario");
   console.log("Valor de id_usuario:", userId);
 
-  const userRole = localStorage.getItem("rol") || "";
+  // Usar useCallback para addNotification
+  const notify = useCallback((message, type = 'info') => {
+    addNotification(message, type);
+  }, [addNotification]);
 
   useEffect(() => {
     const fetchInitialData = async () => {
@@ -81,39 +83,17 @@ const Dashboard = () => {
         setLoading(true);
 
         // Usar Promise.all para llamadas paralelas
-        const [usuariosRes, deptosRes, catsRes, grupoRes, ticketsRes] =
-          await Promise.all([
-            axios.get("http://localhost:5000/usuarios/obtener"),
-            axios.get("http://localhost:5000/usuarios/obtenerEntidades"),
-            axios.get("http://localhost:5000/usuarios/obtenerCategorias"),
-            axios.get("http://localhost:5000/usuarios/obtenerGrupos"),
-            axios.get(
-              `http://localhost:5000/usuarios/tickets/tecnico/${userId}`
-            ),
-          ]);
+        await Promise.all([
+          axios.get("http://localhost:5000/usuarios/obtener"),
+          axios.get("http://localhost:5000/usuarios/obtenerEntidades"),
+          axios.get("http://localhost:5000/usuarios/obtenerCategorias"),
+          axios.get("http://localhost:5000/usuarios/obtenerGrupos"),
+          axios.get(`http://localhost:5000/usuarios/tickets/tecnico/${userId}`),
+        ]);
 
-        setUsuarios(usuariosRes.data);
-        setDepartamentos(deptosRes.data);
-        setCategorias(catsRes.data);
-        setGrupos(grupoRes.data);
-
-        // Filtrar tickets por estado si es necesario
-        const ticketsEnCurso = ticketsRes.data.filter(
-          (ticket) => ticket.estado === "en_curso"
-        );
-        setTicketsEnCurso(ticketsEnCurso);
-
-        if (location.state?.ticketData) {
-          setFormData((prev) => ({
-            ...prev,
-            ...location.state.ticketData,
-            fechaApertura: formatDateTimeForInput(
-              location.state.ticketData.fechaApertura
-            ),
-          }));
-        }
+        notify("Datos cargados correctamente", "success");
       } catch (error) {
-        addNotification(
+        notify(
           error.response?.data?.message || "Error al cargar datos iniciales",
           "error"
         );
@@ -123,7 +103,7 @@ const Dashboard = () => {
     };
 
     fetchInitialData();
-  }, [location.state, userId]);
+  }, [userId, notify]);
 
   // Colores para las gráficas
   const COLORS = [
@@ -140,14 +120,6 @@ const Dashboard = () => {
       <div className={styles.loadingContainer}>
         <div className={styles.spinner}></div>
         <p>Cargando estadísticas...</p>
-      </div>
-    );
-
-  if (error)
-    return (
-      <div className={styles.errorContainer}>
-        <p>Error al cargar los datos: {error}</p>
-        <button onClick={() => window.location.reload()}>Reintentar</button>
       </div>
     );
 
@@ -311,28 +283,93 @@ const Dashboard = () => {
   );
 };
 
+// Función para renderizar tablas (añadida)
+const renderTable = (data, title) => {
+  if (!data || data.length === 0) {
+    return <p>No hay {title.toLowerCase()} disponibles.</p>;
+  }
+
+  return (
+    <div>
+      <h3>{title}</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Solicitante</th>
+            <th>Descripción</th>
+            <th>Título</th>
+            <th>Prioridad</th>
+            <th>Fecha Creación</th>
+            <th>Técnico</th>
+          </tr>
+        </thead>
+        <tbody>
+          {data.map((item) => (
+            <tr key={item.id}>
+              <td>{item.id}</td>
+              <td>{item.solicitante}</td>
+              <td>{item.descripcion}</td>
+              <td>{item.titulo}</td>
+              <td>{item.prioridad}</td>
+              <td>{item.fecha_creacion}</td>
+              <td>{item.tecnico}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+};
+
+// Función para renderizar tabla de encuestas (añadida)
+const renderSurveyTable = (data, title) => {
+  if (!data || data.length === 0) {
+    return <p>No hay {title.toLowerCase()} disponibles.</p>;
+  }
+
+  return (
+    <div>
+      <h3>{title}</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Solicitante</th>
+            <th>Descripción</th>
+            <th>Título</th>
+            <th>Prioridad</th>
+            <th>Fecha Creación</th>
+            <th>Técnico</th>
+          </tr>
+        </thead>
+        <tbody>
+          {data.map((item) => (
+            <tr key={item.id}>
+              <td>{item.id}</td>
+              <td>{item.solicitante}</td>
+              <td>{item.descripcion}</td>
+              <td>{item.titulo}</td>
+              <td>{item.prioridad}</td>
+              <td>{item.fecha_creacion}</td>
+              <td>{item.tecnico}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+};
+
 const HomeAdmiPage = () => {
   // Obtener datos del usuario
   const userRole = localStorage.getItem("rol") || "";
-  const nombre = localStorage.getItem("nombre") || "";
   const { addNotification } = useContext(NotificationContext);
   const userId = localStorage.getItem("id_usuario") || "";
   console.log("Valor de id_usuario:", userId);
 
   // Estados
-  const [isChatOpen, setIsChatOpen] = useState(false);
   const [activeView, setActiveView] = useState("personal");
-  const [isSupportOpen, setIsSupportOpen] = useState(false);
-  const [isAdminOpen, setIsAdminOpen] = useState(false);
-  const [isConfigOpen, setIsConfigOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState(null);
-  const [isMenuExpanded, setIsMenuExpanded] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [openMenu, setOpenMenu] = useState(null);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
   const [tableData, setTableData] = useState({
     nuevo: [],
     enCurso: [],
@@ -348,18 +385,11 @@ const HomeAdmiPage = () => {
   const [ticketsEnCurso, setTicketsEnCurso] = useState([]);
   const [ticketsCerrados, setTicketsCerrados] = useState([]);
 
-  // Verificación de rol
-  if (userRole !== "administrador") {
-    return (
-      <div className={styles.accessDenied}>
-        <h2>Acceso denegado</h2>
-        <p>No tienes permisos para acceder a esta página.</p>
-        <Link to="/" className={styles.returnLink}>
-          Volver al inicio
-        </Link>
-      </div>
-    );
-  }
+  // Usar useCallback para addNotification
+  const notify = useCallback((message, type = 'info') => {
+    addNotification(message, type);
+  }, [addNotification]);
+
   useEffect(() => {
     const fetchTickets = async () => {
       try {
@@ -412,7 +442,6 @@ const HomeAdmiPage = () => {
               break;
             case "en_espera":
             case "espera":
-            case "pendiente":
               estadoFrontend = "enEspera";
               break;
             case "resuelto":
@@ -455,11 +484,13 @@ const HomeAdmiPage = () => {
         setTableData(agrupados);
       } catch (error) {
         console.error("Error al obtener los tickets:", error);
+        notify("Error al cargar los tickets", "error");
       }
     };
 
     fetchTickets();
-  }, [userId, userRole]);
+  }, [userId, userRole, notify]);
+
   // Datos
   const tickets = [
     {
@@ -517,14 +548,26 @@ const HomeAdmiPage = () => {
       count: tableData.pendientes.length,
     },
   ];
-  
 
   const handleSelectChange = (event) => {
     const value = event.target.value;
     const views = ["personal", "global", "todo", "dashboard"];
     setActiveView(views[parseInt(value)]);
-    addNotification(`Vista cambiada a: ${views[parseInt(value)]}`, "info");
+    notify(`Vista cambiada a: ${views[parseInt(value)]}`, "info");
   };
+
+  // Verificación de rol
+  if (userRole !== "administrador") {
+    return (
+      <div className={styles.accessDenied}>
+        <h2>Acceso denegado</h2>
+        <p>No tienes permisos para acceder a esta página.</p>
+        <Link to="/" className={styles.returnLink}>
+          Volver al inicio
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <MenuVertical>
@@ -695,24 +738,6 @@ const HomeAdmiPage = () => {
               {activeView === "dashboard" && <Dashboard />}
             </div>
           </main>
-          {/* Mostrar la tabla correspondiente al tab activo */}
-          {activeTab === "nuevo" && renderTable(tableData.nuevo, "Nuevo")}
-          {activeTab === "enCurso" &&
-            renderTable(tableData.enCurso, "En curso")}
-          {activeTab === "enEspera" &&
-            renderTable(tableData.enEspera, "En Espera")}
-          {activeTab === "resueltos" &&
-            renderTable(tableData.resueltos, "Resueltos")}
-          {activeTab === "cerrados" &&
-            renderTable(tableData.cerrados, "Cerrados")}
-          {activeTab === "borrados" &&
-            renderTable(tableData.borrados, "Borrados")}
-          {activeTab === "encuesta" &&
-            renderSurveyTable(tableData.encuesta, "Encuesta de Satisfacción")}
-          {activeTab === "abiertos" &&
-            renderTable(tableData.abiertos, "Abiertos")}
-          {activeTab === "pendientes" &&
-            renderTable(tableData.pendientes, "Pendientes")}
         </div>
         <ChatBot />
       </>

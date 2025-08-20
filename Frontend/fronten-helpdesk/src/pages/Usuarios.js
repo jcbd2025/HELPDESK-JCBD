@@ -1,9 +1,7 @@
-import React, { useState, useEffect } from "react";
-import { Outlet, Link, useNavigate } from "react-router-dom";
-import { FaPowerOff, FaChevronLeft, FaChevronRight, FaChevronDown, FaSearch, FaFilter, FaPlus, FaSpinner, FaFileExcel, FaFilePdf, FaFileCsv } from "react-icons/fa";
-import { FaMagnifyingGlass } from "react-icons/fa6";
-import { FiAlignJustify } from "react-icons/fi";
-import { FcHome, FcAssistant, FcBusinessman, FcAutomatic, FcAnswers, FcCustomerSupport, FcGenealogy, FcBullish, FcConferenceCall, FcPortraitMode, FcOrganization, FcPrint } from "react-icons/fc";
+import React, { useState, useEffect, useCallback } from "react";
+import { Link } from "react-router-dom";
+import { FaChevronLeft, FaChevronRight, FaChevronDown, FaSearch, FaFilter, FaPlus, FaSpinner, FaFileExcel, FaFilePdf, FaFileCsv } from "react-icons/fa";
+import { FcPrint } from "react-icons/fc";
 import axios from "axios";
 import styles from "../styles/Usuarios.module.css";
 import ChatBot from "../Componentes/ChatBot";
@@ -11,15 +9,7 @@ import MenuVertical from "../Componentes/MenuVertical";
 
 const Usuarios = () => {
   // Estados para UI
-  const [isChatOpen, setIsChatOpen] = useState(false);
-  const [isMenuExpanded, setIsMenuExpanded] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isExportDropdownOpen, setIsExportDropdownOpen] = useState(false);
-  const [menuState, setMenuState] = useState({
-    support: false,
-    admin: false,
-    config: false
-  });
 
   // Estados para datos
   const [showForm, setShowForm] = useState(false);
@@ -34,7 +24,7 @@ const Usuarios = () => {
   const [entidades, setEntidades] = useState([]);
   const [grupos, setGrupos] = useState([]);
 
-// Estados para modales
+  // Estados para modales
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
@@ -44,7 +34,6 @@ const Usuarios = () => {
   const [rowsPerPage, setRowsPerPage] = useState(15);
 
   // Datos del usuario
-  const nombre = localStorage.getItem("nombre");
   const userRole = localStorage.getItem("rol") || "";
 
   // Datos del formulario
@@ -60,19 +49,63 @@ const Usuarios = () => {
     grupo: ''
   });
 
+  // Funciones de API con useCallback
+  const fetchUsers = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const response = await axios.get("http://localhost:5000/usuarios/obtener");
+      setUsers(response.data);
+      setFilteredUsers(response.data);
+    } catch (error) {
+      console.error("Error al cargar usuarios:", error);
+      showNotificationModal("Error", "Error al cargar los usuarios", "error");
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const fetchEntidades = useCallback(async () => {
+    try {
+      const response = await axios.get("http://localhost:5000/usuarios/obtenerEntidades");
+      setEntidades(response.data);
+    } catch (error) {
+      console.error("Error al cargar entidades:", error);
+      showNotificationModal("Error", "Error al cargar las entidades", "error");
+    }
+  }, []);
+
+  const fetchGrupos = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const response = await axios.get("http://localhost:5000/usuarios/obtenerGrupos");
+      setGrupos(response.data);
+    } catch (error) {
+      console.error("Error al cargar grupos:", error);
+      showNotificationModal("Error", "Error al cargar los grupos", "error");
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
   // Efectos
   useEffect(() => {
     fetchUsers();
     fetchEntidades();
     fetchGrupos();
-  }, []);
+  }, [fetchUsers, fetchEntidades, fetchGrupos]);
 
-  useEffect(() => {
-    applyFilters();
-  }, [searchField, searchTerm, additionalFilters, users]);
+  // Función para mostrar notificación
+  const showNotificationModal = (title, message, type) => {
+    setModalMessage(message);
+    if (type === "error") {
+      setShowErrorModal(true);
+    } else {
+      setShowSuccessModal(true);
+    }
+  };
 
-  // Funciones de ayuda
-  const applyFilters = () => {
+  // Función de filtrado con useCallback
+  const applyFilters = useCallback(() => {
     let result = [...users];
 
     if (searchField && searchTerm) {
@@ -93,20 +126,12 @@ const Usuarios = () => {
 
     setFilteredUsers(result);
     setCurrentPage(1);
-  };
+  }, [searchField, searchTerm, additionalFilters, users]);
 
-  const toggleMenu = (menu) => {
-    setMenuState(prev => {
-      const newState = { support: false, admin: false, config: false };
-      if (menu) newState[menu] = !prev[menu];
-      return newState;
-    });
-  };
+  useEffect(() => {
+    applyFilters();
+  }, [applyFilters]);
 
-
-
-  const toggleMobileMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);
-  const toggleMainMenu = () => setIsMenuExpanded(!isMenuExpanded);
   const toggleExportDropdown = () => setIsExportDropdownOpen(!isExportDropdownOpen);
 
   // Funciones de exportación
@@ -128,43 +153,6 @@ const Usuarios = () => {
   const printTable = () => {
     window.print();
     setIsExportDropdownOpen(false);
-  };
-
-  // Funciones de API
-  const fetchUsers = async () => {
-    setIsLoading(true);
-    try {
-      const response = await axios.get("http://localhost:5000/usuarios/obtener");
-      setUsers(response.data);
-      setFilteredUsers(response.data);
-    } catch (error) {
-      console.error("Error al cargar usuarios:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const fetchEntidades = async () => {
-    try {
-      const response = await axios.get("http://localhost:5000/usuarios/obtenerEntidades");
-      setEntidades(response.data);
-    } catch (error) {
-      console.error("Error al cargar entidades:", error);
-    }
-  };
-
-   const fetchGrupos = async () => {
-    setIsLoading(true);
-    try {
-      const response = await axios.get("http://localhost:5000/usuarios/obtenerGrupos");
-      setGrupos(response.data);
-      setFilteredGrupos(response.data);
-    } catch (error) {
-      console.error("Error al cargar grupos:", error);
-      showNotificationModal("Error", "Error al cargar los grupos", "error");
-    } finally {
-      setIsLoading(false);
-    }
   };
 
   // Funciones de validación corregidas
@@ -314,7 +302,7 @@ const Usuarios = () => {
     }
   };
 
-   const handleDelete = async (id) => {
+  const handleDelete = async (id) => {
     if (!window.confirm("¿Estás seguro de eliminar este usuario?")) return;
 
     try {
@@ -430,7 +418,6 @@ const Usuarios = () => {
   return (
     <MenuVertical>
       <>
-
         {/* Contenido */}
         <div className={styles.container}>
           {isLoading && (
@@ -724,7 +711,7 @@ const Usuarios = () => {
                     <tbody>
                       {isLoading ? (
                         <tr>
-                          <td colSpan="8" className={styles.loadingCell}>
+                          <td colSpan="9" className={styles.loadingCell}>
                             <FaSpinner className={styles.spinner} /> Cargando usuarios...
                           </td>
                         </tr>
@@ -736,13 +723,12 @@ const Usuarios = () => {
                             <td>{user.correo}</td>
                             <td>{user.telefono || '-'}</td>
                             <td>{user.rol}</td>
-                            <td>{user.grupo}</td>
-
                             <td>
                               <span className={`${styles.statusBadge} ${user.estado === 'activo' ? styles.active : styles.inactive}`}>
                                 {user.estado === 'activo' ? 'Activo' : 'Inactivo'}
                               </span>
                             </td>
+                            <td>{user.grupo || '-'}</td>
                             <td>{user.entidad || '-'}</td>
                             <td>
                               <button
@@ -762,7 +748,7 @@ const Usuarios = () => {
                         ))
                       ) : (
                         <tr>
-                          <td colSpan="8" className={styles.noUsers}>No se encontraron usuarios</td>
+                          <td colSpan="9" className={styles.noUsers}>No se encontraron usuarios</td>
                         </tr>
                       )}
                     </tbody>
@@ -904,7 +890,6 @@ const Usuarios = () => {
               </div>
             </div>
           )}
-
 
           <ChatBot />
         </div>

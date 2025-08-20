@@ -64,6 +64,47 @@ const CrearCasoAdmin = () => {
   // Verificación de rol
   const isAdminOrTech = userRole === "administrador" || userRole === "tecnico";
 
+  // Obtener datos iniciales al cargar el componente
+  useEffect(() => {
+    const fetchInitialData = async () => {
+      try {
+        setLoading(true);
+
+        // Usar Promise.all para llamadas paralelas
+        const [usuariosRes, deptosRes, catsRes, grupoRes] = await Promise.all([
+          axios.get("http://localhost:5000/usuarios/obtener"),
+          axios.get("http://localhost:5000/usuarios/obtenerEntidades"),
+          axios.get("http://localhost:5000/usuarios/obtenerCategorias"),
+          axios.get("http://localhost:5000/usuarios/obtenerGrupos"),
+        ]);
+
+        setUsuarios(usuariosRes.data);
+        setDepartamentos(deptosRes.data);
+        setCategorias(catsRes.data);
+        setGrupos(grupoRes.data);
+
+        if (location.state?.ticketData) {
+          setFormData((prev) => ({
+            ...prev,
+            ...location.state.ticketData,
+            fechaApertura: formatDateTimeForInput(
+              location.state.ticketData.fechaApertura
+            ),
+          }));
+        }
+      } catch (error) {
+        addNotification(
+          error.response?.data?.message || "Error al cargar datos iniciales",
+          "error"
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchInitialData();
+  }, [location.state]);
+
   if (!isAdminOrTech) {
     return (
       <div className={styles.accessDenied}>
@@ -249,47 +290,6 @@ const CrearCasoAdmin = () => {
     )}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
   };
 
-  // Obtener datos iniciales al cargar el componente
-  useEffect(() => {
-    const fetchInitialData = async () => {
-      try {
-        setLoading(true);
-
-        // Usar Promise.all para llamadas paralelas
-        const [usuariosRes, deptosRes, catsRes, grupoRes] = await Promise.all([
-          axios.get("http://localhost:5000/usuarios/obtener"),
-          axios.get("http://localhost:5000/usuarios/obtenerEntidades"),
-          axios.get("http://localhost:5000/usuarios/obtenerCategorias"),
-          axios.get("http://localhost:5000/usuarios/obtenerGrupos"),
-        ]);
-
-        setUsuarios(usuariosRes.data);
-        setDepartamentos(deptosRes.data);
-        setCategorias(catsRes.data);
-        setGrupos(grupoRes.data);
-
-        if (location.state?.ticketData) {
-          setFormData((prev) => ({
-            ...prev,
-            ...location.state.ticketData,
-            fechaApertura: formatDateTimeForInput(
-              location.state.ticketData.fechaApertura
-            ),
-          }));
-        }
-      } catch (error) {
-        addNotification(
-          error.response?.data?.message || "Error al cargar datos iniciales",
-          "error"
-        );
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchInitialData();
-  }, [location.state]);
-
   return (
     <MenuVertical>
       <>
@@ -387,7 +387,7 @@ const CrearCasoAdmin = () => {
                                   onClick={() => removeFile(index)}
                                   className={styles.removeFileButton}
                                 >
-                                  
+                                  ×
                                 </button>
                               </div>
                             ))}
@@ -401,7 +401,6 @@ const CrearCasoAdmin = () => {
                         type="submit"
                         className={styles.submitButton}
                         disabled={isLoading}
-             
                       >
                         {isLoading
                           ? "Procesando..."
