@@ -28,338 +28,238 @@ const demoStats = {
     active: 128,
     inactive: 14,
     distribution: [
-      { name: "Administradores", value: 8 },
-      { name: "Agentes", value: 32 },
-      { name: "Usuarios", value: 102 },
-    ],
+      { name: 'Administradores', value: 8 },
+      { name: 'Agentes', value: 32 },
+      { name: 'Usuarios', value: 102 }
+    ]
   },
   tickets: {
     total: 356,
     open: 142,
     resolved: 214,
     byStatus: [
-      { name: "Abierto", value: 142 },
-      { name: "En progreso", value: 87 },
-      { name: "Resuelto", value: 214 },
-      { name: "Cerrado", value: 198 },
+      { name: 'Abierto', value: 142 },
+      { name: 'En progreso', value: 87 },
+      { name: 'Resuelto', value: 214 },
+      { name: 'Cerrado', value: 198 }
     ],
     trend: Array.from({ length: 30 }, (_, i) => ({
       date: `${i + 1}/06`,
       created: Math.floor(Math.random() * 20) + 5,
-      resolved: Math.floor(Math.random() * 18) + 3,
-    })),
+      resolved: Math.floor(Math.random() * 18) + 3
+    }))
   },
   surveys: {
     total: 287,
     completed: 214,
-    pending: 73,
+    pending: 73
   },
   entities: [
-    { name: "Sede Principal", value: 124 },
-    { name: "Sede Norte", value: 87 },
-    { name: "Sede Sur", value: 65 },
-    { name: "Oficina Este", value: 42 },
-  ],
+    { name: 'Sede Principal', value: 124 },
+    { name: 'Sede Norte', value: 87 },
+    { name: 'Sede Sur', value: 65 },
+    { name: 'Oficina Este', value: 42 }
+  ]
 };
 
 const Dashboard = () => {
   const [stats, setStats] = useState(demoStats);
   const [loading, setLoading] = useState(false);
-  const [timeRange, setTimeRange] = useState("month");
+  const [error, setError] = useState(null);
+  const [timeRange, setTimeRange] = useState('month');
   const { addNotification } = useContext(NotificationContext);
 
-  // Obtener userId del localStorage
-  const userId = localStorage.getItem("id_usuario");
-  console.log("Valor de id_usuario:", userId);
 
-  // Usar useCallback para addNotification
-  const notify = useCallback((message, type = 'info') => {
-    addNotification(message, type);
-  }, [addNotification]);
+// Obtener userId y userRole del localStorage
+const userId = localStorage.getItem("userId") || "";
+const userRole = localStorage.getItem("rol") || "";
 
-  useEffect(() => {
-    const fetchInitialData = async () => {
-      try {
-        setLoading(true);
+useEffect(() => {
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem("token");
+      const response = await axios.get("http://localhost:5000/usuarios/estado_tickets", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        params: {
+          usuario_id: userId,
+          rol: userRole
+        }
+      });
 
-        // Usar Promise.all para llamadas paralelas
-        await Promise.all([
-          axios.get("http://localhost:5000/usuarios/obtener"),
-          axios.get("http://localhost:5000/usuarios/obtenerEntidades"),
-          axios.get("http://localhost:5000/usuarios/obtenerCategorias"),
-          axios.get("http://localhost:5000/usuarios/obtenerGrupos"),
-          axios.get(`http://localhost:5000/usuarios/tickets/tecnico/${userId}`),
-        ]);
-
-        notify("Datos cargados correctamente", "success");
-      } catch (error) {
-        notify(
-          error.response?.data?.message || "Error al cargar datos iniciales",
-          "error"
-        );
-      } finally {
+      // Simular llamadas API con datos demo
+   setStats(demoStats);
+        
+        addNotification("Datos del dashboard cargados correctamente", "success");
+        setLoading(false);
+      } catch (err) {
+        const errorMsg = err.response?.data?.message || err.message;
+        setError(errorMsg);
+        addNotification(`Error al cargar datos: ${errorMsg}`, "error");
+        setLoading(false);
+        
+        
+        setStats(demoStats);
         setLoading(false);
       }
     };
 
-    fetchInitialData();
-  }, [userId, notify]);
+    fetchData();
+  }, [timeRange, addNotification, userId, userRole]);
 
-  // Colores para las gráficas
-  const COLORS = [
-    "#0088FE",
-    "#00C49F",
-    "#FFBB28",
-    "#FF8042",
-    "#8884D8",
-    "#82CA9D",
-  ];
+// Colores para las gráficas
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D'];
 
-  if (loading)
-    return (
-      <div className={styles.loadingContainer}>
-        <div className={styles.spinner}></div>
-        <p>Cargando estadísticas...</p>
+if (loading) return (
+  <div className={styles.loadingContainer}>
+    <div className={styles.spinner}></div>
+    <p>Cargando estadísticas...</p>
+  </div>
+);
+
+if (error) return (
+  <div className={styles.errorContainer}>
+    <p>Error al cargar los datos: {error}</p>
+    <button onClick={() => window.location.reload()}>Reintentar</button>
+  </div>
+);
+
+return (
+  <div className={styles.dashboardContainer}>
+    <div className={styles.dashboardHeader}>
+      <h2>Tablero de Estadísticas</h2>
+      <div className={styles.timeRangeSelector}>
+        <select
+          value={timeRange}
+          onChange={(e) => setTimeRange(e.target.value)}
+          className={styles.timeRangeSelect}
+        >
+          <option value="day">Hoy</option>
+          <option value="week">Esta semana</option>
+          <option value="month">Este mes</option>
+          <option value="year">Este año</option>
+        </select>
       </div>
-    );
+    </div>
 
-  return (
-    <div className={styles.dashboardContainer}>
-      <div className={styles.dashboardHeader}>
-        <h2>Tablero de Estadísticas</h2>
-        <div className={styles.timeRangeSelector}>
-          <select
-            value={timeRange}
-            onChange={(e) => setTimeRange(e.target.value)}
-            className={styles.timeRangeSelect}
-          >
-            <option value="day">Hoy</option>
-            <option value="week">Esta semana</option>
-            <option value="month">Este mes</option>
-            <option value="year">Este año</option>
-          </select>
-        </div>
-      </div>
-
-      {/* Resumen de estadísticas */}
-      <div className={styles.statsSummary}>
-        <div className={styles.statCard}>
-          <h3>Usuarios</h3>
-          <p className={styles.statValue}>{stats.users.total}</p>
-          <div className={styles.statBreakdown}>
-            <span>Activos: {stats.users.active}</span>
-            <span>Inactivos: {stats.users.inactive}</span>
-          </div>
-        </div>
-
-        <div className={styles.statCard}>
-          <h3>Tickets</h3>
-          <p className={styles.statValue}>{stats.tickets.total}</p>
-          <div className={styles.statBreakdown}>
-            <span>Abiertos: {stats.tickets.open}</span>
-            <span>Resueltos: {stats.tickets.resolved}</span>
-          </div>
-        </div>
-
-        <div className={styles.statCard}>
-          <h3>Encuestas</h3>
-          <p className={styles.statValue}>{stats.surveys.total}</p>
-          <div className={styles.statBreakdown}>
-            <span>Completadas: {stats.surveys.completed}</span>
-            <span>Pendientes: {stats.surveys.pending}</span>
-          </div>
+    {/* Resumen de estadísticas */}
+    <div className={styles.statsSummary}>
+      <div className={styles.statCard}>
+        <h3>Usuarios</h3>
+        <p className={styles.statValue}>{stats.users.total}</p>
+        <div className={styles.statBreakdown}>
+          <span>Activos: {stats.users.active}</span>
+          <span>Inactivos: {stats.users.inactive}</span>
         </div>
       </div>
 
-      {/* Gráficas principales */}
-      <div className={styles.chartsGrid}>
-        {/* Gráfica de usuarios */}
-        <div className={styles.chartCard}>
-          <h3>Distribución de Usuarios</h3>
-          <div className={styles.chartWrapper}>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={stats.users.distribution}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="value"
-                  nameKey="name"
-                  label={({ name, percent }) =>
-                    `${name}: ${(percent * 100).toFixed(0)}%`
-                  }
-                >
-                  {stats.users.distribution.map((entry, index) => (
-                    <Cell
-                      key={`cell-${index}`}
-                      fill={COLORS[index % COLORS.length]}
-                    />
-                  ))}
-                </Pie>
-                <Tooltip
-                  formatter={(value) => [`${value} usuarios`, "Cantidad"]}
-                />
-                <Legend />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
+      <div className={styles.statCard}>
+        <h3>Tickets</h3>
+        <p className={styles.statValue}>{stats.tickets.total}</p>
+        <div className={styles.statBreakdown}>
+          <span>Abiertos: {stats.tickets.open}</span>
+          <span>Resueltos: {stats.tickets.resolved}</span>
         </div>
+      </div>
 
-        {/* Gráfica de tickets por estado */}
-        <div className={styles.chartCard}>
-          <h3>Tickets por Estado</h3>
-          <div className={styles.chartWrapper}>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={stats.tickets.byStatus}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip
-                  formatter={(value) => [`${value} tickets`, "Cantidad"]}
-                />
-                <Legend />
-                <Bar dataKey="value" fill="#8884d8" name="Tickets" />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-        {/* Gráfica de tendencia de tickets */}
-        <div className={styles.chartCard}>
-          <h3>
-            Tendencia de Tickets (
-            {timeRange === "month" ? "Últimos 30 días" : "Últimos 12 meses"})
-          </h3>
-          <div className={styles.chartWrapper}>
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={stats.tickets.trend}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="date" />
-                <YAxis />
-                <Tooltip
-                  formatter={(value) => [`${value} tickets`, "Cantidad"]}
-                />
-                <Legend />
-                <Line
-                  type="monotone"
-                  dataKey="created"
-                  stroke="#8884d8"
-                  name="Creados"
-                />
-                <Line
-                  type="monotone"
-                  dataKey="resolved"
-                  stroke="#82ca9d"
-                  name="Resueltos"
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-        {/* Gráfica de entidades con más tickets */}
-        <div className={styles.chartCard}>
-          <h3>Entidades con más Tickets</h3>
-          <div className={styles.chartWrapper}>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={stats.entities}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip
-                  formatter={(value) => [`${value} tickets`, "Cantidad"]}
-                />
-                <Legend />
-                <Bar dataKey="value" fill="#82ca9d" name="Tickets" />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
+      <div className={styles.statCard}>
+        <h3>Encuestas</h3>
+        <p className={styles.statValue}>{stats.surveys.total}</p>
+        <div className={styles.statBreakdown}>
+          <span>Completadas: {stats.surveys.completed}</span>
+          <span>Pendientes: {stats.surveys.pending}</span>
         </div>
       </div>
     </div>
-  );
-};
 
-// Función para renderizar tablas (añadida)
-const renderTable = (data, title) => {
-  if (!data || data.length === 0) {
-    return <p>No hay {title.toLowerCase()} disponibles.</p>;
-  }
+    {/* Gráficas principales */}
+    <div className={styles.chartsGrid}>
+      {/* Gráfica de usuarios */}
+      <div className={styles.chartCard}>
+        <h3>Distribución de Usuarios</h3>
+        <div className={styles.chartWrapper}>
+          <ResponsiveContainer width="100%" height={300}>
+            <PieChart>
+              <Pie
+                data={stats.users.distribution}
+                cx="50%"
+                cy="50%"
+                labelLine={false}
+                outerRadius={80}
+                fill="#8884d8"
+                dataKey="value"
+                nameKey="name"
+                label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+              >
+                {stats.users.distribution.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                ))}
+              </Pie>
+              <Tooltip formatter={(value) => [`${value} usuarios`, 'Cantidad']} />
+              <Legend />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
 
-  return (
-    <div>
-      <h3>{title}</h3>
-      <table>
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Solicitante</th>
-            <th>Descripción</th>
-            <th>Título</th>
-            <th>Prioridad</th>
-            <th>Fecha Creación</th>
-            <th>Técnico</th>
-          </tr>
-        </thead>
-        <tbody>
-          {data.map((item) => (
-            <tr key={item.id}>
-              <td>{item.id}</td>
-              <td>{item.solicitante}</td>
-              <td>{item.descripcion}</td>
-              <td>{item.titulo}</td>
-              <td>{item.prioridad}</td>
-              <td>{item.fecha_creacion}</td>
-              <td>{item.tecnico}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      {/* Gráfica de tickets por estado */}
+      <div className={styles.chartCard}>
+        <h3>Tickets por Estado</h3>
+        <div className={styles.chartWrapper}>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={stats.tickets.byStatus}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="name" />
+              <YAxis />
+              <Tooltip formatter={(value) => [`${value} tickets`, 'Cantidad']} />
+              <Legend />
+              <Bar dataKey="value" fill="#8884d8" name="Tickets" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* Gráfica de tendencia de tickets */}
+      <div className={styles.chartCard}>
+        <h3>Tendencia de Tickets ({timeRange === 'month' ? 'Últimos 30 días' : 'Últimos 12 meses'})</h3>
+        <div className={styles.chartWrapper}>
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={stats.tickets.trend}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="date" />
+              <YAxis />
+              <Tooltip formatter={(value) => [`${value} tickets`, 'Cantidad']} />
+              <Legend />
+              <Line type="monotone" dataKey="created" stroke="#8884d8" name="Creados" />
+              <Line type="monotone" dataKey="resolved" stroke="#82ca9d" name="Resueltos" />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* Gráfica de entidades con más tickets */}
+      <div className={styles.chartCard}>
+        <h3>Entidades con más Tickets</h3>
+        <div className={styles.chartWrapper}>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={stats.entities}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="name" />
+              <YAxis />
+              <Tooltip formatter={(value) => [`${value} tickets`, 'Cantidad']} />
+              <Legend />
+              <Bar dataKey="value" fill="#82ca9d" name="Tickets" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
     </div>
-  );
+  </div>
+);
 };
 
-// Función para renderizar tabla de encuestas (añadida)
-const renderSurveyTable = (data, title) => {
-  if (!data || data.length === 0) {
-    return <p>No hay {title.toLowerCase()} disponibles.</p>;
-  }
-
-  return (
-    <div>
-      <h3>{title}</h3>
-      <table>
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Solicitante</th>
-            <th>Descripción</th>
-            <th>Título</th>
-            <th>Prioridad</th>
-            <th>Fecha Creación</th>
-            <th>Técnico</th>
-          </tr>
-        </thead>
-        <tbody>
-          {data.map((item) => (
-            <tr key={item.id}>
-              <td>{item.id}</td>
-              <td>{item.solicitante}</td>
-              <td>{item.descripcion}</td>
-              <td>{item.titulo}</td>
-              <td>{item.prioridad}</td>
-              <td>{item.fecha_creacion}</td>
-              <td>{item.tecnico}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-};
 
 const HomeAdmiPage = () => {
   // Obtener datos del usuario

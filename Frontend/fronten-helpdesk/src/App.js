@@ -10,7 +10,6 @@ import HomeAdmiPage from "./pages/HomeAdmiPage";
 import HomeTecnicoPage from "./pages/HomeTecnicoPage";
 import Tickets from "./pages/Tickets";
 import CrearCasoAdmin from "./pages/CrearCasoAdmin";
-import Estadisticas from "./pages/Estadisticas";
 import Usuarios from "./pages/Usuarios";
 import Entidades from "./pages/Entidades";
 import Grupos from "./pages/Grupos";
@@ -35,7 +34,6 @@ function App() {
             <Route path="/HomeTecnicoPage" element={<HomeTecnicoPage />} />
             <Route path="/Tickets" element={<Tickets />} />
             <Route path="/CrearCasoAdmin" element={<CrearCasoAdmin />} />
-            <Route path="/Estadisticas" element={<Estadisticas />} />
             <Route path="/Usuarios" element={<Usuarios />} />
             <Route path="/Grupos" element={<Grupos />} />
             <Route path="/Entidades" element={<Entidades />} />

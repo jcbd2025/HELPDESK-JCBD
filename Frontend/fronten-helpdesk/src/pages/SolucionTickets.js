@@ -1,19 +1,77 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import axios from "axios";
-import { FaRegClock, FaCheckCircle, FaHistory } from "react-icons/fa";
+import { FaRegClock, FaCheckCircle, FaHistory, FaTimes, FaExclamationTriangle, FaCheck, FaSpinner } from "react-icons/fa";
 import styles from "../styles/SolucionTickets.module.css";
 import ChatBot from "../Componentes/ChatBot";
 import MenuVertical from "../Componentes/MenuVertical";
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:5000";
 
+// Componente Modal mejorado para mensajes
+const Modal = ({ isOpen, onClose, type, title, message, children, confirmText, onConfirm, showConfirm = false }) => {
+  if (!isOpen) return null;
+
+  const icon = {
+    success: <FaCheck className={styles.modalIconSuccess} />,
+    error: <FaExclamationTriangle className={styles.modalIconError} />,
+    info: <FaExclamationTriangle className={styles.modalIconInfo} />,
+    warning: <FaExclamationTriangle className={styles.modalIconWarning} />,
+    loading: <FaSpinner className={styles.modalIconLoading} />
+  }[type];
+
+  return (
+    <div className={styles.modalOverlay}>
+      <div className={styles.modal}>
+        <div className={`${styles.modalHeader} ${styles[`modalHeader${type}`]}`}>
+          {icon}
+          <h3>{title}</h3>
+          {type !== 'loading' && (
+            <button className={styles.modalCloseButton} onClick={onClose}>
+              <FaTimes />
+            </button>
+          )}
+        </div>
+        <div className={styles.modalBody}>
+          <p>{message}</p>
+          {children}
+        </div>
+        {type !== 'loading' && (
+          <div className={styles.modalFooter}>
+            {showConfirm && (
+              <button 
+                className={`${styles.modalButton} ${styles.modalButtonSecondary}`} 
+                onClick={onClose}
+              >
+                Cancelar
+              </button>
+            )}
+            <button 
+              className={`${styles.modalButton} ${styles[`modalButton${type}`]}`} 
+              onClick={onConfirm || onClose}
+            >
+              {confirmText || 'Aceptar'}
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
 const SolucionTickets = () => {
-  const [isChatOpen, setIsChatOpen] = useState(false);
   const { id } = useParams();
   const navigate = useNavigate();
-  const [solucion, setSolucion] = useState("");
-  const [accion, setAccion] = useState("seguimiento");
+  const dropdownRef = useRef(null);
+  
+  const [showOptions, setShowOptions] = useState(false);
+  const [showSolutionForm, setShowSolutionForm] = useState(false);
+  const [selectedOption, setSelectedOption] = useState(null);
+  const [solutionFormData, setSolutionFormData] = useState({
+    descripcion: "",
+    archivos: [],
+  });
+  
   const [ticket, setTicket] = useState({
     id: "",
     titulo: "",
@@ -32,37 +90,72 @@ const SolucionTickets = () => {
     asignadoA: "",
     grupoAsignado: "",
   });
-  const [surveyEnabled, setSurveyEnabled] = useState(false);
-  const [surveyRating, setSurveyRating] = useState(0);
-  const [surveyComment, setSurveyComment] = useState("");
-  const [casos, setCasos] = useState([]);
-  const [casoActual, setCasoActual] = useState(null);
-  const [seguimientos, setSeguimientos] = useState([]);
-  const [nuevoSeguimiento, setNuevoSeguimiento] = useState("");
+  
   const [categorias, setCategorias] = useState([]);
   const [grupos, setGrupos] = useState([]);
   const [tecnicos, setTecnicos] = useState([]);
+  const [seguimientos, setSeguimientos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
-  const [successMessage, setSuccessMessage] = useState("");
-  const [searchTerm, setSearchTerm] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [showOptions, setShowOptions] = useState(false);
-  const [showSolutionForm, setShowSolutionForm] = useState(false);
-  const [selectedOption, setSelectedOption] = useState(null);
-  const [solutionFormData, setSolutionFormData] = useState({
-    descripcion: "",
-    archivos: []
-  });
+  
+  // Estados para modales
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [showWarningModal, setShowWarningModal] = useState(false);
+  const [showLoadingModal, setShowLoadingModal] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [modalMessage, setModalMessage] = useState("");
+  const [modalTitle, setModalTitle] = useState("");
+  const [confirmAction, setConfirmAction] = useState(null);
 
   const userRole = localStorage.getItem("rol");
   const isAdminOrTech = ["administrador", "tecnico"].includes(userRole);
-  const isUser = userRole === "usuario";
+
+  // Función para mostrar modal de éxito
+  const showSuccess = (message, title = "Éxito") => {
+    setModalTitle(title);
+    setModalMessage(message);
+    setShowSuccessModal(true);
+  };
+
+  // Función para mostrar modal de error
+  const showError = (message, title = "Error") => {
+    setModalTitle(title);
+    setModalMessage(message);
+    setShowErrorModal(true);
+  };
+
+  // Función para mostrar modal de advertencia
+  const showWarning = (message, title = "Advertencia") => {
+    setModalTitle(title);
+    setModalMessage(message);
+    setShowWarningModal(true);
+  };
+
+  // Función para mostrar modal de confirmación
+  const showConfirmation = (message, title, onConfirm) => {
+    setModalTitle(title);
+    setModalMessage(message);
+    setConfirmAction(() => onConfirm);
+    setShowConfirmModal(true);
+  };
+
+  // Función para mostrar modal de carga
+  const showLoading = (message = "Procesando...", title = "Cargando") => {
+    setModalTitle(title);
+    setModalMessage(message);
+    setShowLoadingModal(true);
+  };
+
+  // Función para ocultar modal de carga
+  const hideLoading = () => {
+    setShowLoadingModal(false);
+  };
 
   const SeguimientoItem = ({ seguimiento }) => {
-    const isSolucion = seguimiento.tipo === 'solucion';
-    
+    const isSolucion = seguimiento.tipo === "solucion";
+
     return (
       <div className={isSolucion ? styles.solucionItem : styles.seguimientoItem}>
         <div className={isSolucion ? styles.solucionHeader : styles.seguimientoHeader}>
@@ -81,7 +174,11 @@ const SolucionTickets = () => {
               <ul>
                 {seguimiento.archivos.map((archivo, index) => (
                   <li key={index}>
-                    <a href={`${API_BASE_URL}/uploads/${archivo}`} target="_blank" rel="noopener noreferrer">
+                    <a
+                      href={`${API_BASE_URL}/uploads/${archivo}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
                       {archivo}
                     </a>
                   </li>
@@ -94,11 +191,25 @@ const SolucionTickets = () => {
     );
   };
 
+  // Cerrar el dropdown al hacer clic fuera de él
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShowOptions(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   const handleOptionSelect = (option) => {
     setSelectedOption(option);
     setShowOptions(false);
 
-    if (option === 'solucion' || option === 'seguimiento') {
+    if (option === "solucion" || option === "seguimiento") {
       setShowSolutionForm(true);
     } else {
       setShowSolutionForm(false);
@@ -108,15 +219,15 @@ const SolucionTickets = () => {
   const handleSolutionFileChange = (e) => {
     const { files } = e.target;
     if (files) {
-      setSolutionFormData(prev => ({
+      setSolutionFormData((prev) => ({
         ...prev,
-        archivos: Array.from(files)
+        archivos: Array.from(files),
       }));
     }
   };
 
   const removeSolutionFile = (index) => {
-    setSolutionFormData(prev => {
+    setSolutionFormData((prev) => {
       const newFiles = [...prev.archivos];
       newFiles.splice(index, 1);
       return { ...prev, archivos: newFiles };
@@ -127,10 +238,12 @@ const SolucionTickets = () => {
     const fetchAllData = async () => {
       try {
         setIsLoading(true);
+        showLoading("Cargando datos del ticket...");
+        
         const [ticketRes, categoriasRes, seguimientosRes] = await Promise.all([
           axios.get(`${API_BASE_URL}/usuarios/tickets/${id}`),
           axios.get(`${API_BASE_URL}/usuarios/obtenerCategorias`),
-          axios.get(`${API_BASE_URL}/usuarios/tickets/${id}/seguimientos`)
+          axios.get(`${API_BASE_URL}/usuarios/tickets/${id}/seguimientos`),
         ]);
 
         setTicket(ticketRes.data);
@@ -138,7 +251,9 @@ const SolucionTickets = () => {
         setSeguimientos(seguimientosRes.data);
       } catch (error) {
         console.error("Error al cargar datos:", error);
-        setError("Error al cargar los datos del ticket");
+        /*showError("No se pudieron cargar los datos del ticket. Por favor, intente nuevamente.");*/
+        
+        // Datos de ejemplo para desarrollo
         setTicket({
           id: id || "TKT-001",
           titulo: "Problema con el sistema de impresión",
@@ -160,6 +275,7 @@ const SolucionTickets = () => {
       } finally {
         setLoading(false);
         setIsLoading(false);
+        hideLoading();
       }
     };
 
@@ -168,10 +284,10 @@ const SolucionTickets = () => {
 
   const handleTicketInfoChange = (e) => {
     const { name, value } = e.target;
-    setTicket(prev => ({
+    setTicket((prev) => ({
       ...prev,
       [name]: value,
-      ultimaActualizacion: new Date().toLocaleString()
+      ultimaActualizacion: new Date().toLocaleString(),
     }));
   };
 
@@ -179,42 +295,46 @@ const SolucionTickets = () => {
     e.preventDefault();
 
     if (!solutionFormData.descripcion.trim()) {
-      setError("Por favor ingrese la solución o seguimiento");
+      showError("Por favor ingrese la solución o seguimiento");
       return;
     }
 
     try {
       setIsLoading(true);
+      showLoading(selectedOption === "solucion" 
+        ? "Guardando solución..." 
+        : "Guardando seguimiento...");
 
-      const endpoint = selectedOption === "solucion"
-        ? `${API_BASE_URL}/usuarios/tickets/${id}/solucionar`
-        : `${API_BASE_URL}/usuarios/tickets/${id}/seguimientos`;
+      const endpoint =
+        selectedOption === "solucion"
+          ? `${API_BASE_URL}/usuarios/tickets/${id}/solucionar`
+          : `${API_BASE_URL}/usuarios/tickets/${id}/seguimientos`;
 
       const formDataToSend = new FormData();
-      formDataToSend.append('descripcion', solutionFormData.descripcion);
-      formDataToSend.append('usuario', localStorage.getItem("nombre"));
+      formDataToSend.append("descripcion", solutionFormData.descripcion);
+      formDataToSend.append("usuario", localStorage.getItem("nombre"));
 
       if (selectedOption === "solucion") {
-        formDataToSend.append('estado', 'resuelto');
-        formDataToSend.append('tipo', 'solucion');
+        formDataToSend.append("estado", "resuelto");
+        formDataToSend.append("tipo", "solucion");
       } else {
-        formDataToSend.append('tipo', 'seguimiento');
+        formDataToSend.append("tipo", "seguimiento");
       }
 
-      solutionFormData.archivos.forEach(file => {
-        formDataToSend.append('archivos', file);
+      solutionFormData.archivos.forEach((file) => {
+        formDataToSend.append("archivos", file);
       });
 
       await axios.post(endpoint, formDataToSend, {
         headers: {
-          'Content-Type': 'multipart/form-data'
-        }
+          "Content-Type": "multipart/form-data",
+        },
       });
 
       // Refrescar los datos del ticket y seguimientos
       const [ticketRes, seguimientosRes] = await Promise.all([
         axios.get(`${API_BASE_URL}/usuarios/tickets/${id}`),
-        axios.get(`${API_BASE_URL}/usuarios/tickets/${id}/seguimientos`)
+        axios.get(`${API_BASE_URL}/usuarios/tickets/${id}/seguimientos`),
       ]);
 
       setTicket(ticketRes.data);
@@ -222,31 +342,31 @@ const SolucionTickets = () => {
       setSolutionFormData({ descripcion: "", archivos: [] });
       setShowSolutionForm(false);
 
-      setSuccessMessage(
-        selectedOption === "solucion"
-          ? "Solución guardada. El ticket se ha cerrado."
-          : "Seguimiento guardado correctamente."
-      );
-
       if (selectedOption === "solucion") {
-        navigate(`/EncuestaSatisfaccion/${id}`);
+        showSuccess("Solución guardada. El ticket se ha cerrado.", "Solución Aplicada");
+        setTimeout(() => {
+          navigate(`/EncuestaSatisfaccion/${id}`);
+        }, 2000);
+      } else {
+        showSuccess("Seguimiento guardado correctamente.", "Seguimiento Registrado");
       }
     } catch (error) {
       console.error("Error al guardar:", error);
-      setError("Error al procesar la solicitud");
+      const errorMessage = error.response?.data?.message || "Error al procesar la solicitud";
+      showError(errorMessage);
     } finally {
       setIsLoading(false);
-      setTimeout(() => setSuccessMessage(""), 3000);
-      setTimeout(() => setError(null), 3000);
+      hideLoading();
     }
   };
 
   const handleSaveChanges = async () => {
     try {
       setIsLoading(true);
+      showLoading("Guardando cambios...");
 
       if (!ticket.titulo || !ticket.descripcion) {
-        setError("Título y descripción son campos obligatorios");
+        showError("Título y descripción son campos obligatorios");
         return;
       }
 
@@ -256,16 +376,35 @@ const SolucionTickets = () => {
       );
 
       setTicket(response.data);
-      setSuccessMessage("Cambios guardados correctamente");
       setIsEditing(false);
+      showSuccess("Cambios guardados correctamente");
     } catch (error) {
       console.error("Error al guardar cambios:", error);
-      setError(error.response?.data?.message || "Error al guardar cambios");
+      const errorMessage = error.response?.data?.message || "Error al guardar cambios";
+      showError(errorMessage);
     } finally {
       setIsLoading(false);
-      setTimeout(() => setSuccessMessage(""), 3000);
-      setTimeout(() => setError(null), 3000);
+      hideLoading();
     }
+  };
+
+  const handleCancelEdit = () => {
+    showConfirmation(
+      "¿Está seguro que desea cancelar la edición? Se perderán todos los cambios no guardados.",
+      "Cancelar edición",
+      () => {
+        // Recargar los datos originales
+        axios.get(`${API_BASE_URL}/usuarios/tickets/${id}`)
+          .then(response => {
+            setTicket(response.data);
+            setIsEditing(false);
+          })
+          .catch(error => {
+            console.error("Error al cargar datos:", error);
+            showError("No se pudieron restaurar los datos originales");
+          });
+      }
+    );
   };
 
   const formatDateTimeForInput = (dateString) => {
@@ -298,9 +437,9 @@ const SolucionTickets = () => {
         <div className={styles.containersolucion}>
           <h1 className={styles.title}>Solución del Ticket #{ticket.id}</h1>
 
-          {isLoading && <div className={styles.loadingIndicator}>Guardando cambios...</div>}
-          {successMessage && <div className={styles.successMessage}>{successMessage}</div>}
-          {error && <div className={styles.errorMessage}>{error}</div>}
+          {isLoading && (
+            <div className={styles.loadingIndicator}>Guardando cambios...</div>
+          )}
 
           <div className={styles.mainLayout}>
             {/* Columna izquierda - Información del ticket */}
@@ -355,7 +494,10 @@ const SolucionTickets = () => {
                   >
                     <option value="">Seleccione...</option>
                     {categorias?.map((categoria) => (
-                      <option key={categoria.id_categoria} value={categoria.id_categoria}>
+                      <option
+                        key={categoria.id_categoria}
+                        value={categoria.id_categoria}
+                      >
                         {categoria.nombre_categoria}
                       </option>
                     ))}
@@ -477,14 +619,14 @@ const SolucionTickets = () => {
                     className={styles.saveButton}
                     disabled={isLoading}
                   >
-                    {isLoading ? 'Guardando...' : 'Guardar Cambios'}
+                    {isLoading ? "Guardando..." : "Guardar Cambios"}
                   </button>
                   <button
-                    onClick={() => setIsEditing(false)}
+                    onClick={handleCancelEdit}
                     className={styles.cancelButton}
                     disabled={isLoading}
                   >
-                    Cerrar
+                    Cancelar
                   </button>
                 </div>
               )}
@@ -576,14 +718,14 @@ const SolucionTickets = () => {
                         className={styles.saveButton}
                         disabled={isLoading}
                       >
-                        {isLoading ? 'Guardando...' : 'Guardar'}
+                        {isLoading ? "Guardando..." : "Guardar"}
                       </button>
                       <button
-                        onClick={() => setIsEditing(false)}
+                        onClick={handleCancelEdit}
                         className={styles.cancelButtons}
                         disabled={isLoading}
                       >
-                        Cerrar
+                        Cancelar
                       </button>
                     </>
                   ) : (
@@ -598,51 +740,42 @@ const SolucionTickets = () => {
                 </div>
               </div>
 
-              {/* Mostrar seguimientos existentes */}
-              <div className={styles.seguimientosContainer}>
-                <h3 className={styles.seguimientosTitle}>
-                  {seguimientos.length > 0 ? 'Historial de Seguimientos' : 'No hay seguimientos aún'}
-                </h3>
-                {seguimientos.map((seguimiento, index) => (
-                  <SeguimientoItem key={index} seguimiento={seguimiento} />
-                ))}
-              </div>
-
               {/* Botón de opciones y formulario */}
-              <div className={styles.optionsContainers}>
+              <div className={styles.optionsContainerWrapper} ref={dropdownRef}>
+                {showOptions && (
+                  <div className={styles.optionsDropup}>
+                    <button
+                      className={styles.optionItems}
+                      onClick={() => handleOptionSelect("solucion")}
+                    >
+                      Agregar solución
+                    </button>
+                    <button
+                      className={styles.optionItems}
+                      onClick={() => handleOptionSelect("seguimiento")}
+                    >
+                      Seguimiento
+                    </button>
+                  </div>
+                )}
+                
                 <button
                   className={styles.optionsButtons}
                   onClick={() => setShowOptions(!showOptions)}
                 >
                   Acciones
                   <span className={styles.arrowIcon}>
-                    {showOptions ? '▲' : '▼'}
+                    {showOptions ? "▲" : "▼"}
                   </span>
                 </button>
-
-                {showOptions && (
-                  <div className={styles.optionsDropdowns}>
-                    <button
-                      className={styles.optionItems}
-                      onClick={() => handleOptionSelect('solucion')}
-                    >
-                      Agregar solución
-                    </button>
-
-                    <button
-                      className={styles.optionItems}
-                      onClick={() => handleOptionSelect('seguimiento')}
-                    >
-                      Seguimiento
-                    </button>
-                  </div>
-                )}
               </div>
 
               {showSolutionForm && (
-                <div className={styles.solutionForms}>
+                <div className={styles.solutionForm}>
                   <h3>
-                    {selectedOption === 'solucion' ? 'Agregar Solución' : 'Agregar Seguimiento'}
+                    {selectedOption === "solucion"
+                      ? "Agregar Solución"
+                      : "Agregar Seguimiento"}
                   </h3>
 
                   <form onSubmit={handleSubmit}>
@@ -651,15 +784,17 @@ const SolucionTickets = () => {
                       <textarea
                         className={styles.textarea}
                         placeholder={
-                          selectedOption === 'solucion'
-                            ? 'Describa la solución al problema...'
-                            : 'Agregue detalles del seguimiento...'
+                          selectedOption === "solucion"
+                            ? "Describa la solución al problema..."
+                            : "Agregue detalles del seguimiento..."
                         }
                         value={solutionFormData.descripcion}
-                        onChange={(e) => setSolutionFormData({
-                          ...solutionFormData,
-                          descripcion: e.target.value
-                        })}
+                        onChange={(e) =>
+                          setSolutionFormData({
+                            ...solutionFormData,
+                            descripcion: e.target.value,
+                          })
+                        }
                         rows="5"
                         required
                       />
@@ -700,14 +835,17 @@ const SolucionTickets = () => {
                         className={styles.submitButton}
                         disabled={isLoading}
                       >
-                        {isLoading ? 'Procesando...' : 'Guardar'}
+                        {isLoading ? "Procesando..." : "Guardar"}
                       </button>
                       <button
                         type="button"
                         className={styles.cancelButton}
                         onClick={() => {
                           setShowSolutionForm(false);
-                          setSolutionFormData({ descripcion: "", archivos: [] });
+                          setSolutionFormData({
+                            descripcion: "",
+                            archivos: [],
+                          });
                         }}
                         disabled={isLoading}
                       >
@@ -764,6 +902,51 @@ const SolucionTickets = () => {
           </div>
         </div>
       </div>
+      
+      {/* Modales para mensajes */}
+      <Modal
+        isOpen={showSuccessModal}
+        onClose={() => setShowSuccessModal(false)}
+        type="success"
+        title={modalTitle}
+        message={modalMessage}
+      />
+      
+      <Modal
+        isOpen={showErrorModal}
+        onClose={() => setShowErrorModal(false)}
+        type="error"
+        title={modalTitle}
+        message={modalMessage}
+      />
+
+      <Modal
+        isOpen={showWarningModal}
+        onClose={() => setShowWarningModal(false)}
+        type="warning"
+        title={modalTitle}
+        message={modalMessage}
+      />
+
+      <Modal
+        isOpen={showLoadingModal}
+        onClose={() => {}}
+        type="loading"
+        title={modalTitle}
+        message={modalMessage}
+      />
+
+      <Modal
+        isOpen={showConfirmModal}
+        onClose={() => setShowConfirmModal(false)}
+        onConfirm={confirmAction}
+        type="warning"
+        title={modalTitle}
+        message={modalMessage}
+        showConfirm={true}
+        confirmText="Confirmar"
+      />
+      
       <ChatBot />
     </MenuVertical>
   );

@@ -135,14 +135,7 @@ const MenuVertical = ({ children }) => {
                         <span className={styles.menuText}>Tickets</span>
                       </Link>
                     </li>
-                    {userRole === "administrador" && (
-                      <li>
-                        <Link to="/Estadisticas" className={styles.submenuLink} onClick={handleLinkClick}>
-                          <FcBullish className={styles.menuIcon} />
-                          <span className={styles.menuText}>Estadísticas</span>
-                        </Link>
-                      </li>
-                    )}
+                    
                   </ul>
                 </li>
               )}
