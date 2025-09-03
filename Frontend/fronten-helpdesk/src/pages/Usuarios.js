@@ -1,6 +1,17 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
-import { FaChevronLeft, FaChevronRight, FaChevronDown, FaSearch, FaFilter, FaPlus, FaSpinner, FaFileExcel, FaFilePdf, FaFileCsv } from "react-icons/fa";
+import {
+  FaChevronLeft,
+  FaChevronRight,
+  FaChevronDown,
+  FaSearch,
+  FaFilter,
+  FaPlus,
+  FaSpinner,
+  FaFileExcel,
+  FaFilePdf,
+  FaFileCsv,
+} from "react-icons/fa";
 import { FcPrint } from "react-icons/fc";
 import axios from "axios";
 import styles from "../styles/Usuarios.module.css";
@@ -38,22 +49,24 @@ const Usuarios = () => {
 
   // Datos del formulario
   const [formData, setFormData] = useState({
-    nombre_usuario: '',
-    nombre_completo: '',
-    correo: '',
-    telefono: '',
-    contrasena: '',
-    estado: 'activo',
-    id_entidad: '',
-    rol: '',
-    grupo: ''
+    nombre_usuario: "",
+    nombre_completo: "",
+    correo: "",
+    telefono: "",
+    contrasena: "",
+    estado: "activo",
+    id_entidad: "",
+    rol: "",
+    grupo: "",
   });
 
   // Funciones de API con useCallback
   const fetchUsers = useCallback(async () => {
     setIsLoading(true);
     try {
-      const response = await axios.get("http://localhost:5000/usuarios/obtener");
+      const response = await axios.get(
+        "http://localhost:5000/usuarios/obtener"
+      );
       setUsers(response.data);
       setFilteredUsers(response.data);
     } catch (error) {
@@ -66,7 +79,9 @@ const Usuarios = () => {
 
   const fetchEntidades = useCallback(async () => {
     try {
-      const response = await axios.get("http://localhost:5000/usuarios/obtenerEntidades");
+      const response = await axios.get(
+        "http://localhost:5000/usuarios/obtenerEntidades"
+      );
       setEntidades(response.data);
     } catch (error) {
       console.error("Error al cargar entidades:", error);
@@ -77,7 +92,9 @@ const Usuarios = () => {
   const fetchGrupos = useCallback(async () => {
     setIsLoading(true);
     try {
-      const response = await axios.get("http://localhost:5000/usuarios/obtenerGrupos");
+      const response = await axios.get(
+        "http://localhost:5000/usuarios/obtenerGrupos"
+      );
       setGrupos(response.data);
     } catch (error) {
       console.error("Error al cargar grupos:", error);
@@ -109,17 +126,23 @@ const Usuarios = () => {
     let result = [...users];
 
     if (searchField && searchTerm) {
-      result = result.filter(user => {
+      result = result.filter((user) => {
         const value = user[searchField];
-        return value?.toString().toLowerCase().includes(searchTerm.toLowerCase());
+        return value
+          ?.toString()
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase());
       });
     }
 
-    additionalFilters.forEach(filter => {
+    additionalFilters.forEach((filter) => {
       if (filter.field && filter.value) {
-        result = result.filter(user => {
+        result = result.filter((user) => {
           const value = user[filter.field];
-          return value?.toString().toLowerCase().includes(filter.value.toLowerCase());
+          return value
+            ?.toString()
+            .toLowerCase()
+            .includes(filter.value.toLowerCase());
         });
       }
     });
@@ -132,7 +155,8 @@ const Usuarios = () => {
     applyFilters();
   }, [applyFilters]);
 
-  const toggleExportDropdown = () => setIsExportDropdownOpen(!isExportDropdownOpen);
+  const toggleExportDropdown = () =>
+    setIsExportDropdownOpen(!isExportDropdownOpen);
 
   // Funciones de exportación
   const exportToExcel = () => {
@@ -160,65 +184,72 @@ const Usuarios = () => {
     const newErrors = { ...formErrors };
 
     switch (name) {
-      case 'nombre_usuario':
+      case "nombre_usuario":
         if (!value) {
-          newErrors[name] = 'Nombre de usuario es requerido';
-        } else if (typeof value === 'string' && value.trim().length < 3) {
-          newErrors[name] = 'Mínimo 3 caracteres';
+          newErrors[name] = "Nombre de usuario es requerido";
+        } else if (typeof value === "string" && value.trim().length < 3) {
+          newErrors[name] = "Mínimo 3 caracteres";
         } else {
           delete newErrors[name];
         }
         break;
 
-      case 'nombre_completo':
+      case "nombre_completo":
         if (!value) {
-          newErrors[name] = 'Nombre completo es requerido';
-        } else if (typeof value === 'string' && value.trim().length === 0) {
-          newErrors[name] = 'Nombre completo no puede estar vacío';
+          newErrors[name] = "Nombre completo es requerido";
+        } else if (typeof value === "string" && value.trim().length === 0) {
+          newErrors[name] = "Nombre completo no puede estar vacío";
         } else {
           delete newErrors[name];
         }
         break;
 
-      case 'correo':
+      case "correo":
         if (!value) {
-          newErrors[name] = 'Correo es requerido';
-        } else if (typeof value === 'string' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim())) {
-          newErrors[name] = 'Correo inválido';
+          newErrors[name] = "Correo es requerido";
+        } else if (
+          typeof value === "string" &&
+          !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim())
+        ) {
+          newErrors[name] = "Correo inválido";
         } else {
           delete newErrors[name];
         }
         break;
 
-      case 'telefono':
-        if (value && typeof value === 'string' && !/^\d{7,15}$/.test(value.trim())) {
-          newErrors[name] = 'Teléfono inválido';
+      case "telefono":
+        if (
+          value &&
+          typeof value === "string" &&
+          !/^\d{7,15}$/.test(value.trim())
+        ) {
+          newErrors[name] = "Teléfono inválido";
         } else {
           delete newErrors[name];
         }
         break;
 
-      case 'contrasena':
+      case "contrasena":
         if (!editingId && !value) {
-          newErrors[name] = 'Contraseña es requerida';
-        } else if (value && typeof value === 'string' && value.length < 6) {
-          newErrors[name] = 'Mínimo 6 caracteres';
+          newErrors[name] = "Contraseña es requerida";
+        } else if (value && typeof value === "string" && value.length < 6) {
+          newErrors[name] = "Mínimo 6 caracteres";
         } else {
           delete newErrors[name];
         }
         break;
 
-      case 'id_entidad':
-        if (value === '' || value === null || value === undefined) {
-          newErrors[name] = 'Entidad es requerida';
+      case "id_entidad":
+        if (value === "" || value === null || value === undefined) {
+          newErrors[name] = "Entidad es requerida";
         } else {
           delete newErrors[name];
         }
         break;
 
-      case 'rol':
+      case "rol":
         if (!value) {
-          newErrors[name] = 'Rol es requerido';
+          newErrors[name] = "Rol es requerido";
         } else {
           delete newErrors[name];
         }
@@ -233,22 +264,28 @@ const Usuarios = () => {
   };
 
   const validateForm = () => {
-    const requiredFields = ['nombre_usuario', 'nombre_completo', 'correo', 'id_entidad', 'rol'];
-    if (!editingId) requiredFields.push('contrasena');
+    const requiredFields = [
+      "nombre_usuario",
+      "nombre_completo",
+      "correo",
+      "id_entidad",
+      "rol",
+    ];
+    if (!editingId) requiredFields.push("contrasena");
 
-    const isValid = requiredFields.every(field => {
+    const isValid = requiredFields.every((field) => {
       const value = formData[field];
       validateField(field, value);
 
-      if (value === null || value === undefined || value === '') {
+      if (value === null || value === undefined || value === "") {
         return false;
       }
 
-      if (typeof value === 'string') {
-        return value.trim() !== '';
+      if (typeof value === "string") {
+        return value.trim() !== "";
       }
 
-      if (typeof value === 'number') {
+      if (typeof value === "number") {
         return true;
       }
 
@@ -261,35 +298,39 @@ const Usuarios = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) {
-      setModalMessage("Por favor complete todos los campos requeridos correctamente");
+      setModalMessage(
+        "Por favor complete todos los campos requeridos correctamente"
+      );
       setShowErrorModal(true);
       return;
     }
 
     setIsLoading(true);
     try {
-      const method = editingId ? 'PUT' : 'POST';
+      const method = editingId ? "PUT" : "POST";
       const url = editingId
         ? `http://localhost:5000/usuarios/actualizacion/${editingId}`
-        : 'http://localhost:5000/usuarios/creacion';
+        : "http://localhost:5000/usuarios/creacion";
 
       const response = await axios[method.toLowerCase()](url, formData);
 
       if (response.data.success) {
-        setModalMessage(editingId
-          ? '¡Usuario actualizado correctamente!'
-          : '¡Usuario creado con éxito!');
+        setModalMessage(
+          editingId
+            ? "¡Usuario actualizado correctamente!"
+            : "¡Usuario creado con éxito!"
+        );
         setShowSuccessModal(true);
         resetForm();
         fetchUsers();
       }
     } catch (error) {
-      console.error('Error:', error);
-      let errorMessage = 'Error al procesar la solicitud';
+      console.error("Error:", error);
+      let errorMessage = "Error al procesar la solicitud";
 
       if (error.response?.data?.message) {
-        if (error.response.data.message.includes('ya existe')) {
-          errorMessage = 'El nombre de usuario ya está en uso';
+        if (error.response.data.message.includes("ya existe")) {
+          errorMessage = "El nombre de usuario ya está en uso";
         } else {
           errorMessage = error.response.data.message;
         }
@@ -306,7 +347,9 @@ const Usuarios = () => {
     if (!window.confirm("¿Estás seguro de eliminar este usuario?")) return;
 
     try {
-      const response = await axios.delete(`http://localhost:5000/usuarios/eliminar/${id}`);
+      const response = await axios.delete(
+        `http://localhost:5000/usuarios/eliminar/${id}`
+      );
       if (response.data.success) {
         setModalMessage("Usuario eliminado correctamente");
         setShowSuccessModal(true);
@@ -314,7 +357,9 @@ const Usuarios = () => {
       }
     } catch (error) {
       console.error("Error al eliminar:", error);
-      setModalMessage(error.response?.data?.message || "Error al eliminar el usuario");
+      setModalMessage(
+        error.response?.data?.message || "Error al eliminar el usuario"
+      );
       setShowErrorModal(true);
     }
   };
@@ -322,20 +367,20 @@ const Usuarios = () => {
   // Funciones de formulario
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
     validateField(name, value);
   };
 
   const resetForm = () => {
     setFormData({
-      nombre_usuario: '',
-      nombre_completo: '',
-      correo: '',
-      telefono: '',
-      contrasena: '',
-      estado: 'activo',
-      id_entidad: '',
-      rol: ''
+      nombre_usuario: "",
+      nombre_completo: "",
+      correo: "",
+      telefono: "",
+      contrasena: "",
+      estado: "activo",
+      id_entidad: "",
+      rol: "",
     });
     setEditingId(null);
     setFormErrors({});
@@ -348,10 +393,10 @@ const Usuarios = () => {
       nombre_completo: user.nombre_completo,
       correo: user.correo,
       telefono: user.telefono,
-      contrasena: '',
+      contrasena: "",
       estado: user.estado,
-      id_entidad: user.id_entidad1 || '',
-      rol: user.rol
+      id_entidad: user.id_entidad1 || "",
+      rol: user.rol,
     });
     setEditingId(user.id_usuario);
     setShowForm(true);
@@ -359,7 +404,10 @@ const Usuarios = () => {
 
   // Funciones de filtrado
   const addFilterField = () => {
-    setAdditionalFilters([...additionalFilters, { field: 'nombre_usuario', value: '' }]);
+    setAdditionalFilters([
+      ...additionalFilters,
+      { field: "nombre_usuario", value: "" },
+    ]);
   };
 
   const handleFilterChange = (index, field, value) => {
@@ -387,8 +435,9 @@ const Usuarios = () => {
   const totalPages = Math.ceil(filteredUsers.length / rowsPerPage);
 
   const paginate = (page) => setCurrentPage(page);
-  const nextPage = () => currentPage < totalPages && setCurrentPage(p => p + 1);
-  const prevPage = () => currentPage > 1 && setCurrentPage(p => p - 1);
+  const nextPage = () =>
+    currentPage < totalPages && setCurrentPage((p) => p + 1);
+  const prevPage = () => currentPage > 1 && setCurrentPage((p) => p - 1);
 
   const handleRowsPerPageChange = (e) => {
     setRowsPerPage(Number(e.target.value));
@@ -396,12 +445,14 @@ const Usuarios = () => {
   };
 
   // Renderizado condicional
-  if (!['administrador', 'tecnico'].includes(userRole)) {
+  if (!["administrador", "tecnico"].includes(userRole)) {
     return (
       <div className={styles.accessDenied}>
         <h2>Acceso restringido</h2>
         <p>No tienes permisos para acceder a esta sección.</p>
-        <Link to="/" className={styles.returnLink}>Volver al inicio</Link>
+        <Link to="/" className={styles.returnLink}>
+          Volver al inicio
+        </Link>
       </div>
     );
   }
@@ -428,17 +479,22 @@ const Usuarios = () => {
 
           <div className={styles.topControls}>
             <button
-              onClick={() => { resetForm(); setShowForm(!showForm); }}
+              onClick={() => {
+                resetForm();
+                setShowForm(!showForm);
+              }}
               className={styles.addButton}
             >
-              <FaPlus /> {showForm ? 'Ver Usuarios' : 'Agregar Usuario'}
+              <FaPlus /> {showForm ? "Ver Usuarios" : "Agregar Usuario"}
             </button>
           </div>
 
           {showForm ? (
             <div className={styles.containerUsuarios}>
               <h2 className={styles.titulo}>
-                {editingId ? 'Editar Usuario' : 'Formulario de Creación de Usuario'}
+                {editingId
+                  ? "Editar Usuario"
+                  : "Formulario de Creación de Usuario"}
               </h2>
               <form onSubmit={handleSubmit}>
                 <div className={styles.gridContainerUsuarios}>
@@ -447,39 +503,57 @@ const Usuarios = () => {
                       <label className={styles.label}>Nombre de usuario</label>
                       <input
                         type="text"
-                        className={`${styles.input} ${formErrors.nombre_usuario ? styles.inputError : ''}`}
+                        className={`${styles.input} ${
+                          formErrors.nombre_usuario ? styles.inputError : ""
+                        }`}
                         name="nombre_usuario"
                         value={formData.nombre_usuario}
                         onChange={handleChange}
                         required
                       />
-                      {formErrors.nombre_usuario && <span className={styles.errorMessage}>{formErrors.nombre_usuario}</span>}
+                      {formErrors.nombre_usuario && (
+                        <span className={styles.errorMessage}>
+                          {formErrors.nombre_usuario}
+                        </span>
+                      )}
                     </div>
 
                     <div className={styles.formGroup}>
                       <label className={styles.label}>Nombre completo</label>
                       <input
                         type="text"
-                        className={`${styles.input} ${formErrors.nombre_completo ? styles.inputError : ''}`}
+                        className={`${styles.input} ${
+                          formErrors.nombre_completo ? styles.inputError : ""
+                        }`}
                         name="nombre_completo"
                         value={formData.nombre_completo}
                         onChange={handleChange}
                         required
                       />
-                      {formErrors.nombre_completo && <span className={styles.errorMessage}>{formErrors.nombre_completo}</span>}
+                      {formErrors.nombre_completo && (
+                        <span className={styles.errorMessage}>
+                          {formErrors.nombre_completo}
+                        </span>
+                      )}
                     </div>
 
                     <div className={styles.formGroup}>
                       <label className={styles.label}>Correo electrónico</label>
                       <input
                         type="email"
-                        className={`${styles.input} ${formErrors.correo ? styles.inputError : ''}`}
+                        className={`${styles.input} ${
+                          formErrors.correo ? styles.inputError : ""
+                        }`}
                         name="correo"
                         value={formData.correo}
                         onChange={handleChange}
                         required
                       />
-                      {formErrors.correo && <span className={styles.errorMessage}>{formErrors.correo}</span>}
+                      {formErrors.correo && (
+                        <span className={styles.errorMessage}>
+                          {formErrors.correo}
+                        </span>
+                      )}
                     </div>
                   </div>
 
@@ -488,26 +562,40 @@ const Usuarios = () => {
                       <label className={styles.label}>Teléfono</label>
                       <input
                         type="tel"
-                        className={`${styles.input} ${formErrors.telefono ? styles.inputError : ''}`}
+                        className={`${styles.input} ${
+                          formErrors.telefono ? styles.inputError : ""
+                        }`}
                         name="telefono"
                         value={formData.telefono}
                         onChange={handleChange}
                       />
-                      {formErrors.telefono && <span className={styles.errorMessage}>{formErrors.telefono}</span>}
+                      {formErrors.telefono && (
+                        <span className={styles.errorMessage}>
+                          {formErrors.telefono}
+                        </span>
+                      )}
                     </div>
 
                     <div className={styles.formGroup}>
                       <label className={styles.label}>Contraseña</label>
                       <input
                         type="password"
-                        className={`${styles.input} ${formErrors.contrasena ? styles.inputError : ''}`}
+                        className={`${styles.input} ${
+                          formErrors.contrasena ? styles.inputError : ""
+                        }`}
                         name="contrasena"
                         value={formData.contrasena}
                         onChange={handleChange}
-                        placeholder={editingId ? "Dejar en blanco para no cambiar" : ""}
+                        placeholder={
+                          editingId ? "Dejar en blanco para no cambiar" : ""
+                        }
                         required={!editingId}
                       />
-                      {formErrors.contrasena && <span className={styles.errorMessage}>{formErrors.contrasena}</span>}
+                      {formErrors.contrasena && (
+                        <span className={styles.errorMessage}>
+                          {formErrors.contrasena}
+                        </span>
+                      )}
                     </div>
 
                     <div className={styles.formGroup}>
@@ -529,26 +617,37 @@ const Usuarios = () => {
                   <div className={styles.formGroup}>
                     <label className={styles.label}>Entidad</label>
                     <select
-                      className={`${styles.select} ${formErrors.id_entidad ? styles.inputError : ''}`}
+                      className={`${styles.select} ${
+                        formErrors.id_entidad ? styles.inputError : ""
+                      }`}
                       name="id_entidad"
                       value={formData.id_entidad}
                       onChange={handleChange}
                       required
                     >
                       <option value="">Seleccione una entidad</option>
-                      {entidades.map(entidad => (
-                        <option key={entidad.id_entidad} value={entidad.id_entidad}>
+                      {entidades.map((entidad) => (
+                        <option
+                          key={entidad.id_entidad}
+                          value={entidad.id_entidad}
+                        >
                           {entidad.nombre_entidad}
                         </option>
                       ))}
                     </select>
-                    {formErrors.id_entidad && <span className={styles.errorMessage}>{formErrors.id_entidad}</span>}
+                    {formErrors.id_entidad && (
+                      <span className={styles.errorMessage}>
+                        {formErrors.id_entidad}
+                      </span>
+                    )}
                   </div>
 
                   <div className={styles.formGroup}>
                     <label className={styles.label}>Rol</label>
                     <select
-                      className={`${styles.select} ${formErrors.rol ? styles.inputError : ''}`}
+                      className={`${styles.select} ${
+                        formErrors.rol ? styles.inputError : ""
+                      }`}
                       name="rol"
                       value={formData.rol}
                       onChange={handleChange}
@@ -559,34 +658,56 @@ const Usuarios = () => {
                       <option value="tecnico">Técnico</option>
                       <option value="usuario">Usuario</option>
                     </select>
-                    {formErrors.rol && <span className={styles.errorMessage}>{formErrors.rol}</span>}
+                    {formErrors.rol && (
+                      <span className={styles.errorMessage}>
+                        {formErrors.rol}
+                      </span>
+                    )}
                   </div>
 
                   <div className={styles.formGroup}>
                     <label className={styles.label}>Grupo</label>
                     <select
-                      className={`${styles.select} ${formErrors.id_grupo ? styles.inputError : ''}`}
+                      className={`${styles.select} ${
+                        formErrors.id_grupo ? styles.inputError : ""
+                      }`}
                       name="id_grupo"
                       value={formData.id_grupo}
                       onChange={handleChange}
                       required
                     >
                       <option value="">Seleccione un grupo</option>
-                      {grupos.map(grupo => (
+                      {grupos.map((grupo) => (
                         <option key={grupo.id_grupo} value={grupo.id_grupo}>
                           {grupo.nombre_grupo}
                         </option>
                       ))}
                     </select>
-                    {formErrors.id_grupo && <span className={styles.errorMessage}>{formErrors.id_grupo}</span>}
+                    {formErrors.id_grupo && (
+                      <span className={styles.errorMessage}>
+                        {formErrors.id_grupo}
+                      </span>
+                    )}
                   </div>
                 </div>
 
                 <div className={styles.botonesContainer}>
-                  <button type="submit" className={styles.boton} disabled={isLoading}>
-                    {isLoading ? <FaSpinner className={styles.spinnerButton} /> : 'Guardar'}
+                  <button
+                    type="submit"
+                    className={styles.boton}
+                    disabled={isLoading}
+                  >
+                    {isLoading ? (
+                      <FaSpinner className={styles.spinnerButton} />
+                    ) : (
+                      "Guardar"
+                    )}
                   </button>
-                  <button type="button" onClick={resetForm} className={styles.botonCancelar}>
+                  <button
+                    type="button"
+                    onClick={resetForm}
+                    className={styles.botonCancelar}
+                  >
                     Cancelar
                   </button>
                 </div>
@@ -596,7 +717,10 @@ const Usuarios = () => {
             <>
               <div className={styles.searchSection}>
                 <h2 className={styles.sectionTitle}>Buscar Usuarios</h2>
-                <form className={styles.searchForm} onSubmit={(e) => e.preventDefault()}>
+                <form
+                  className={styles.searchForm}
+                  onSubmit={(e) => e.preventDefault()}
+                >
                   <div className={styles.mainSearch}>
                     <div className={styles.searchFieldGroup}>
                       <select
@@ -619,13 +743,32 @@ const Usuarios = () => {
                       />
                     </div>
 
-                    <button type="submit" className={styles.searchButton} disabled={isLoading}>
-                      {isLoading ? <FaSpinner className={styles.spinnerButton} /> : <><FaSearch /> Buscar</>}
+                    <button
+                      type="submit"
+                      className={styles.searchButton}
+                      disabled={isLoading}
+                    >
+                      {isLoading ? (
+                        <FaSpinner className={styles.spinnerButton} />
+                      ) : (
+                        <>
+                          <FaSearch /> Buscar
+                        </>
+                      )}
                     </button>
-                    <button type="button" onClick={resetSearch} className={styles.resetButton} disabled={isLoading}>
+                    <button
+                      type="button"
+                      onClick={resetSearch}
+                      className={styles.resetButton}
+                      disabled={isLoading}
+                    >
                       Usuarios
                     </button>
-                    <button type="button" onClick={addFilterField} className={styles.addFilterButton}>
+                    <button
+                      type="button"
+                      onClick={addFilterField}
+                      className={styles.addFilterButton}
+                    >
                       <FaFilter /> Agregar Filtro
                     </button>
                   </div>
@@ -635,7 +778,9 @@ const Usuarios = () => {
                       <select
                         className={styles.searchSelect}
                         value={filter.field}
-                        onChange={(e) => handleFilterChange(index, 'field', e.target.value)}
+                        onChange={(e) =>
+                          handleFilterChange(index, "field", e.target.value)
+                        }
                       >
                         <option value="nombre_usuario">Usuario</option>
                         <option value="nombre_completo">Nombre completo</option>
@@ -648,7 +793,9 @@ const Usuarios = () => {
                         className={styles.searchInput}
                         placeholder={`Filtrar por ${filter.field}...`}
                         value={filter.value}
-                        onChange={(e) => handleFilterChange(index, 'value', e.target.value)}
+                        onChange={(e) =>
+                          handleFilterChange(index, "value", e.target.value)
+                        }
                       />
                       <button
                         type="button"
@@ -673,16 +820,28 @@ const Usuarios = () => {
                         className={styles.exportDropdownContent}
                         onMouseLeave={() => setIsExportDropdownOpen(false)}
                       >
-                        <button onClick={exportToExcel} className={styles.exportOption}>
+                        <button
+                          onClick={exportToExcel}
+                          className={styles.exportOption}
+                        >
                           <FaFileExcel /> Excel
                         </button>
-                        <button onClick={exportToPdf} className={styles.exportOption}>
+                        <button
+                          onClick={exportToPdf}
+                          className={styles.exportOption}
+                        >
                           <FaFilePdf /> PDF
                         </button>
-                        <button onClick={exportToCsv} className={styles.exportOption}>
+                        <button
+                          onClick={exportToCsv}
+                          className={styles.exportOption}
+                        >
                           <FaFileCsv /> CSV
                         </button>
-                        <button onClick={printTable} className={styles.exportOption}>
+                        <button
+                          onClick={printTable}
+                          className={styles.exportOption}
+                        >
                           <FcPrint /> Imprimir
                         </button>
                       </div>
@@ -692,7 +851,9 @@ const Usuarios = () => {
               </div>
 
               <div className={styles.usersTableContainer}>
-                <h2 className={styles.sectionTitle}>Usuarios Registrados ({filteredUsers.length})</h2>
+                <h2 className={styles.sectionTitle}>
+                  Usuarios Registrados ({filteredUsers.length})
+                </h2>
                 <div className={styles.tableWrapper}>
                   <table className={styles.usersTable}>
                     <thead>
@@ -712,7 +873,8 @@ const Usuarios = () => {
                       {isLoading ? (
                         <tr>
                           <td colSpan="9" className={styles.loadingCell}>
-                            <FaSpinner className={styles.spinner} /> Cargando usuarios...
+                            <FaSpinner className={styles.spinner} /> Cargando
+                            usuarios...
                           </td>
                         </tr>
                       ) : currentRows.length > 0 ? (
@@ -721,15 +883,23 @@ const Usuarios = () => {
                             <td>{user.nombre_usuario}</td>
                             <td>{user.nombre_completo}</td>
                             <td>{user.correo}</td>
-                            <td>{user.telefono || '-'}</td>
+                            <td>{user.telefono || "-"}</td>
                             <td>{user.rol}</td>
                             <td>
-                              <span className={`${styles.statusBadge} ${user.estado === 'activo' ? styles.active : styles.inactive}`}>
-                                {user.estado === 'activo' ? 'Activo' : 'Inactivo'}
+                              <span
+                                className={`${styles.statusBadge} ${
+                                  user.estado === "activo"
+                                    ? styles.active
+                                    : styles.inactive
+                                }`}
+                              >
+                                {user.estado === "activo"
+                                  ? "Activo"
+                                  : "Inactivo"}
                               </span>
                             </td>
-                            <td>{user.grupo || '-'}</td>
-                            <td>{user.entidad || '-'}</td>
+                            <td>{user.grupo || "-"}</td>
+                            <td>{user.entidad || "-"}</td>
                             <td>
                               <button
                                 className={styles.actionButton}
@@ -748,75 +918,13 @@ const Usuarios = () => {
                         ))
                       ) : (
                         <tr>
-                          <td colSpan="9" className={styles.noUsers}>No se encontraron usuarios</td>
+                          <td colSpan="9" className={styles.noUsers}>
+                            No se encontraron usuarios
+                          </td>
                         </tr>
                       )}
                     </tbody>
                   </table>
-                </div>
-              </div>
-
-              <div className={styles.paginationControls}>
-                <div className={styles.rowsPerPageSelector}>
-                  <span>Filas por página:</span>
-                  <select
-                    value={rowsPerPage}
-                    onChange={handleRowsPerPageChange}
-                    className={styles.rowsSelect}
-                    disabled={isLoading}
-                  >
-                    {[15, 30, 50, 100].map(num => (
-                      <option key={num} value={num}>{num}</option>
-                    ))}
-                  </select>
-                  <span className={styles.rowsInfo}>
-                    Mostrando {indexOfFirstRow + 1}-{Math.min(indexOfLastRow, filteredUsers.length)} de {filteredUsers.length} registros
-                  </span>
-                </div>
-
-                <div className={styles.pagination}>
-                  <button
-                    className={`${styles.paginationButton} ${currentPage === 1 || isLoading ? styles.disabled : ''}`}
-                    onClick={prevPage}
-                    disabled={currentPage === 1 || isLoading}
-                  >
-                    <FaChevronLeft />
-                  </button>
-
-                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                    const pageNumber = i + 1;
-                    return (
-                      <button
-                        key={pageNumber}
-                        className={`${styles.paginationButton} ${currentPage === pageNumber ? styles.active : ''}`}
-                        onClick={() => paginate(pageNumber)}
-                        disabled={isLoading}
-                      >
-                        {pageNumber}
-                      </button>
-                    );
-                  })}
-
-                  {totalPages > 5 && currentPage < totalPages - 2 && (
-                    <>
-                      <span className={styles.paginationEllipsis}>...</span>
-                      <button
-                        className={`${styles.paginationButton} ${currentPage === totalPages ? styles.active : ''}`}
-                        onClick={() => paginate(totalPages)}
-                        disabled={isLoading}
-                      >
-                        {totalPages}
-                      </button>
-                    </>
-                  )}
-
-                  <button
-                    className={`${styles.paginationButton} ${currentPage === totalPages || isLoading ? styles.disabled : ''}`}
-                    onClick={nextPage}
-                    disabled={currentPage === totalPages || isLoading}
-                  >
-                    <FaChevronRight />
-                  </button>
                 </div>
               </div>
             </>
@@ -838,7 +946,10 @@ const Usuarios = () => {
                 <div className={styles.modalBody}>
                   <div className={styles.successIcon}>
                     <svg viewBox="0 0 24 24">
-                      <path fill="currentColor" d="M12 2C6.5 2 2 6.5 2 12S6.5 22 12 22 22 17.5 22 12 17.5 2 12 2M10 17L5 12L6.41 10.59L10 14.17L17.59 6.58L19 8L10 17Z" />
+                      <path
+                        fill="currentColor"
+                        d="M12 2C6.5 2 2 6.5 2 12S6.5 22 12 22 22 17.5 22 12 17.5 2 12 2M10 17L5 12L6.41 10.59L10 14.17L17.59 6.58L19 8L10 17Z"
+                      />
                     </svg>
                   </div>
                   <p>{modalMessage}</p>
@@ -873,7 +984,10 @@ const Usuarios = () => {
                 <div className={styles.modalBody}>
                   <div className={styles.errorIcon}>
                     <svg viewBox="0 0 24 24">
-                      <path fill="currentColor" d="M12,2C17.53,2 22,6.47 22,12C22,17.53 17.53,22 12,22C6.47,22 2,17.53 2,12C2,6.47 6.47,2 12,2M15.59,7L12,10.59L8.41,7L7,8.41L10.59,12L7,15.59L8.41,17L12,13.41L15.59,17L17,15.59L13.41,12L17,8.41L15.59,7Z" />
+                      <path
+                        fill="currentColor"
+                        d="M12,2C17.53,2 22,6.47 22,12C22,17.53 17.53,22 12,22C6.47,22 2,17.53 2,12C2,6.47 6.47,2 12,2M15.59,7L12,10.59L8.41,7L7,8.41L10.59,12L7,15.59L8.41,17L12,13.41L15.59,17L17,15.59L13.41,12L17,8.41L15.59,7Z"
+                      />
                     </svg>
                   </div>
                   <p>{modalMessage}</p>
@@ -891,6 +1005,82 @@ const Usuarios = () => {
             </div>
           )}
 
+          
+          <div className={styles.paginationControls}>
+            <div className={styles.rowsPerPageSelector}>
+              <span>Filas por página:</span>
+              <select
+                value={rowsPerPage}
+                onChange={handleRowsPerPageChange}
+                className={styles.rowsSelect}
+                disabled={isLoading}
+              >
+                {[15, 30, 50, 100].map((num) => (
+                  <option key={num} value={num}>
+                    {num}
+                  </option>
+                ))}
+              </select>
+              <span className={styles.rowsInfo}>
+                Mostrando {indexOfFirstRow + 1}-
+                {Math.min(indexOfLastRow, filteredUsers.length)} de{" "}
+                {filteredUsers.length} registros
+              </span>
+            </div>
+
+            <div className={styles.pagination}>
+              <button
+                className={`${styles.paginationButton} ${
+                  currentPage === 1 || isLoading ? styles.disabled : ""
+                }`}
+                onClick={prevPage}
+                disabled={currentPage === 1 || isLoading}
+              >
+                <FaChevronLeft />
+              </button>
+
+              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                const pageNumber = i + 1;
+                return (
+                  <button
+                    key={pageNumber}
+                    className={`${styles.paginationButton} ${
+                      currentPage === pageNumber ? styles.active : ""
+                    }`}
+                    onClick={() => paginate(pageNumber)}
+                    disabled={isLoading}
+                  >
+                    {pageNumber}
+                  </button>
+                );
+              })}
+
+              {totalPages > 5 && currentPage < totalPages - 2 && (
+                <>
+                  <span className={styles.paginationEllipsis}>...</span>
+                  <button
+                    className={`${styles.paginationButton} ${
+                      currentPage === totalPages ? styles.active : ""
+                    }`}
+                    onClick={() => paginate(totalPages)}
+                    disabled={isLoading}
+                  >
+                    {totalPages}
+                  </button>
+                </>
+              )}
+
+              <button
+                className={`${styles.paginationButton} ${
+                  currentPage === totalPages || isLoading ? styles.disabled : ""
+                }`}
+                onClick={nextPage}
+                disabled={currentPage === totalPages || isLoading}
+              >
+                <FaChevronRight />
+              </button>
+            </div>
+          </div>
           <ChatBot />
         </div>
       </>

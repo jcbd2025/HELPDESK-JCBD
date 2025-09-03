@@ -5,59 +5,9 @@ import { FaRegClock, FaCheckCircle, FaHistory, FaTimes, FaExclamationTriangle, F
 import styles from "../styles/SolucionTickets.module.css";
 import ChatBot from "../Componentes/ChatBot";
 import MenuVertical from "../Componentes/MenuVertical";
+import { useNotification } from "../context/NotificationContext";
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:5000";
-
-// Componente Modal mejorado para mensajes
-const Modal = ({ isOpen, onClose, type, title, message, children, confirmText, onConfirm, showConfirm = false }) => {
-  if (!isOpen) return null;
-
-  const icon = {
-    success: <FaCheck className={styles.modalIconSuccess} />,
-    error: <FaExclamationTriangle className={styles.modalIconError} />,
-    info: <FaExclamationTriangle className={styles.modalIconInfo} />,
-    warning: <FaExclamationTriangle className={styles.modalIconWarning} />,
-    loading: <FaSpinner className={styles.modalIconLoading} />
-  }[type];
-
-  return (
-    <div className={styles.modalOverlay}>
-      <div className={styles.modal}>
-        <div className={`${styles.modalHeader} ${styles[`modalHeader${type}`]}`}>
-          {icon}
-          <h3>{title}</h3>
-          {type !== 'loading' && (
-            <button className={styles.modalCloseButton} onClick={onClose}>
-              <FaTimes />
-            </button>
-          )}
-        </div>
-        <div className={styles.modalBody}>
-          <p>{message}</p>
-          {children}
-        </div>
-        {type !== 'loading' && (
-          <div className={styles.modalFooter}>
-            {showConfirm && (
-              <button 
-                className={`${styles.modalButton} ${styles.modalButtonSecondary}`} 
-                onClick={onClose}
-              >
-                Cancelar
-              </button>
-            )}
-            <button 
-              className={`${styles.modalButton} ${styles[`modalButton${type}`]}`} 
-              onClick={onConfirm || onClose}
-            >
-              {confirmText || 'Aceptar'}
-            </button>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
 
 const SolucionTickets = () => {
   const { id } = useParams();
@@ -72,6 +22,8 @@ const SolucionTickets = () => {
     archivos: [],
   });
   
+  // Estados para los datos del ticket
+  const [originalTicket, setOriginalTicket] = useState({});
   const [ticket, setTicket] = useState({
     id: "",
     titulo: "",
@@ -96,7 +48,10 @@ const SolucionTickets = () => {
   const [tecnicos, setTecnicos] = useState([]);
   const [seguimientos, setSeguimientos] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [isEditing, setIsEditing] = useState(false);
+  
+  // Estados de edición independientes
+  const [isEditingVerticalForm, setIsEditingVerticalForm] = useState(false);
+  const [isEditingTicketInfo, setIsEditingTicketInfo] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   
   // Estados para modales
@@ -109,6 +64,7 @@ const SolucionTickets = () => {
   const [modalTitle, setModalTitle] = useState("");
   const [confirmAction, setConfirmAction] = useState(null);
 
+  const { addNotification } = useNotification();
   const userRole = localStorage.getItem("rol");
   const isAdminOrTech = ["administrador", "tecnico"].includes(userRole);
 
@@ -148,6 +104,15 @@ const SolucionTickets = () => {
     setShowLoadingModal(true);
   };
 
+  // Cerrar modales
+  const handleCloseSuccessModal = () => {
+    setShowSuccessModal(false);
+  };
+
+  const handleCloseErrorModal = () => {
+    setShowErrorModal(false);
+  };
+  
   // Función para ocultar modal de carga
   const hideLoading = () => {
     setShowLoadingModal(false);
@@ -246,15 +211,15 @@ const SolucionTickets = () => {
           axios.get(`${API_BASE_URL}/usuarios/tickets/${id}/seguimientos`),
         ]);
 
-        setTicket(ticketRes.data);
+        const ticketData = ticketRes.data;
+        setTicket(ticketData);
+        setOriginalTicket(ticketData); // Guardar copia original
         setCategorias(categoriasRes.data);
         setSeguimientos(seguimientosRes.data);
       } catch (error) {
         console.error("Error al cargar datos:", error);
-        /*showError("No se pudieron cargar los datos del ticket. Por favor, intente nuevamente.");*/
-        
         // Datos de ejemplo para desarrollo
-        setTicket({
+        const sampleData = {
           id: id || "TKT-001",
           titulo: "Problema con el sistema de impresión",
           descripcion: "El sistema no imprime correctamente los documentos largos",
@@ -271,7 +236,9 @@ const SolucionTickets = () => {
           observador: "",
           asignadoA: "Técnico Asignado",
           grupoAsignado: "Soporte Técnico",
-        });
+        };
+        setTicket(sampleData);
+        setOriginalTicket(sampleData);
       } finally {
         setLoading(false);
         setIsLoading(false);
@@ -282,6 +249,17 @@ const SolucionTickets = () => {
     fetchAllData();
   }, [id]);
 
+  // Manejador de cambios para el formulario vertical
+  const handleVerticalFormChange = (e) => {
+    const { name, value } = e.target;
+    setTicket((prev) => ({
+      ...prev,
+      [name]: value,
+      ultimaActualizacion: new Date().toLocaleString(),
+    }));
+  };
+
+  // Manejador de cambios para la información principal del ticket
   const handleTicketInfoChange = (e) => {
     const { name, value } = e.target;
     setTicket((prev) => ({
@@ -337,7 +315,9 @@ const SolucionTickets = () => {
         axios.get(`${API_BASE_URL}/usuarios/tickets/${id}/seguimientos`),
       ]);
 
-      setTicket(ticketRes.data);
+      const updatedTicket = ticketRes.data;
+      setTicket(updatedTicket);
+      setOriginalTicket(updatedTicket);
       setSeguimientos(seguimientosRes.data);
       setSolutionFormData({ descripcion: "", archivos: [] });
       setShowSolutionForm(false);
@@ -360,7 +340,7 @@ const SolucionTickets = () => {
     }
   };
 
-  const handleSaveChanges = async () => {
+  const handleSaveChanges = async (section) => {
     try {
       setIsLoading(true);
       showLoading("Guardando cambios...");
@@ -375,8 +355,17 @@ const SolucionTickets = () => {
         ticket
       );
 
-      setTicket(response.data);
-      setIsEditing(false);
+      const updatedTicket = response.data;
+      setTicket(updatedTicket);
+      setOriginalTicket(updatedTicket);
+      
+      // Cerrar el modo edición según la sección
+      if (section === 'vertical') {
+        setIsEditingVerticalForm(false);
+      } else {
+        setIsEditingTicketInfo(false);
+      }
+      
       showSuccess("Cambios guardados correctamente");
     } catch (error) {
       console.error("Error al guardar cambios:", error);
@@ -388,23 +377,16 @@ const SolucionTickets = () => {
     }
   };
 
-  const handleCancelEdit = () => {
-    showConfirmation(
-      "¿Está seguro que desea cancelar la edición? Se perderán todos los cambios no guardados.",
-      "Cancelar edición",
-      () => {
-        // Recargar los datos originales
-        axios.get(`${API_BASE_URL}/usuarios/tickets/${id}`)
-          .then(response => {
-            setTicket(response.data);
-            setIsEditing(false);
-          })
-          .catch(error => {
-            console.error("Error al cargar datos:", error);
-            showError("No se pudieron restaurar los datos originales");
-          });
-      }
-    );
+  const handleCancelEdit = (section) => {
+    // Restaurar los valores originales desde la copia de respaldo
+    setTicket(originalTicket);
+    
+    // Cerrar el modo edición según la sección
+    if (section === 'vertical') {
+      setIsEditingVerticalForm(false);
+    } else {
+      setIsEditingTicketInfo(false);
+    }
   };
 
   const formatDateTimeForInput = (dateString) => {
@@ -446,9 +428,9 @@ const SolucionTickets = () => {
             <div className={styles.ticketInfoContainer}>
               <div className={styles.header}>
                 <h3>Información del Ticket</h3>
-                {!isEditing && isAdminOrTech && (
+                {!isEditingVerticalForm && isAdminOrTech && (
                   <button
-                    onClick={() => setIsEditing(true)}
+                    onClick={() => setIsEditingVerticalForm(true)}
                     className={styles.editButton}
                     disabled={isLoading}
                   >
@@ -466,8 +448,8 @@ const SolucionTickets = () => {
                     type="datetime-local"
                     name="fechaApertura"
                     value={formatDateTimeForInput(ticket.fechaApertura)}
-                    onChange={handleTicketInfoChange}
-                    disabled={!isEditing || !isAdminOrTech}
+                    onChange={handleVerticalFormChange}
+                    disabled={!isEditingVerticalForm || !isAdminOrTech}
                   />
                 </div>
 
@@ -476,8 +458,8 @@ const SolucionTickets = () => {
                   <select
                     name="tipo"
                     value={ticket.tipo}
-                    onChange={handleTicketInfoChange}
-                    disabled={!isEditing || !isAdminOrTech}
+                    onChange={handleVerticalFormChange}
+                    disabled={!isEditingVerticalForm || !isAdminOrTech}
                   >
                     <option value="incidencia">Incidencia</option>
                     <option value="requerimiento">Requerimiento</option>
@@ -489,8 +471,8 @@ const SolucionTickets = () => {
                   <select
                     name="categoria"
                     value={ticket.categoria}
-                    onChange={handleTicketInfoChange}
-                    disabled={!isEditing || !isAdminOrTech}
+                    onChange={handleVerticalFormChange}
+                    disabled={!isEditingVerticalForm || !isAdminOrTech}
                   >
                     <option value="">Seleccione...</option>
                     {categorias?.map((categoria) => (
@@ -509,8 +491,8 @@ const SolucionTickets = () => {
                   <select
                     name="estado"
                     value={ticket.estado}
-                    onChange={handleTicketInfoChange}
-                    disabled={!isEditing || !isAdminOrTech}
+                    onChange={handleVerticalFormChange}
+                    disabled={!isEditingVerticalForm || !isAdminOrTech}
                   >
                     <option value="nuevo">Nuevo</option>
                     <option value="en-curso">En curso</option>
@@ -525,8 +507,8 @@ const SolucionTickets = () => {
                   <select
                     name="prioridad"
                     value={ticket.prioridad}
-                    onChange={handleTicketInfoChange}
-                    disabled={!isEditing || !isAdminOrTech}
+                    onChange={handleVerticalFormChange}
+                    disabled={!isEditingVerticalForm || !isAdminOrTech}
                   >
                     <option value="alta">Alta</option>
                     <option value="media">Media</option>
@@ -540,8 +522,8 @@ const SolucionTickets = () => {
                     type="text"
                     name="ubicacion"
                     value={ticket.ubicacion}
-                    onChange={handleTicketInfoChange}
-                    disabled={!isEditing || !isAdminOrTech}
+                    onChange={handleVerticalFormChange}
+                    disabled={!isEditingVerticalForm || !isAdminOrTech}
                   />
                 </div>
 
@@ -553,8 +535,8 @@ const SolucionTickets = () => {
                     type="text"
                     name="solicitante"
                     value={ticket.solicitante}
-                    onChange={handleTicketInfoChange}
-                    disabled={!isEditing || !isAdminOrTech}
+                    onChange={handleVerticalFormChange}
+                    disabled={!isEditingVerticalForm || !isAdminOrTech}
                   />
                 </div>
 
@@ -564,8 +546,8 @@ const SolucionTickets = () => {
                     type="text"
                     name="observador"
                     value={ticket.observador}
-                    onChange={handleTicketInfoChange}
-                    disabled={!isEditing || !isAdminOrTech}
+                    onChange={handleVerticalFormChange}
+                    disabled={!isEditingVerticalForm || !isAdminOrTech}
                   />
                 </div>
 
@@ -575,8 +557,8 @@ const SolucionTickets = () => {
                     <select
                       name="asignadoA"
                       value={ticket.asignadoA}
-                      onChange={handleTicketInfoChange}
-                      disabled={!isEditing || !isAdminOrTech}
+                      onChange={handleVerticalFormChange}
+                      disabled={!isEditingVerticalForm || !isAdminOrTech}
                     >
                       <option value="">Seleccionar técnico</option>
                       {tecnicos.map((tec) => (
@@ -596,8 +578,8 @@ const SolucionTickets = () => {
                     <select
                       name="grupoAsignado"
                       value={ticket.grupoAsignado}
-                      onChange={handleTicketInfoChange}
-                      disabled={!isEditing || !isAdminOrTech}
+                      onChange={handleVerticalFormChange}
+                      disabled={!isEditingVerticalForm || !isAdminOrTech}
                     >
                       <option value="">Seleccionar grupo</option>
                       {grupos.map((grupo) => (
@@ -612,17 +594,17 @@ const SolucionTickets = () => {
                 </div>
               </div>
 
-              {isEditing && isAdminOrTech && (
+              {isEditingVerticalForm && isAdminOrTech && (
                 <div className={styles.actions}>
                   <button
-                    onClick={handleSaveChanges}
+                    onClick={() => handleSaveChanges('vertical')}
                     className={styles.saveButton}
                     disabled={isLoading}
                   >
                     {isLoading ? "Guardando..." : "Guardar Cambios"}
                   </button>
                   <button
-                    onClick={handleCancelEdit}
+                    onClick={() => handleCancelEdit('vertical')}
                     className={styles.cancelButton}
                     disabled={isLoading}
                   >
@@ -636,7 +618,7 @@ const SolucionTickets = () => {
             <div className={styles.mainContentContainer}>
               <div className={styles.ticketInfo}>
                 <div className={styles.ticketHeader}>
-                  {isEditing ? (
+                  {isEditingTicketInfo ? (
                     <input
                       type="text"
                       name="titulo"
@@ -648,7 +630,7 @@ const SolucionTickets = () => {
                     <span className={styles.ticketTitle}>{ticket.titulo}</span>
                   )}
 
-                  {isEditing ? (
+                  {isEditingTicketInfo ? (
                     <select
                       name="prioridad"
                       value={ticket.prioridad}
@@ -671,7 +653,7 @@ const SolucionTickets = () => {
                 </div>
 
                 <div className={styles.ticketDescription}>
-                  {isEditing ? (
+                  {isEditingTicketInfo ? (
                     <textarea
                       name="descripcion"
                       value={ticket.descripcion}
@@ -696,7 +678,7 @@ const SolucionTickets = () => {
                   </div>
                   <div>
                     <strong>Categoría:</strong>
-                    {isEditing ? (
+                    {isEditingTicketInfo ? (
                       <input
                         type="text"
                         name="categoria"
@@ -711,17 +693,17 @@ const SolucionTickets = () => {
                 </div>
 
                 <div className={styles.ticketActions}>
-                  {isEditing ? (
+                  {isEditingTicketInfo ? (
                     <>
                       <button
-                        onClick={handleSaveChanges}
+                        onClick={() => handleSaveChanges('ticket')}
                         className={styles.saveButton}
                         disabled={isLoading}
                       >
                         {isLoading ? "Guardando..." : "Guardar"}
                       </button>
                       <button
-                        onClick={handleCancelEdit}
+                        onClick={() => handleCancelEdit('ticket')}
                         className={styles.cancelButtons}
                         disabled={isLoading}
                       >
@@ -730,7 +712,7 @@ const SolucionTickets = () => {
                     </>
                   ) : (
                     <button
-                      onClick={() => setIsEditing(true)}
+                      onClick={() => setIsEditingTicketInfo(true)}
                       className={styles.editButton}
                       disabled={isLoading}
                     >
@@ -903,49 +885,76 @@ const SolucionTickets = () => {
         </div>
       </div>
       
-      {/* Modales para mensajes */}
-      <Modal
-        isOpen={showSuccessModal}
-        onClose={() => setShowSuccessModal(false)}
-        type="success"
-        title={modalTitle}
-        message={modalMessage}
-      />
       
-      <Modal
-        isOpen={showErrorModal}
-        onClose={() => setShowErrorModal(false)}
-        type="error"
-        title={modalTitle}
-        message={modalMessage}
-      />
-
-      <Modal
-        isOpen={showWarningModal}
-        onClose={() => setShowWarningModal(false)}
-        type="warning"
-        title={modalTitle}
-        message={modalMessage}
-      />
-
-      <Modal
-        isOpen={showLoadingModal}
-        onClose={() => {}}
-        type="loading"
-        title={modalTitle}
-        message={modalMessage}
-      />
-
-      <Modal
-        isOpen={showConfirmModal}
-        onClose={() => setShowConfirmModal(false)}
-        onConfirm={confirmAction}
-        type="warning"
-        title={modalTitle}
-        message={modalMessage}
-        showConfirm={true}
-        confirmText="Confirmar"
-      />
+      {/* Modal de éxito */}
+      {showSuccessModal && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.modal}>
+            <div className={styles.modalHeader}>
+              <h3>Operación Exitosa</h3>
+              <button 
+                onClick={handleCloseSuccessModal} 
+                className={styles.modalCloseButton}
+              >
+                &times;
+              </button>
+            </div>
+            
+            <div className={styles.modalBody}>
+              <div className={styles.successIcon}>
+                <svg viewBox="0 0 24 24">
+                  <path fill="currentColor" d="M12 2C6.5 2 2 6.5 2 12S6.5 22 12 22 22 17.5 22 12 17.5 2 12 2M10 17L5 12L6.41 10.59L10 14.17L17.59 6.58L19 8L10 17Z" />
+                </svg>
+              </div>
+              <p>{modalMessage}</p>
+              
+              <div className={styles.modalActions}>
+                <button
+                  onClick={handleCloseSuccessModal}
+                  className={styles.modalButton}
+                >
+                  Aceptar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Modal de error */}
+      {showErrorModal && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.modal}>
+            <div className={styles.modalHeader}>
+              <h3>Error</h3>
+              <button 
+                onClick={handleCloseErrorModal} 
+                className={styles.modalCloseButton}
+              >
+                &times;
+              </button>
+            </div>
+            
+            <div className={styles.modalBody}>
+              <div className={styles.errorIcon}>
+                <svg viewBox="0 0 24 24">
+                  <path fill="currentColor" d="M12,2C17.53,2 22,6.47 22,12C22,17.53 17.53,22 12,22C6.47,22 2,17.53 2,12C2,6.47 6.47,2 12,2M15.59,7L12,10.59L8.41,7L7,8.41L10.59,12L7,15.59L8.41,17L12,13.41L15.59,17L17,15.59L13.41,12L17,8.41L15.59,7Z" />
+                </svg>
+              </div>
+              <p>{modalMessage}</p>
+              
+              <div className={styles.modalActions}>
+                <button
+                  onClick={handleCloseErrorModal}
+                  className={styles.modalButtonError}
+                >
+                  Entendido
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       
       <ChatBot />
     </MenuVertical>

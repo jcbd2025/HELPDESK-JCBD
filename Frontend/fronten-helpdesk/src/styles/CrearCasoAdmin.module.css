@@ -499,7 +499,7 @@
 
 
 
-/* Modal de éxito */
+/* Estilos para los modales */
 .modalOverlay {
   position: fixed;
   top: 0;
@@ -513,13 +513,14 @@
   z-index: 1000;
 }
 
-.successModal {
+.modal {
   background-color: white;
   border-radius: 8px;
   width: 90%;
   max-width: 500px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
   animation: modalFadeIn 0.3s ease-out;
+  overflow: hidden;
 }
 
 .modalHeader {
@@ -528,6 +529,7 @@
   align-items: center;
   padding: 20px;
   border-bottom: 1px solid #eee;
+  background-color: #f8f9fa;
 }
 
 .modalCloseButton {
@@ -556,7 +558,7 @@
 }
 
 .successIcon {
-  background-color: #3d90d9;
+  background-color: #4CAF50;
 }
 
 .errorIcon {
@@ -569,17 +571,6 @@
   color: white;
 }
 
-.ticketIdContainer {
-  margin: 15px 0;
-}
-
-.ticketId {
-  font-size: 24px;
-  font-weight: bold;
-  color: #333;
-  margin: 10px 0;
-}
-
 .modalActions {
   display: flex;
   justify-content: center;
@@ -589,7 +580,7 @@
 
 .modalButton {
   padding: 10px 20px;
-  background-color: #3d90d9;
+  background-color: #4CAF50;
   color: white;
   border: none;
   border-radius: 4px;
@@ -599,7 +590,7 @@
 }
 
 .modalButton:hover {
-  background-color: #343bbf;
+  background-color: #45a049;
 }
 
 .modalButtonError {
@@ -615,22 +606,6 @@
 
 .modalButtonError:hover {
   background-color: #d32f2f;
-}
-
-.copyButton {
-  padding: 8px 16px;
-  background-color: #2196F3;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: background-color 0.3s;
-  margin-top: 10px;
-}
-
-.copyButton:hover {
-  background-color: #0b7dda;
 }
 
 @keyframes modalFadeIn {

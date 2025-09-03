@@ -927,7 +927,7 @@ tr:hover td {
 }
 
 .menuLogoEmpresarial img {
-  max-width: 68%;
+  max-width: 58%;
   height: auto;
   border-radius: 10px;
   transition: all 0.3s ease;
@@ -1000,7 +1000,7 @@ tr:hover td {
   .menuLogoEmpresarial {
     position: static;
     margin-top: 20px;
-    width: 100%;
+    width: 90%;
     border-top: none;
   }
 

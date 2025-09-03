@@ -305,12 +305,12 @@ const Grupos = () => {
     <MenuVertical>
       <>
         {/* Contenido */}
-        <div className={styles.container} style={{ marginLeft: isMenuExpanded ? "200px" : "60px" }}>
-          {isLoading && (
-            <div className={styles.loadingOverlay}>
-              <FaSpinner className={styles.spinner} />
-            </div>
-          )}
+       <div className={styles.container}>
+                 {isLoading && (
+                   <div className={styles.loadingOverlay}>
+                     <FaSpinner className={styles.spinner} />
+                   </div>
+                 )}
 
           <div className={styles.topControls}>
             <button

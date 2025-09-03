@@ -4,6 +4,7 @@
   --tablet: 768px;
   --desktop: 1024px;
 }
+
 .containerPrincipal {
   width: 100vw;
   height: 100vh;
@@ -18,17 +19,13 @@
 
 .container {
   width: 100%;
-  margin: 9px auto 20px auto;
-  padding: 20px;
+  padding: 10px;
   background-color: rgb(224, 224, 241);
   border-radius: 15px;
   box-shadow: 15px 15px 15px rgba(15, 12, 207, 0.3);
+  margin-top: 9px;
   transition: margin-left 0.3s ease;
-  min-height: 89vh;
-  max-height: calc(100vh - 49px);
-  display: block;
-  overflow-y: auto;
-  box-sizing: border-box;
+
 }
 
 .containerInicio {
@@ -71,6 +68,18 @@
 
 .linkSinSubrayado:hover {
   background-color: #0096c7;
+}
+
+
+/* Efecto hover solo para dispositivos que soportan hover */
+@media (hover: hover) {
+  .menuVertical:hover {
+    width: 200px;
+  }
+
+  .menuVertical:hover .menuText {
+    opacity: 1;
+  }
 }
 
 .inputContainer {
@@ -167,9 +176,11 @@
   0% {
     transform: scale(1);
   }
+
   50% {
     transform: scale(1.1);
   }
+
   100% {
     transform: scale(1);
   }
@@ -558,7 +569,6 @@
 
 .tableWrapper {
   max-height: calc(100% - 120px);
-  overflow-y: auto;
   margin-bottom: 20px;
 }
 
@@ -697,10 +707,6 @@
   text-decoration: underline;
 }
 
-.containerUsuarios {
-  max-height: calc(100% - 60px);
-  overflow-y: auto;
-}
 
 .loadingOverlay {
   position: fixed;
@@ -730,6 +736,7 @@
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }
@@ -839,6 +846,7 @@
 }
 
 @media print {
+
   .toolbar,
   .filterPanel {
     display: none;
@@ -969,7 +977,8 @@
   text-align: center;
 }
 
-.successIcon, .errorIcon {
+.successIcon,
+.errorIcon {
   width: 60px;
   height: 60px;
   margin: 0 auto 20px;
@@ -987,7 +996,8 @@
   background-color: #F44336;
 }
 
-.successIcon svg, .errorIcon svg {
+.successIcon svg,
+.errorIcon svg {
   width: 36px;
   height: 36px;
   color: white;
@@ -1035,6 +1045,7 @@
     opacity: 0;
     transform: translateY(-20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);

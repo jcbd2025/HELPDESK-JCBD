@@ -37,6 +37,8 @@ const CrearCasoAdmin = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [modalMessage, setModalMessage] = useState("");
   const [createdTicketId, setCreatedTicketId] = useState(null);
   const navigate = useNavigate();
 
@@ -104,6 +106,19 @@ const CrearCasoAdmin = () => {
 
     fetchInitialData();
   }, [location.state]);
+
+  // Manejar cierre de modales
+  const handleCloseSuccessModal = () => {
+    setShowSuccessModal(false);
+    // Solo redirige si estamos creando un nuevo ticket, no editando
+    if (!location.state?.ticketData) {
+      navigate("/Tickets");
+    }
+  };
+
+  const handleCloseErrorModal = () => {
+    setShowErrorModal(false);
+  };
 
   if (!isAdminOrTech) {
     return (
@@ -178,14 +193,11 @@ const CrearCasoAdmin = () => {
     });
 
     if (missingFields.length > 0) {
-      addNotification(
-        `Por favor complete los siguientes campos obligatorios: ${missingFields.join(
-          ", "
-        )}`,
-        "error"
-      );
+      setModalMessage(`Por favor complete los siguientes campos obligatorios: ${missingFields.join(", ")}`);
+      setShowErrorModal(true);
       return;
     }
+    
     e.preventDefault();
     setIsLoading(true);
     setError(null);
@@ -222,6 +234,7 @@ const CrearCasoAdmin = () => {
 
       // Mostrar modal de éxito
       setCreatedTicketId(response.data.id_ticket);
+      setModalMessage(`El ticket fue ${location.state?.ticketData ? "actualizado" : "creado"} con el número: ${response.data.id_ticket}`);
       setShowSuccessModal(true);
 
       // Opcional: resetear el formulario después de crear el ticket
@@ -247,10 +260,10 @@ const CrearCasoAdmin = () => {
         });
       }
     } catch (error) {
-      addNotification(
-        error.response?.data?.detail || "Error al procesar la solicitud",
-        "error"
-      );
+      const errorMsg = error.response?.data?.detail || "Error al procesar la solicitud";
+      setModalMessage(errorMsg);
+      setShowErrorModal(true);
+      addNotification(errorMsg, "error");
     } finally {
       setIsLoading(false);
     }
@@ -267,14 +280,6 @@ const CrearCasoAdmin = () => {
       formData.descripcion &&
       formData.solicitante
     );
-  };
-
-  const handleCloseModal = () => {
-    setShowSuccessModal(false);
-    // Solo redirige si estamos creando un nuevo ticket, no editando
-    if (!location.state?.ticketData) {
-      navigate("/Tickets");
-    }
   };
 
   const formatDateTimeForInput = (dateString) => {
@@ -417,57 +422,75 @@ const CrearCasoAdmin = () => {
               {/* Modal de éxito */}
               {showSuccessModal && (
                 <div className={styles.modalOverlay}>
-                  <div className={styles.successModal}>
+                  <div className={styles.modal}>
                     <div className={styles.modalHeader}>
-                      <h3>
-                        ¡Ticket{" "}
-                        {location.state?.ticketData ? "actualizado" : "creado"}{" "}
-                        exitosamente!
-                      </h3>
-                      <button
-                        onClick={handleCloseModal}
+                      <h3>Operación Exitosa</h3>
+                      <button 
+                        onClick={handleCloseSuccessModal} 
                         className={styles.modalCloseButton}
                       >
                         &times;
                       </button>
                     </div>
-
+                    
                     <div className={styles.modalBody}>
                       <div className={styles.successIcon}>
                         <svg viewBox="0 0 24 24">
-                          <path
-                            fill="currentColor"
-                            d="M12 2C6.5 2 2 6.5 2 12S6.5 22 12 22 22 17.5 22 12 17.5 2 12 2M10 17L5 12L6.41 10.59L10 14.17L17.59 6.58L19 8L10 17Z"
-                          />
+                          <path fill="currentColor" d="M12 2C6.5 2 2 6.5 2 12S6.5 22 12 22 22 17.5 22 12 17.5 2 12 2M10 17L5 12L6.41 10.59L10 14.17L17.59 6.58L19 8L10 17Z" />
                         </svg>
                       </div>
-                      <p>
-                        El ticket fue{" "}
-                        {location.state?.ticketData ? "actualizado" : "creado"}{" "}
-                        con el número:
-                      </p>
-                      <p className={styles.ticketId}>
-                        <strong>{createdTicketId}</strong>
-                      </p>
-
+                      <p>{modalMessage}</p>
+                      
                       <div className={styles.modalActions}>
                         <button
                           onClick={() => {
                             navigator.clipboard.writeText(createdTicketId);
-                            addNotification(
-                              "Número de ticket copiado",
-                              "success"
-                            );
+                            addNotification("Número de ticket copiado", "success");
                           }}
                           className={styles.copyButton}
                         >
                           Copiar número
                         </button>
                         <button
-                          onClick={handleCloseModal}
+                          onClick={handleCloseSuccessModal}
                           className={styles.modalButton}
                         >
                           Aceptar
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Modal de error */}
+              {showErrorModal && (
+                <div className={styles.modalOverlay}>
+                  <div className={styles.modal}>
+                    <div className={styles.modalHeader}>
+                      <h3>Error</h3>
+                      <button 
+                        onClick={handleCloseErrorModal} 
+                        className={styles.modalCloseButton}
+                      >
+                        &times;
+                      </button>
+                    </div>
+                    
+                    <div className={styles.modalBody}>
+                      <div className={styles.errorIcon}>
+                        <svg viewBox="0 0 24 24">
+                          <path fill="currentColor" d="M12,2C17.53,2 22,6.47 22,12C22,17.53 17.53,22 12,22C6.47,22 2,17.53 2,12C2,6.47 6.47,2 12,2M15.59,7L12,10.59L8.41,7L7,8.41L10.59,12L7,15.59L8.41,17L12,13.41L15.59,17L17,15.59L13.41,12L17,8.41L15.59,7Z" />
+                        </svg>
+                      </div>
+                      <p>{modalMessage}</p>
+                      
+                      <div className={styles.modalActions}>
+                        <button
+                          onClick={handleCloseErrorModal}
+                          className={styles.modalButtonError}
+                        >
+                          Entendido
                         </button>
                       </div>
                     </div>
