@@ -306,7 +306,7 @@ const Categorias = () => {
     <MenuVertical>
       <>
         {/* Contenido */}
-        <div className={styles.container} style={{  marginLeft: isMenuExpanded ? "100px" : "20px" }}>
+        <div className={styles.container}>
           {isLoading && (
             <div className={styles.loadingOverlay}>
               <FaSpinner className={styles.spinner} />

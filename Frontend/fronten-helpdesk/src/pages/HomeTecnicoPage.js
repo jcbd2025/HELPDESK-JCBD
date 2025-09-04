@@ -87,7 +87,7 @@ const HomeTecnicoPage = () => {
 
 
         {/* Contenido Principal */}
-        <div className={styles.containerHomeAdmiPage} style={{ marginLeft: isMenuExpanded ? "200px" : "60px" }}>
+        <div className={styles.containerHomeAdmiPage}>
           <main>
             <div className={styles.flexColumna}>
               <div className={styles.row}>

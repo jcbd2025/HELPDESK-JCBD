@@ -18,10 +18,10 @@
   }
 
   .container {
-    width: calc(92% - 60px);
+    width: 86%;
     height: auto;
     margin: 20px auto;
-    padding: 70px;
+    padding: 103px;
     background-color: rgb(224, 224, 241);
     border-radius: 15px;
     box-shadow: 15px 15px 15px rgba(15, 12, 207, 0.3);

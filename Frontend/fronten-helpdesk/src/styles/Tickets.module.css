@@ -3,27 +3,27 @@
   --mobile: 480px;
   --tablet: 768px;
   --desktop: 1024px;
+  --large-desktop: 1200px;
 }
 
 .containerPrincipal {
   width: 100vw;
-  height: 100vh;
+  min-height: 100vh;
   margin: 0;
   padding: 0;
-  overflow: hiddn;
+  overflow: hidden;
   position: relative;
   display: grid;
   grid-template-rows: auto 1fr auto;
-  min-height: 100vh;
   flex-direction: column;
   box-sizing: border-box;
-
 }
 
 .containerticket {
-  width: 97%;
-  margin: 20px auto;
-  padding: 20px;
+  width: 92%;
+  height: auto;
+  margin: 10px auto;
+  padding: 60px;
   background-color: rgb(224, 224, 241);
   border-radius: 15px;
   box-shadow: 15px 15px 15px rgba(15, 12, 207, 0.3);
@@ -31,9 +31,7 @@
   grid-template-rows: auto auto 1fr auto;
   gap: 15px;
   flex-direction: column;
-  overflow: hidden;
   position: relative;
-
 }
 
 .tableWrapper {
@@ -45,8 +43,8 @@
   background-color: white;
   position: relative;
   contain: strict;
-  overflow: auto;
   overscroll-behavior: contain;
+  overflow-x: auto;
 }
 
 .containerInicio {
@@ -57,9 +55,7 @@
   background-color: #343bbf;
   border-bottom: 1px solid #ccc;
   transition: margin-left 0.3s ease;
-  /* Transición suave para el margen */
 }
-
 
 @media (max-width: 1024px) {
   .containerInicio {
@@ -70,8 +66,10 @@
 @media (max-width: 768px) {
   .containerInicio {
     width: calc(100% - 30px);
-
     border-radius: 10px;
+    flex-direction: column;
+    gap: 15px;
+    padding: 15px;
   }
 }
 
@@ -97,7 +95,8 @@
 .inputContainer {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 15px;
+  flex-wrap: wrap;
 }
 
 .searchContainer {
@@ -112,6 +111,7 @@
   border: 1px solid #ccc;
   border-radius: 4px;
   font-size: 16px;
+  width: 100%;
 }
 
 .buttonBuscar {
@@ -122,13 +122,11 @@
   background: none;
   border: none;
   cursor: pointer;
-
 }
 
 .buttonBuscar:hover {
   transform: translateY(-50%) scale(1.1);
 }
-
 
 .searchIcon {
   font-size: 18px;
@@ -139,7 +137,6 @@
 .buttonBuscar:hover .searchIcon {
   color: #343bbf;
 }
-
 
 .userContainer {
   display: flex;
@@ -169,12 +166,12 @@
 }
 
 .sectionContainer {
-  margin-bottom: 40px;
+  margin-bottom: 30px;
 }
 
 .sectionContainer h2 {
   color: #333;
-  margin-bottom: 20px;
+  margin-bottom: 15px;
   font-size: 1.5rem;
   position: relative;
   display: inline-block;
@@ -183,7 +180,8 @@
 .cardsContainer {
   display: flex;
   flex-wrap: wrap;
-  gap: 20px;
+  gap: 15px;
+  justify-content: center;
 }
 
 .card {
@@ -191,8 +189,8 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  width: 150px;
-  padding: 20px;
+  min-width: 120px;
+  padding: 15px;
   border: 2px solid;
   border-radius: 10px;
   background-color: #ffffff;
@@ -201,7 +199,7 @@
   cursor: pointer;
   position: relative;
   overflow: hidden;
-
+  flex: 1;
 }
 
 .card::before {
@@ -221,29 +219,27 @@
 }
 
 /*tabla*/
-
 .tablaContainer {
   margin-top: 20px;
   background-color: #ffffff;
   padding: 15px;
   border-radius: 5px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  overflow-x: auto;
 }
 
-
 .tableticket {
-
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
-  table-layout: fixed;
-  font-size: 12px;
+  table-layout: auto;
+  font-size: 14px;
   backface-visibility: hidden;
 }
 
 .tableticket th,
 .tableticket td {
-  padding: 12px 15px;
+  padding: 10px 12px;
   text-align: left;
   border-bottom: 1px solid #ddd;
   word-wrap: break-word;
@@ -255,7 +251,7 @@
   background-color: #99bff2;
   color: rgb(6, 6, 6);
   z-index: 10;
-
+  white-space: nowrap;
 }
 
 .tableticket tr:nth-child(even) {
@@ -266,26 +262,7 @@
   background-color: #f1f1f1;
 }
 
-/* Ajustar anchos de columnas específicas si es necesario */
-.tableticket th:nth-child(1),
-.tableticket td:nth-child(1) {
-  width: 100px;
-  /* ID */
-}
-
-.tableticket th:nth-child(2),
-.table td:nth-child(2) {
-  width: 200px;
-  /* Título */
-}
-
-.tableticket th:nth-child(4),
-.tableticket td:nth-child(4) {
-  width: 110px;
-  /* Descripción */
-}
-
-/* Paginación fija en la parte inferior */
+/* Paginación */
 .paginationControls {
   position: sticky;
   bottom: 0;
@@ -296,98 +273,233 @@
   justify-content: space-between;
   align-items: center;
   z-index: 5;
-
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
-/* Estilos responsivos */
-@media (max-width: 1200px) {
+/* Estilos para prioridad y estado */
+.priority, .status {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  min-width: 80px;
+  text-align: center;
+  box-sizing: border-box;
+}
 
-  .tableticket th,
+.priority.alta { background-color: #fd7066; color: rgb(14, 13, 13); }
+.priority.media { background-color: #f5a05b; color: rgb(14, 13, 13); }
+.priority.baja { background-color: #7fe983; color: rgb(14, 13, 13); }
+
+.status.cerrado { background-color: #89f1e9; color: rgb(14, 13, 13); }
+.status.nuevo { background-color: #86e274; color: rgb(14, 13, 13); }
+.status.en-curso { background-color: #ffb13b; color: rgb(14, 13, 13); }
+.status.en-espera { background-color: #fafd34; color: rgb(14, 13, 13); }
+.status.resuelto { background-color: #7ca7da; color: rgb(14, 13, 13); }
+
+/* Media Queries */
+/* Para tablets */
+@media (max-width: 1024px) {
+  .containerInicio {
+    width: calc(95% - 40px);
+  }
+  
+  .containerticket {
+    padding: 15px;
+  }
+  
+  .tableticket th, 
   .tableticket td {
     padding: 8px 10px;
-    font-size: 14px;
+    font-size: 13px;
+  }
+  
+  .card {
+    min-width: 100px;
+    padding: 12px;
   }
 }
 
-@media (max-width: 992px) {
-  .containerticket {
-    width: calc(100% - 40px);
-    margin: 10px auto;
-    padding: 10px;
-  }
-
-  .tableWrapper {
-    overflow-x: auto;
-  }
-
-  .tableticket {
-    width: auto;
-    min-width: 100%;
-  }
-}
-
+/* Para tablets pequeñas */
 @media (max-width: 768px) {
-  .containerticket {
-    margin-left: 60px !important;
-    width: calc(100% - 60px);
+  .containerInicio {
+    width: calc(100% - 30px);
+    border-radius: 10px;
+    flex-direction: column;
+    gap: 15px;
+    padding: 15px;
   }
-
+  
+  .containerticket {
+    margin-left: 0 !important;
+    width: calc(100% - 20px);
+    padding: 12px;
+  }
+  
+  .inputContainer {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+  }
+  
+  .searchContainer {
+    width: 100%;
+  }
+  
+  .userContainer {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .cardsContainer {
+    gap: 10px;
+  }
+  
+  .card {
+    min-width: calc(50% - 10px);
+    max-width: calc(50% - 10px);
+  }
+  
   .paginationControls {
     flex-direction: column;
     gap: 10px;
   }
-
+  
   .rowsPerPageSelector,
   .pagination {
     width: 100%;
     justify-content: center;
   }
+  
+  .filterGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .toolbar {
+    flex-direction: column;
+    gap: 15px;
+    align-items: stretch;
+  }
+  
+  .actions {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
 }
 
-.linkSinSubrayado {
-  display: flex;
-  align-items: center;
-  padding: 10px;
-  cursor: pointer;
+/* Para móviles */
+@media (max-width: 480px) {
+  .containerticket {
+    width: calc(100% - 10px);
+    margin: 5px auto;
+    padding: 10px;
+    border-radius: 10px;
+  }
+  
+  .containerInicio {
+    padding: 10px;
+  }
+  
+  .sectionContainer h2 {
+    font-size: 1.2rem;
+  }
+  
+  .cardsContainer {
+    gap: 8px;
+  }
+  
+  .card {
+    min-width: 100%;
+    max-width: 100%;
+    padding: 10px;
+  }
+  
+  .tableticket {
+    font-size: 12px;
+  }
+  
+  .tableticket th, 
+  .tableticket td {
+    padding: 6px 8px;
+  }
+  
+  .priority, .status {
+    min-width: 70px;
+    font-size: 11px;
+  }
+  
+  .search {
+    font-size: 14px;
+    padding: 8px;
+    padding-right: 35px;
+  }
+  
+  .linkSinSubrayado {
+    padding: 8px;
+    font-size: 14px;
+    text-align: center;
+  }
+  
+  .filterGroup label {
+    font-size: 12px;
+  }
+  
+  .filterGroup input,
+  .filterGroup select {
+    padding: 6px;
+    font-size: 12px;
+  }
 }
 
-.submenuLink {
-  display: flex;
-  align-items: center;
-  padding: 8px 10px;
-  text-decoration: none;
-  color: #333;
-  width: 100%;
+/* Para móviles muy pequeños */
+@media (max-width: 320px) {
+  .containerticket {
+    padding: 8px;
+  }
+  
+  .tableticket th, 
+  .tableticket td {
+    padding: 4px 6px;
+    font-size: 11px;
+  }
+  
+  .priority, .status {
+    min-width: 60px;
+    font-size: 10px;
+    padding: 3px 5px;
+  }
+  
+  .paginationButton {
+    min-width: 28px;
+    height: 28px;
+    padding: 3px 6px;
+  }
 }
 
-.container {
-  padding: 20px;
-  width: calc(100% - 60px);
+/* Utilidades */
+.uppercase {
+  text-transform: uppercase;
 }
 
-
-
-
-/* Animación para las tarjetas de estado */
-.card {
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+.text-center {
+  text-align: center;
 }
 
-.card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+.hidden-mobile {
+  display: block;
 }
 
-/* Animación para las filas de la tabla */
-tr {
-  transition: background-color 0.3s ease, transform 0.2s ease;
+@media (max-width: 768px) {
+  .hidden-mobile {
+    display: none;
+  }
 }
 
-tr:hover {
-  background-color: #f1f1f1;
-  transform: translateY(-2px);
-}
-
+/* Resto de tus estilos existentes... */
 
 .toolbar {
   display: flex;
@@ -429,7 +541,7 @@ tr:hover {
 
 .filterGroup input,
 .filterGroup select {
-  width: 90;
+  width: 100%;
   padding: 8px;
   border: 1px solid #ddd;
   border-radius: 4px;
@@ -471,7 +583,6 @@ tr:hover {
   background-color: #d32f2f;
 }
 
-
 .tableContainer {
   margin-top: 20px;
   width: 100%;
@@ -495,97 +606,21 @@ tr:hover {
   font-weight: 600;
 }
 
-/* Estilos para los botones de prioridad  y estado */
-
-.priority {
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 12px;
-  font-weight: 600;
-  display: inline-flex;
-  justify-content: center;
-  align-items: center;
-  width: 80px;
-  /* Ancho fijo para todos */
-  text-align: center;
-  box-sizing: border-box;
-}
-
-.priority.alta {
-  background-color: #fd7066;
-  color: rgb(14, 13, 13);
-}
-
-.priority.media {
-  background-color: #f5a05b;
-  color: rgb(14, 13, 13);
-}
-
-.priority.baja {
-  background-color: #7fe983;
-  color: rgb(14, 13, 13);
-}
-
 .filterSelect {
   width: 85px;
-  /* Mismo ancho que los badges */
   padding: 8px;
   border: 1px solid #ddd;
   border-radius: 4px;
   font-size: 14px;
 }
 
-.status {
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 12px;
-  font-weight: 600;
-  display: inline-flex;
-  justify-content: center;
-  align-items: center;
-  width: 91px;
-  /* Ancho fijo para todos */
-  text-align: center;
-  box-sizing: border-box;
-}
-
-.status.cerrado {
-  background-color: #89f1e9;
-  color: rgb(14, 13, 13);
-
-}
-
-.status.nuevo {
-  background-color: #86e274;
-  color: rgb(14, 13, 13);
-
-}
-
-.status.en-curso {
-  background-color: #ffb13b;
-  color: rgb(14, 13, 13);
-}
-
-.status.en-espera {
-  background-color: #fafd34;
-  color: rgb(14, 13, 13);
-}
-
-.status.resuelto {
-  background-color: #7ca7da;
-  color: rgb(14, 13, 13);
-
-}
-
 @media print {
-
   .toolbar,
   .filterPanel {
     display: none;
   }
 }
 
-/* Estilos para el dropdown de exportación */
 .exportDropdown {
   position: relative;
   display: inline-block;
@@ -613,7 +648,6 @@ tr:hover {
 .dropdownIcon {
   font-size: 12px;
   transition: transform 0.2s;
-
 }
 
 .exportDropdownContent {
@@ -646,7 +680,6 @@ tr:hover {
 .mostrasfiltros {
   font-size: 12px;
   transition: transform 0.2s;
-
 }
 
 .Buttonfiltros {
@@ -663,20 +696,6 @@ tr:hover {
 .Buttonfiltros:nth-child(1) {
   background-color: #ffc107;
   color: #212529;
-}
-
-/* Estilos para la paginación */
-.paginationControls {
-  position: sticky;
-  bottom: 0;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  text-align: center;
-  border-top: 1px solid #e0e0e0;
-  background-color: #f9f9f9;
-  padding: 15px;
-  margin-top: auto;
 }
 
 .rowsPerPageSelector {
@@ -755,113 +774,4 @@ tr:hover {
 
 .clickableRow:hover {
   background-color: #f5f5f5;
-}
-
-/*logo empresarial*/
-
-.menuLogoEmpresarial {
-  text-align: center;
-  position: absolute;
-  bottom: 20px;
-  left: 0;
-  right: 0;
-  opacity: 0.6;
-  transition: all 0.3s ease;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  margin: 0 auto;
-  /* Centrado horizontal */
-
-}
-
-.menuLogoEmpresarial img {
-  max-width: 80%;
-  /* Reducir tamaño para mejor ajuste */
-  height: auto;
-  border-radius: 10px;
-  transition: all 0.3s ease;
-  display: block;
-  margin: 0 auto;
-  /* Centrado horizontal para la imagen */
-}
-
-.menuLogoEmpresarial:hover {
-  opacity: 1;
-}
-
-.menuLogoEmpresarial:hover img {
-  transform: scale(1.05);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-}
-
-/* Ajustes para el contenedor del menú */
-.menuVerticalDesplegable {
-  position: relative;
-  /* Necesario para el posicionamiento absoluto del logo */
-  height: 100%;
-
-}
-
-.menuIconos {
-  height: calc(100% - 80px);
-  /* Ajustar altura considerando el logo */
-
-}
-
-/* Ajustes para móvil */
-@media (max-width: 768px) {
-  .menuLogoEmpresarial {
-    position: static;
-    /* Cambiar a flujo normal en móvil */
-    margin-top: 20px;
-    width: 100%;
-    border-top: none;
-  }
-
-  .menuVerticalDesplegable {
-    padding-bottom: 0;
-  }
-
-  .menuIconos {
-    height: auto;
-  }
-}
-
-/* Eliminar el logo empresarial flotante si existe */
-.floatingLogo {
-  display: none;
-}
-
-/* Ajustes para móvil */
-@media (max-width: 768px) {
-  .menuLogoEmpresarial {
-    display: none;
-    /* Ocultar en móvil si es necesario */
-  }
-
-  .menuVerticalDesplegable.mobileMenuOpen .menuLogoEmpresarial {
-    display: block;
-    /* Mostrar cuando el menú móvil está abierto */
-    margin-top: 20px;
-
-  }
-}
-
-/* Estilos para los select de filtro */
-.filterGroup select {
-  width: 100%;
-  padding: 8px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 14px;
-  appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  background-repeat: no-repeat;
-  background-position: right 8px center;
-  background-size: 16px;
-}
-
-
-.uppercase {
-  text-transform: uppercase;
 }
