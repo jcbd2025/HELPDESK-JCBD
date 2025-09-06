@@ -18,10 +18,10 @@
 }
 
 .containerHomeAdmiPage {
-  width: 90%;
+  width: 81%;
   height: auto;
   margin: 20px auto;
-  padding: 80px;
+  padding: 120px;
   background-color: rgb(224, 224, 241);
   border-radius: 15px;
   box-shadow: 15px 15px 15px rgba(15, 12, 207, 0.3);
@@ -31,14 +31,14 @@
 
 @media (max-width: 1024px) {
   .containerHomeAdmiPage {
-    padding: 40px;
-    width: calc(95% - 40px);
+    padding: 30px;
+    width: 80%;
   }
 }
 
 @media (max-width: 768px) {
   .containerHomeAdmiPage {
-    width: calc(100% - 30px);
+    width: 89%;
     margin: 10px auto;
     border-radius: 10px;
   }

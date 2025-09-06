@@ -279,7 +279,7 @@ const HomeAdmiPage = () => {
     borrados: [],
     encuesta: [],
     abiertos: [],
-    pendientes: [],
+ 
   });
 
   const [ticketsEnCurso, setTicketsEnCurso] = useState([]);
@@ -322,7 +322,7 @@ const HomeAdmiPage = () => {
           borrados: [],
           encuesta: [],
           abiertos: [],
-          pendientes: [],
+          
         };
 
         estadoGeneralRes.data.forEach((ticket) => {
@@ -358,9 +358,7 @@ const HomeAdmiPage = () => {
             case "abierto":
               estadoFrontend = "abiertos";
               break;
-            case "pendiente":
-              estadoFrontend = "pendientes";
-              break;
+            
             case "encuesta":
               estadoFrontend = "encuesta";
               break;
@@ -441,12 +439,7 @@ const HomeAdmiPage = () => {
       icon: "📝",
       count: tableData.abiertos.length,
     },
-    {
-      label: "Pendientes",
-      color: "#FF5722",
-      icon: "⚠️",
-      count: tableData.pendientes.length,
-    },
+    
   ];
 
   const handleSelectChange = (event) => {
@@ -562,30 +555,7 @@ const HomeAdmiPage = () => {
                     </table>
                   </div>
 
-                  <div className={styles.tablaContainer}>
-                    <h2>SUS CASOS EN CURSO</h2>
-                    <table>
-                      <thead>
-                        <tr>
-                          <th>ID</th>
-                          <th>SOLICITANTE</th>
-                          <th>ELEMENTOS ASOCIADOS</th>
-                          <th>DESCRIPCIÓN</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {ticketsEnCurso.map((ticket1) => (
-                          <tr key={ticket1.id}>
-                            <td>{ticket1.id}</td>
-                            <td>{ticket1.solicitante}</td>
-                            <td>{ticket1.categoria}</td>
-                            <td>{ticket1.descripcion}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-
+                 
                   <div className={styles.tablaContainer}>
                     <h2>ENCUESTA DE SATISFACCIÓN</h2>
                     <table>

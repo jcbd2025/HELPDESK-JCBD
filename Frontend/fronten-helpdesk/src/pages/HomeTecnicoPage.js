@@ -40,7 +40,7 @@ const HomeTecnicoPage = () => {
     { label: "Borrado", color: "red", icon: "🗑", count: 0 },
     { label: "Encuesta", color: "purple", icon: "📅", count: 0 },
     { label: "Abiertos", color: "#4CAF50", icon: "📝", count: 0 },
-    { label: "Pendientes", color: "#FF5722", icon: "⚠️", count: 0},
+
   ];
 
 
@@ -155,35 +155,7 @@ const HomeTecnicoPage = () => {
                     </table>
                   </div>
 
-                  <div className={styles.tablaContainer}>
-                    <h2>SUS CASOS EN CURSO</h2>
-                    <table>
-                      <thead>
-                        <tr>
-                          <th>ID</th>
-                          <th>SOLICITANTE</th>
-                          <th>ELEMENTOS ASOCIADOS</th>
-                          <th>DESCRIPCIÓN</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr>
-                          <td>ID: 2503160088</td>
-                          <td>HUN HUN Generico</td>
-                          <td>General</td>
-                          <td>LLAMOO DE TIMBRES (1 - 0)</td>
-                        </tr>
-                        <tr>
-                          <td>ID: 2503160088</td>
-                          <td>Wendy Johanna Alfonso Peralta</td>
-                          <td>General</td>
-                          <td>CONFIGURAR IMPRESORA (1 - 0)</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-
-                  <div className={styles.tablaContainer}>
+                   <div className={styles.tablaContainer}>
                     <h2>ENCUESTA DE SATISFACCIÓN</h2>
                     <table>
                       <thead>

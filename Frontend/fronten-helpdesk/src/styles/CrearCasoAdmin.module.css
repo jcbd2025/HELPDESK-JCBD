@@ -39,14 +39,13 @@
 
 @media (max-width: 1024px) {
   .containerInicio {
-    width: calc(95% - 40px);
+    width: 80%;
   }
 }
 
 @media (max-width: 768px) {
   .containerInicio {
-    width: calc(100% - 30px);
-  
+    width: 85%;
     border-radius: 10px;
   }
 }
