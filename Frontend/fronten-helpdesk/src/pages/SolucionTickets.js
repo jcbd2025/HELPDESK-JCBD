@@ -877,6 +877,34 @@ const SolucionTickets = () => {
                 </div>
               )}
 
+              {/* Archivos adjuntos del ticket (cargados en la creación o actualización del ticket) */}
+              {Array.isArray(ticket?.adjuntos) && ticket.adjuntos.length > 0 && (
+                <div className={styles.seguimientosContainer}>
+                  <h3 className={styles.seguimientosTitle}>Archivos adjuntos del ticket</h3>
+                  <div className={styles.archivosContainer}>
+                    <ul>
+                      {ticket.adjuntos.map((a, idx) => {
+                        const ruta = (a.ruta_archivo || `uploads/${a.nombre_archivo || ''}`).replace(/\\\\/g, '/').replace(/\\/g, '/');
+                        const nombre = a.nombre_archivo || a.ruta_archivo || `archivo_${idx}`;
+                        const tam = typeof a.tamano === 'number' ? ` (${Math.round((a.tamano / 1024) * 10) / 10} KB)` : '';
+                        return (
+                          <li key={a.id || a.id_adjunto || `${nombre}-${idx}`}>
+                            <a
+                              href={`${API_BASE_URL}/${ruta}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              {nombre}
+                            </a>
+                            {tam}
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+                </div>
+              )}
+
               {/* Lista de seguimientos/soluciones */}
               {Array.isArray(seguimientos) && seguimientos.length > 0 && (
                 <div className={styles.seguimientosContainer}>

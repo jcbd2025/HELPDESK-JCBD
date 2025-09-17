@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import axios from 'axios';
 import { Link, useNavigate, Outlet, useLocation, useParams } from "react-router-dom";
 import Logo from "../imagenes/logo proyecto color.jpeg";
@@ -36,6 +36,7 @@ const CrearCasoUse = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { id } = useParams();
+  const fileInputRef = useRef(null);
 
   // Obtener datos del usuario desde localStorage
   const userRole = localStorage.getItem("rol") || "usuario";
@@ -83,14 +84,14 @@ const CrearCasoUse = () => {
   // Estado del formulario
   const [formData, setFormData] = useState({
     id: "",
-    tipo: "incidente",
+    tipo: "incidencia",
     origen: "",
     ubicacion: "",
     prioridad: "",
     categoria: "",
     titulo: "",
     descripcion: "",
-    archivo: null,
+    archivos: [],
     solicitante: userId,
     estado: "nuevo"
   });
@@ -167,11 +168,30 @@ const CrearCasoUse = () => {
   // Manejo de cambios en el formulario
   const handleChange = (e) => {
     const { name, value, files } = e.target;
+    if (name === 'archivos') {
+      const nuevos = files ? Array.from(files) : [];
+      setFormData(prev => ({
+        ...prev,
+        // Agregar a la lista existente para permitir múltiples selecciones sucesivas
+        archivos: [...(prev.archivos || []), ...nuevos],
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value,
+      }));
+    }
+  };
 
+  const removeArchivo = (idx) => {
     setFormData(prev => ({
       ...prev,
-      [name]: files ? files[0] : value,
+      archivos: prev.archivos.filter((_, i) => i !== idx)
     }));
+    // Limpiar el input para permitir volver a seleccionar el mismo archivo si se desea
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   // Envío del formulario
@@ -197,8 +217,21 @@ const CrearCasoUse = () => {
         formDataToSend.append("categoria", formData.categoria);
       }
 
-      if (formData.archivo) {
-        formDataToSend.append("archivo", formData.archivo);
+      // Adjuntos
+      if (isEditMode) {
+        // PUT /usuarios/tickets/:id acepta 'archivo' singular
+        if (formData.archivos && formData.archivos.length > 0) {
+          formDataToSend.append("archivo", formData.archivos[0]);
+        }
+      } else {
+        // POST /usuarios/tickets acepta múltiples 'archivos'
+        if (formData.archivos && formData.archivos.length > 0) {
+          formData.archivos.forEach((file) => formDataToSend.append("archivos", file));
+        }
+        // Enviar estado si está presente
+        if (formData.estado) {
+          formDataToSend.append("estado", formData.estado);
+        }
       }
 
       let response;
@@ -231,12 +264,13 @@ const CrearCasoUse = () => {
 
       if (response.data.success) {
         // Mostrar modal de éxito
+        const createdId = response.data.ticket_id || response.data.id_ticket;
         setModalMessage(
           isEditMode
             ? "Ticket actualizado correctamente"
-            : `Ticket creado correctamente con ID: ${response.data.id_ticket}`
+            : `Ticket creado correctamente con ID: ${createdId}`
         );
-        setCreatedTicketId(response.data.id_ticket);
+        setCreatedTicketId(createdId);
         setShowSuccessModal(true);
       } else {
         // Mostrar modal de error
@@ -492,17 +526,32 @@ const CrearCasoUse = () => {
                   />
                 </div>
 
-                {/* Archivo adjunto - siempre editable */}
+                {/* Archivo(s) adjunto(s) - siempre editable */}
                 <div className={styles.formGroupCaso}>
                   <label className={styles.casoLabel}>Adjuntar archivo</label>
                   <input
                     className={styles.casoFile}
                     type="file"
-                    name="archivo"
+                    name="archivos"
+                    ref={fileInputRef}
+                    multiple
                     onChange={handleChange}
                   />
-                  {formData.archivo && (
-                    <span className={styles.fileName}>{formData.archivo.name}</span>
+                  {Array.isArray(formData.archivos) && formData.archivos.length > 0 && (
+                    <ul className={styles.fileList}>
+                      {formData.archivos.map((f, idx) => (
+                        <li key={idx} className={styles.fileItem}>
+                          {f.name}
+                          <button
+                            type="button"
+                            onClick={() => removeArchivo(idx)}
+                            style={{ marginLeft: 8 }}
+                          >
+                            ×
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
                   )}
                 </div>
 

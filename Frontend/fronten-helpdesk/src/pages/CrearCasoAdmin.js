@@ -241,13 +241,15 @@ const CrearCasoAdmin = () => {
         }
       );
 
-      // Mostrar modal de éxito
-      setCreatedTicketId(response.data.id_ticket);
-      setModalMessage(`El ticket fue ${location.state?.ticketData ? "actualizado" : "creado"} con el número: ${response.data.id_ticket}`);
+      // Mostrar modal de éxito con el número de ticket correcto del backend
+      const createdId = response.data.ticket_id || response.data.id_ticket || response.data.id;
+      setCreatedTicketId(createdId);
+      setModalMessage(`El ticket fue ${location.state?.ticketData ? "actualizado" : "creado"} con el número: ${createdId}`);
       setShowSuccessModal(true);
 
       // Opcional: resetear el formulario después de crear el ticket
       if (!location.state?.ticketData) {
+        const usuarioActual = usuarios.find(u => u.nombre_completo === userNombre);
         setFormData({
           id: "",
           tipo: "incidencia",
@@ -257,7 +259,7 @@ const CrearCasoAdmin = () => {
           titulo: "",
           descripcion: "",
           archivos: [],
-          solicitante: userNombre || "",
+          solicitante: usuarioActual ? usuarioActual.id_usuario : formData.solicitante,
           elementos: "",
           entidad: "",
           estado: "nuevo",
