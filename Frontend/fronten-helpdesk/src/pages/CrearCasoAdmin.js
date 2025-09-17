@@ -85,7 +85,16 @@ const CrearCasoAdmin = () => {
         setCategorias(catsRes.data);
         setGrupos(grupoRes.data);
 
-        if (location.state?.ticketData) {
+        // Asignar el id del usuario actual como solicitante si no se está editando
+        if (!location.state?.ticketData) {
+          const usuarioActual = usuariosRes.data.find(u => u.nombre_completo === userNombre);
+          if (usuarioActual) {
+            setFormData((prev) => ({
+              ...prev,
+              solicitante: usuarioActual.id_usuario
+            }));
+          }
+        } else {
           setFormData((prev) => ({
             ...prev,
             ...location.state.ticketData,
@@ -105,7 +114,7 @@ const CrearCasoAdmin = () => {
     };
 
     fetchInitialData();
-  }, [location.state]);
+  }, [location.state, userNombre]);
 
   // Manejar cierre de modales
   const handleCloseSuccessModal = () => {
@@ -558,11 +567,11 @@ const CrearCasoAdmin = () => {
                       onChange={handleChange}
                       required
                     >
-                      <option value="nuevo">Nuevo</option>
-                      <option value="en_curso">En curso</option>
-                      <option value="en_espera">En espera</option>
-                      <option value="resuelto">Resuelto</option>
-                      <option value="cerrado">Cerrado</option>
+                      <option value="Nuevo">Nuevo</option>
+                      <option value="En curso">En curso</option>
+                      <option value="En espera">En espera</option>
+                      <option value="Resuelto">Resuelto</option>
+                      <option value="Cerrado">Cerrado</option>
                     </select>
                   </div>
 
@@ -598,9 +607,17 @@ const CrearCasoAdmin = () => {
                     <input
                       className={styles.casoInput}
                       type="text"
-                      value={userNombre}
+                      value={(() => {
+                        const usuarioActual = usuarios.find(u => u.id_usuario === formData.solicitante);
+                        return usuarioActual ? `${usuarioActual.nombre_completo} (${usuarioActual.correo})` : userNombre;
+                      })()}
                       readOnly
                       disabled
+                    />
+                    <input
+                      type="hidden"
+                      name="solicitante"
+                      value={formData.solicitante}
                     />
                   </div>
 
@@ -654,7 +671,7 @@ const CrearCasoAdmin = () => {
                           key={usuario.id_usuario}
                           value={usuario.id_usuario}
                         >
-                          {`${usuario.Nombre_completo}`} ({usuario.correo})
+                          {`${usuario.nombre_completo}`} ({usuario.correo})
                         </option>
                       ))}
                     </select>

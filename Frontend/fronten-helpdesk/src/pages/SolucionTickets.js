@@ -494,11 +494,11 @@ const SolucionTickets = () => {
                     onChange={handleVerticalFormChange}
                     disabled={!isEditingVerticalForm || !isAdminOrTech}
                   >
-                    <option value="nuevo">Nuevo</option>
-                    <option value="en-curso">En curso</option>
-                    <option value="en-espera">En espera</option>
-                    <option value="resuelto">Resuelto</option>
-                    <option value="cerrado">Cerrado</option>
+                    <option value="Nuevo">Nuevo</option>
+                    <option value="En curso">En curso</option>
+                    <option value="En espera">En espera</option>
+                    <option value="Resuelto">Resuelto</option>
+                    <option value="Cerrado">Cerrado</option>
                   </select>
                 </div>
 

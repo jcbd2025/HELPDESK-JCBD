@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify
 from database import get_db_connection
 import os
+import uuid
 from werkzeug.utils import secure_filename
 from datetime import datetime
 
@@ -447,6 +448,7 @@ def obtener_usuario(usuario_id):
 
 @usuarios_bp.route("/tickets", methods=["POST"])
 def crear_ticket():
+    conn = None
     try:
         prioridad = request.form.get("prioridad")
         titulo = request.form.get("titulo")
@@ -455,7 +457,10 @@ def crear_ticket():
         tipo = request.form.get("tipo")
         categoria = request.form.get("categoria")
         solicitante = request.form.get("solicitante")
-        archivo = request.files.get("archivo")
+        archivos = request.files.getlist("archivos") 
+        grupo = request.form.get("grupo_asignado")
+        asignado = request.form.get("asignado_a")
+        estado_ticket = request.form.get("estado") or "nuevo"  # ✅ usa el que venga o "nuevo"
 
         # Validación de campos requeridos
         if not all([prioridad, titulo, descripcion, ubicacion, tipo, categoria, solicitante]):
@@ -464,21 +469,21 @@ def crear_ticket():
                 "message": "Faltan campos requeridos"
             }), 400
 
+        # Si vienen vacíos, convertirlos a None para que vayan como NULL en MySQL
+        grupo = grupo if grupo else None
+        asignado = asignado if asignado else None
+
         conn = get_db_connection()
         cursor = conn.cursor()
 
-        # Insertar ticket
+        # Insertar ticket con campos completos
         query_ticket = """
             INSERT INTO tickets (
-                prioridad, 
-                tipo,  
-                titulo, 
-                descripcion, 
-                ubicacion, 
-                id_categoria1,
-                id_usuario_reporta,
-                estado_ticket
-            ) VALUES (%s, %s, %s, %s, %s, %s, %s, 'nuevo')
+                prioridad, tipo, titulo, descripcion, ubicacion,
+                id_categoria1, id_usuario_reporta, estado_ticket,
+                fecha_creacion, fecha_actualizacion,
+                id_grupo1, id_tecnico_asignado, contador_reaperturas, fecha_cierre
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, NOW(), NOW(), %s, %s, 0, NULL)
         """
         cursor.execute(query_ticket, (
             prioridad,
@@ -487,7 +492,10 @@ def crear_ticket():
             descripcion,
             ubicacion,
             categoria,
-            solicitante
+            solicitante,
+            estado_ticket,  # ✅ ahora se usa lo enviado o "nuevo"
+            grupo,
+            asignado
         ))
         ticket_id = cursor.lastrowid
 
@@ -498,52 +506,56 @@ def crear_ticket():
         """
         cursor.execute(query_usuarios_ticket, (solicitante, ticket_id))
 
-        # Manejar archivo adjunto si existe
-        if archivo and allowed_file(archivo.filename):
-            # Crear directorio si no existe
+        # Manejar archivos adjuntos si existen
+        if archivos:
             if not os.path.exists(UPLOAD_FOLDER):
                 os.makedirs(UPLOAD_FOLDER)
 
-            filename = secure_filename(archivo.filename)
-            filepath = os.path.join(UPLOAD_FOLDER, filename)
-            archivo.save(filepath)
+            for archivo in archivos:
+                if archivo and allowed_file(archivo.filename):
+                    filename = f"{uuid.uuid4().hex}_{secure_filename(archivo.filename)}"
+                    filepath = os.path.join(UPLOAD_FOLDER, filename)
 
-            query_adjunto = """
-                INSERT INTO adjuntos_tickets (
-                    id_ticket1, 
-                    nombre_archivo, 
-                    ruta_archivo, 
-                    tipo_archivo, 
-                    tamano
-                ) VALUES (%s, %s, %s, %s, %s)
-            """
-            cursor.execute(query_adjunto, (
-                ticket_id,
-                filename,
-                filepath,
-                archivo.content_type,
-                os.path.getsize(filepath)
-            ))
+                    archivo.save(filepath)
+
+                    # Insertar en tabla de adjuntos
+                    query_adjunto = """
+                        INSERT INTO adjuntos_tickets (
+                            id_ticket1, nombre_archivo, ruta_archivo,
+                            tipo_archivo, tamano
+                        ) VALUES (%s, %s, %s, %s, %s)
+                    """
+                    cursor.execute(query_adjunto, (
+                        ticket_id,
+                        filename,
+                        f"uploads/{filename}",  # ruta relativa
+                        archivo.content_type,
+                        os.path.getsize(filepath)
+                    ))
 
         conn.commit()
         cursor.close()
-        conn.close()
-
         return jsonify({
             "success": True,
             "message": "Ticket creado correctamente",
-            "ticket_id": ticket_id
+            "ticket_id": ticket_id,
+            "estado_ticket": estado_ticket  # ✅ lo devuelves en la respuesta también
         }), 201
 
     except Exception as e:
-        print("Error al crear ticket:", e)
+        print("❌ Error al crear ticket:", e)
         if conn:
             conn.rollback()
-            conn.close()
         return jsonify({
             "success": False,
             "message": "Error interno del servidor"
         }), 500
+    finally:
+        if conn:
+            conn.close()
+
+
+
 
 
 @usuarios_bp.route("/tickets", methods=["GET"])

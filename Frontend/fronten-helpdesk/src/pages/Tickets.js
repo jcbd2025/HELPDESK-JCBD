@@ -30,16 +30,32 @@ const Tickets = () => {
   const [tickets, setTickets] = useState([]);
   const [filteredTickets, setFilteredTickets] = useState([]);
 
+    // Efecto para obtener usuarios y llenar los select
+    useEffect(() => {
+      const fetchUsuarios = async () => {
+        try {
+          const token = localStorage.getItem("token");
+          const usuariosResponse = await axios.get(
+            "http://localhost:5000/usuarios/obtener",
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
+          setUsuarios(usuariosResponse.data);
+        } catch (err) {
+          console.error("Error al obtener usuarios:", err);
+        }
+      };
+      fetchUsuarios();
+    }, []);
   // 3. Estado de filtros
   const [filters, setFilters] = useState({
-    id: "",
-    titulo: "",
-    solicitante: "",
-    prioridad: "",
-    estado: "",
-    tecnico: "",
-    grupo: "",
-    categoria: "",
+  id: "",
+  titulo: "",
+  solicitante: "",
+  prioridad: "",
+  estado: "",
+  usuario: "",
+  grupo: "",
+  categoria: "",
   });
 
   // 4. Obtener tickets de la API
@@ -77,13 +93,21 @@ const Tickets = () => {
     }
   }, []);
 
+
   // 5. Aplicar filtros
   const applyFilters = useCallback(() => {
     const filteredData = tickets.filter((item) => {
-      return Object.keys(filters).every((key) => {
+      // Filtrado general
+      let match = Object.keys(filters).every((key) => {
         if (!filters[key]) return true;
+        // Filtro especial para técnico
+        if (key === "usuario") {
+          // El campo técnico puede ser id, nombre o id_usuario según cómo se guarde en el ticket
+          return String(item.id_tecnico || item.tecnico || item.id_usuario || "") === filters.usuario;
+        }
         return String(item[key] || "").toLowerCase().includes(filters[key].toLowerCase());
       });
+      return match;
     });
     setFilteredTickets(filteredData);
     setCurrentPage(1);
@@ -97,7 +121,7 @@ const Tickets = () => {
       solicitante: "",
       prioridad: "",
       estado: "",
-      tecnico: "",
+      usuario: "",
       grupo: "",
       categoria: "",
     });
@@ -286,22 +310,21 @@ const Tickets = () => {
               </div>
               <div className={styles.filterGroup}>
                 <label>Solicitante</label>
-               <select
-                      name="asignado_a"
-                      value={filters.usuario}
-                      onChange={(e) => setFilters({ ...filters, usuario: e.target.value })}
-                      required
+                <select
+                  name="solicitante"
+                  value={filters.solicitante}
+                  onChange={(e) => setFilters({ ...filters, solicitante: e.target.value })}
+                >
+                  <option value="">Seleccione un usuario...</option>
+                  {usuarios.map((usuario) => (
+                    <option
+                      key={usuario.id_usuario}
+                      value={usuario.nombre_completo}
                     >
-                      <option value="">Seleccione un usuario...</option>
-                      {usuarios.map((usuario) => (
-                        <option
-                          key={usuario.id_usuario}
-                          value={usuario.id_usuario}
-                        >
-                          {`${usuario.Nombre_completo}`} ({usuario.correo})
-                        </option>
-                      ))}
-                    </select>
+                      {`${usuario.nombre_completo}`}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               {/* Fila 2 */}
@@ -327,32 +350,33 @@ const Tickets = () => {
                   onChange={(e) => setFilters({ ...filters, estado: e.target.value })}
                 >
                   <option value="">Todos los estados</option>
-                  <option value="nuevo">Nuevo</option>
-                  <option value="en-curso">En curso</option>
-                  <option value="en-espera">En espera</option>
-                  <option value="resuelto">Resuelto</option>
-                  <option value="cerrado">Cerrado</option>
+                  <option value="Nuevo">Nuevo</option>
+                  <option value="En curso">En curso</option>
+                  <option value="En espera">En espera</option>
+                  <option value="Resuelto">Resuelto</option>
+                  <option value="Cerrado">Cerrado</option>
                 </select>
               </div>
               <div className={styles.filterGroup}>
                 <label>Asignado a*</label>
-                    <select
-                      name="asignado_a"
-                      value={filters.usuario}
-                      onChange={(e) => setFilters({ ...filters, usuario: e.target.value })}
-                      required
-                    >
-                      <option value="">Seleccione un usuario...</option>
-                      {usuarios.map((usuario) => (
-                        <option
-                          key={usuario.id_usuario}
-                          value={usuario.id_usuario}
-                        >
-                          {`${usuario.Nombre_completo}`} ({usuario.correo})
-                        </option>
-                      ))}
-                    </select>
-                
+                <select
+                  name="asignado_a"
+                  value={filters.usuario}
+                  onChange={(e) => setFilters({ ...filters, usuario: e.target.value })}
+                  required
+                >
+                  <option value="">Seleccione un técnico...</option>
+                  {usuarios
+                    .filter((usuario) => usuario.rol === "tecnico")
+                    .map((usuario) => (
+                      <option
+                        key={usuario.id_usuario}
+                        value={usuario.nombre_completo}
+                      >
+                        {`${usuario.nombre_completo}`}
+                      </option>
+                    ))}
+                </select>
               </div>
             </div>
 
