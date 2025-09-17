@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext, useCallback } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   BarChart,
   Bar,
@@ -262,10 +262,17 @@ return (
 
 
 const HomeAdmiPage = () => {
+  const navigate = useNavigate();
+  const getTicketId = (obj) => obj?.id ?? obj?.id_ticket ?? obj?.id_ ?? obj?.idTicket ?? obj?.id_ticket2 ?? obj?.id_ticket3 ?? null;
+  const goEdit = (id) => {
+    if (!id) return;
+    navigate(`/tickets/solucion/${id}`);
+  };
   // Obtener datos del usuario
   const userRole = localStorage.getItem("rol") || "";
   const { addNotification } = useContext(NotificationContext);
-  const userId = localStorage.getItem("id_usuario") || "";
+  // userId puede estar guardado como 'id_usuario' o 'userId'
+  const userId = localStorage.getItem("id_usuario") || localStorage.getItem("userId") || "";
   console.log("Valor de id_usuario:", userId);
 
   // Estados
@@ -283,7 +290,9 @@ const HomeAdmiPage = () => {
   });
 
   const [ticketsEnCurso, setTicketsEnCurso] = useState([]);
-  const [ticketsCerrados, setTicketsCerrados] = useState([]);
+  const [ticketsResueltos, setTicketsResueltos] = useState([]);
+  const [ticketsACerrar, setTicketsACerrar] = useState([]);
+  const [globalListKey, setGlobalListKey] = useState(null);
 
   // Usar useCallback para addNotification
   const notify = useCallback((message, type = 'info') => {
@@ -304,12 +313,23 @@ const HomeAdmiPage = () => {
           axios.get(`http://localhost:5000/usuarios/tickets/tecnico/${userId}`),
         ]);
 
-        // Guardar en estados independientes
+        // Normalizar estados y guardar en estados independientes para la vista personal
+  const norm = (s) => String(s || '').toLowerCase().trim().replace(/_/g, ' ');
+        const allTickets = estadoGeneralRes.data || [];
+        const techTickets = estado_tickets.data || [];
+        const isTech = (userRole || '').toLowerCase() === 'tecnico';
+
+        const personalSource = isTech ? techTickets : allTickets;
+
         setTicketsEnCurso(
-          estado_tickets.data.filter((ticket) => ticket.estado === "en_curso")
+          personalSource.filter((t) => norm(t.estado) === 'en curso')
         );
-        setTicketsCerrados(
-          estado_tickets.data.filter((ticket) => ticket.estado === "Cerrado")
+        setTicketsResueltos(
+          personalSource.filter((t) => norm(t.estado) === 'resuelto')
+        );
+        // Casos a cerrar: excluir resuelto, cerrado y borrado
+        setTicketsACerrar(
+          personalSource.filter((t) => !['resuelto', 'cerrado', 'borrado'].includes(norm(t.estado)))
         );
 
         // Agrupar datos para las tablas generales
@@ -326,8 +346,8 @@ const HomeAdmiPage = () => {
         };
 
         estadoGeneralRes.data.forEach((ticket) => {
-          const estado =
-            ticket.estado?.toLowerCase() || ticket.estado_ticket?.toLowerCase();
+          // Normalizar el estado (minúsculas, sin guiones bajos)
+          const estado = norm(ticket.estado || ticket.estado_ticket);
 
           let estadoFrontend;
           switch (estado) {
@@ -335,12 +355,14 @@ const HomeAdmiPage = () => {
             case "new":
               estadoFrontend = "nuevo";
               break;
-            case "en_curso":
+            case "en curso":
             case "en_proceso":
+            case "en proceso":
             case "proceso":
               estadoFrontend = "enCurso";
               break;
             case "en_espera":
+            case "en espera":
             case "espera":
               estadoFrontend = "enEspera";
               break;
@@ -367,6 +389,19 @@ const HomeAdmiPage = () => {
           }
 
           if (estadoFrontend && agrupados[estadoFrontend] !== undefined) {
+            // Resolver nombre del técnico asignado considerando múltiples posibles campos
+            const tecnicoAsignado =
+              ticket.tecnico ||
+              ticket.asignadoA ||
+              ticket.asignado_a ||
+              ticket.tecnico_asignado ||
+              ticket.nombre_tecnico ||
+              ticket.asignado ||
+              ticket.nombre_asignado ||
+              ticket.tecnicoNombre ||
+              ticket.asignadoNombre ||
+              "Sin asignar";
+
             agrupados[estadoFrontend].push({
               id: ticket.id || ticket.id_ticket,
               solicitante: ticket.solicitante || ticket.nombre_completo,
@@ -374,7 +409,7 @@ const HomeAdmiPage = () => {
               titulo: ticket.titulo,
               prioridad: ticket.prioridad,
               fecha_creacion: ticket.fecha_creacion,
-              tecnico: ticket.tecnico || ticket.asignadoA || "Sin asignar",
+              tecnico: tecnicoAsignado,
             });
           }
         });
@@ -393,48 +428,56 @@ const HomeAdmiPage = () => {
   const tickets = [
     {
       label: "Nuevo",
+      key: 'nuevo',
       color: "green",
       icon: "🟢",
       count: tableData.nuevo.length,
     },
     {
       label: "En curso",
+      key: 'enCurso',
       color: "lightgreen",
       icon: "⏳",
-      count: ticketsEnCurso.length,
+      count: tableData.enCurso.length,
     },
     {
       label: "En espera",
+      key: 'enEspera',
       color: "orange",
       icon: "🟡",
       count: tableData.enEspera.length,
     },
     {
       label: "Resueltos",
+      key: 'resueltos',
       color: "gray",
       icon: "✔️",
       count: tableData.resueltos.length,
     },
     {
       label: "Cerrado",
+      key: 'cerrados',
       color: "black",
       icon: "✅",
-      count: ticketsCerrados.length,
+      count: tableData.cerrados.length,
     },
     {
       label: "Borrado",
+      key: 'borrados',
       color: "red",
       icon: "🗑",
       count: tableData.borrados.length,
     },
     {
       label: "Encuesta",
+      key: 'encuesta',
       color: "purple",
       icon: "📅",
       count: tableData.encuesta.length,
     },
     {
       label: "Abiertos",
+      key: 'abiertos',
       color: "#4CAF50",
       icon: "📝",
       count: tableData.abiertos.length,
@@ -536,21 +579,16 @@ const HomeAdmiPage = () => {
                         </tr>
                       </thead>
                       <tbody>
-                        <tr>
-                          <td>ID: 2503160091</td>
-                          <td>Santiago Caricena Corredor</td>
-                          <td>General</td>
-                          <td>
-                            NO LE PERMITE REALIZA NINGUNA ACCIÓN - USUARIO
-                            TEMPORAL (1 - 0)
-                          </td>
-                        </tr>
-                        <tr>
-                          <td>ID: 2503160090</td>
-                          <td>Santiago Caricena Corredor</td>
-                          <td>General</td>
-                          <td>CONFIGURAR IMPRESORA (1 - 0)</td>
-                        </tr>
+                        {ticketsACerrar.map((t) => {
+                          const id = getTicketId(t);
+                          return (
+                          <tr key={id ?? Math.random()} onClick={() => goEdit(id)} style={{ cursor: 'pointer' }}>
+                            <td>{id}</td>
+                            <td>{t.solicitante || 'N/A'}</td>
+                            <td>{t.categoria || 'General'}</td>
+                            <td>{t.descripcion || t.titulo || ''}</td>
+                          </tr>
+                        );})}
                       </tbody>
                     </table>
                   </div>
@@ -568,14 +606,16 @@ const HomeAdmiPage = () => {
                         </tr>
                       </thead>
                       <tbody>
-                        {ticketsCerrados.map((ticket) => (
-                          <tr key={ticket.id}>
-                            <td>{ticket.id}</td>
+                        {ticketsResueltos.map((ticket) => {
+                          const id = getTicketId(ticket);
+                          return (
+                          <tr key={id ?? Math.random()} onClick={() => goEdit(id)} style={{ cursor: 'pointer' }}>
+                            <td>{id}</td>
                             <td>{ticket.solicitante}</td>
                             <td>{ticket.categoria}</td>
                             <td>{ticket.descripcion}</td>
                           </tr>
-                        ))}
+                        );})}
                       </tbody>
                     </table>
                   </div>
@@ -593,6 +633,7 @@ const HomeAdmiPage = () => {
                           key={index}
                           className={styles.card}
                           style={{ borderColor: ticket.color }}
+                          onClick={() => setGlobalListKey(ticket.key)}
                         >
                           <span className="icon">{ticket.icon}</span>
                           <span className="label">{ticket.label}</span>
@@ -601,6 +642,37 @@ const HomeAdmiPage = () => {
                       ))}
                     </div>
                   </div>
+
+                  {/* Lista detallada por estado en Vista Global */}
+                  {globalListKey && (
+                    <div className={styles.tablaContainer}>
+                      <h2>Casos: {tickets.find(t => t.key === globalListKey)?.label}</h2>
+                      <table>
+                        <thead>
+                          <tr>
+                            <th>ID</th>
+                            <th>SOLICITANTE</th>
+                            <th>TÍTULO</th>
+                            <th>PRIORIDAD</th>
+                            <th>TÉCNICO</th>
+                            <th>FECHA CREACIÓN</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {(tableData[globalListKey] || []).map((row) => (
+                            <tr key={row.id} onClick={() => goEdit(row.id)} style={{ cursor: 'pointer' }}>
+                              <td>{row.id}</td>
+                              <td>{row.solicitante}</td>
+                              <td>{row.titulo}</td>
+                              <td>{row.prioridad}</td>
+                              <td>{row.tecnico}</td>
+                              <td>{row.fecha_creacion}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
                 </>
               )}
 

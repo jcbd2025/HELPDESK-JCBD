@@ -57,7 +57,7 @@ const Usuarios = () => {
     estado: "activo",
     id_entidad: "",
     rol: "",
-    grupo: "",
+    id_grupo: "",
   });
 
   // Funciones de API con useCallback
@@ -255,6 +255,14 @@ const Usuarios = () => {
         }
         break;
 
+      case "id_grupo":
+        if (!value) {
+          newErrors[name] = "Grupo es requerido";
+        } else {
+          delete newErrors[name];
+        }
+        break;
+
       default:
         break;
     }
@@ -270,6 +278,7 @@ const Usuarios = () => {
       "correo",
       "id_entidad",
       "rol",
+      "id_grupo",
     ];
     if (!editingId) requiredFields.push("contrasena");
 
@@ -381,6 +390,7 @@ const Usuarios = () => {
       estado: "activo",
       id_entidad: "",
       rol: "",
+      id_grupo: "",
     });
     setEditingId(null);
     setFormErrors({});
@@ -397,6 +407,7 @@ const Usuarios = () => {
       estado: user.estado,
       id_entidad: user.id_entidad1 || "",
       rol: user.rol,
+      id_grupo: user.id_grupo || "",
     });
     setEditingId(user.id_usuario);
     setShowForm(true);

@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 from routes.auth import auth_bp
 from routes.panel import panel_bp
@@ -17,6 +17,11 @@ app.register_blueprint(usuarios_bp, url_prefix="/usuarios")
 app.register_blueprint(categorias_bp, url_prefix="/categorias")
 app.register_blueprint(grupos_bp, url_prefix="/grupos")
 app.register_blueprint(entidades_bp, url_prefix="/entidades")
+
+# Servir archivos subidos
+@app.route('/uploads/<path:filename>')
+def uploaded_file(filename):
+    return send_from_directory('uploads', filename, as_attachment=False)
 
 if __name__ == "__main__":
     app.run(debug=True)

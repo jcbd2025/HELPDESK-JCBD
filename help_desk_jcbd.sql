@@ -434,3 +434,7 @@ ALTER TABLE `usuarios_tickets`
   ADD CONSTRAINT `usuarios_tickets_ibfk_1` FOREIGN KEY (`id_usuario1`) REFERENCES `usuarios` (`id_usuario`) ON DELETE CASCADE,
   ADD CONSTRAINT `usuarios_tickets_ibfk_2` FOREIGN KEY (`id_ticket3`) REFERENCES `tickets` (`id_ticket`) ON DELETE CASCADE;
 COMMIT;
+
+
+ALTER TABLE usuarios
+ADD COLUMN id_grupo INT NOT NULL;

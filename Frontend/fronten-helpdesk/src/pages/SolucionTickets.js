@@ -13,7 +13,7 @@ const SolucionTickets = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const dropdownRef = useRef(null);
-  
+
   const [showOptions, setShowOptions] = useState(false);
   const [showSolutionForm, setShowSolutionForm] = useState(false);
   const [selectedOption, setSelectedOption] = useState(null);
@@ -21,7 +21,7 @@ const SolucionTickets = () => {
     descripcion: "",
     archivos: [],
   });
-  
+
   // Estados para los datos del ticket
   const [originalTicket, setOriginalTicket] = useState({});
   const [ticket, setTicket] = useState({
@@ -42,18 +42,18 @@ const SolucionTickets = () => {
     asignadoA: "",
     grupoAsignado: "",
   });
-  
+
   const [categorias, setCategorias] = useState([]);
   const [grupos, setGrupos] = useState([]);
   const [tecnicos, setTecnicos] = useState([]);
   const [seguimientos, setSeguimientos] = useState([]);
   const [loading, setLoading] = useState(true);
-  
+
   // Estados de edición independientes
   const [isEditingVerticalForm, setIsEditingVerticalForm] = useState(false);
   const [isEditingTicketInfo, setIsEditingTicketInfo] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  
+
   // Estados para modales
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showErrorModal, setShowErrorModal] = useState(false);
@@ -112,7 +112,7 @@ const SolucionTickets = () => {
   const handleCloseErrorModal = () => {
     setShowErrorModal(false);
   };
-  
+
   // Función para ocultar modal de carga
   const hideLoading = () => {
     setShowLoadingModal(false);
@@ -204,18 +204,26 @@ const SolucionTickets = () => {
       try {
         setIsLoading(true);
         showLoading("Cargando datos del ticket...");
-        
-        const [ticketRes, categoriasRes, seguimientosRes] = await Promise.all([
+
+        const [ticketRes, categoriasRes, usuariosRes, gruposRes] = await Promise.all([
           axios.get(`${API_BASE_URL}/usuarios/tickets/${id}`),
           axios.get(`${API_BASE_URL}/usuarios/obtenerCategorias`),
-          axios.get(`${API_BASE_URL}/usuarios/tickets/${id}/seguimientos`),
+          axios.get(`${API_BASE_URL}/usuarios/obtener`),
+          axios.get(`${API_BASE_URL}/usuarios/obtenerGrupos`),
+
         ]);
 
         const ticketData = ticketRes.data;
         setTicket(ticketData);
         setOriginalTicket(ticketData); // Guardar copia original
         setCategorias(categoriasRes.data);
-        setSeguimientos(seguimientosRes.data);
+        setTecnicos(usuariosRes.data);
+        setGrupos(gruposRes.data);
+        // Si el backend ya retorna seguimientos dentro del ticket, reflejarlo en el estado opcionalmente
+        if (Array.isArray(ticketData.seguimientos)) {
+          setSeguimientos(ticketData.seguimientos);
+        }
+
       } catch (error) {
         console.error("Error al cargar datos:", error);
         // Datos de ejemplo para desarrollo
@@ -252,9 +260,14 @@ const SolucionTickets = () => {
   // Manejador de cambios para el formulario vertical
   const handleVerticalFormChange = (e) => {
     const { name, value } = e.target;
+    // Normalización: prioridad en minúsculas, estado en minúsculas
+    const normalized = {
+      prioridad: (v) => v.toLowerCase(),
+      estado: (v) => v.toLowerCase(),
+    };
     setTicket((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: normalized[name] ? normalized[name](value) : value,
       ultimaActualizacion: new Date().toLocaleString(),
     }));
   };
@@ -262,9 +275,12 @@ const SolucionTickets = () => {
   // Manejador de cambios para la información principal del ticket
   const handleTicketInfoChange = (e) => {
     const { name, value } = e.target;
+    const normalized = {
+      prioridad: (v) => v.toLowerCase(),
+    };
     setTicket((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: normalized[name] ? normalized[name](value) : value,
       ultimaActualizacion: new Date().toLocaleString(),
     }));
   };
@@ -279,12 +295,15 @@ const SolucionTickets = () => {
 
     try {
       setIsLoading(true);
-      showLoading(selectedOption === "solucion" 
-        ? "Guardando solución..." 
+      // Si no es admin/tecnico, forzar a seguimiento aunque haya seleccionado 'solucion' (defensa de UI)
+      const effectiveOption = isAdminOrTech ? selectedOption : "seguimiento";
+
+      showLoading(effectiveOption === "solucion"
+        ? "Guardando solución..."
         : "Guardando seguimiento...");
 
       const endpoint =
-        selectedOption === "solucion"
+        effectiveOption === "solucion"
           ? `${API_BASE_URL}/usuarios/tickets/${id}/solucionar`
           : `${API_BASE_URL}/usuarios/tickets/${id}/seguimientos`;
 
@@ -292,7 +311,7 @@ const SolucionTickets = () => {
       formDataToSend.append("descripcion", solutionFormData.descripcion);
       formDataToSend.append("usuario", localStorage.getItem("nombre"));
 
-      if (selectedOption === "solucion") {
+      if (effectiveOption === "solucion") {
         formDataToSend.append("estado", "resuelto");
         formDataToSend.append("tipo", "solucion");
       } else {
@@ -318,11 +337,11 @@ const SolucionTickets = () => {
       const updatedTicket = ticketRes.data;
       setTicket(updatedTicket);
       setOriginalTicket(updatedTicket);
-      setSeguimientos(seguimientosRes.data);
+  setSeguimientos(seguimientosRes.data);
       setSolutionFormData({ descripcion: "", archivos: [] });
       setShowSolutionForm(false);
 
-      if (selectedOption === "solucion") {
+      if (effectiveOption === "solucion") {
         showSuccess("Solución guardada. El ticket se ha cerrado.", "Solución Aplicada");
         setTimeout(() => {
           navigate(`/EncuestaSatisfaccion/${id}`);
@@ -332,8 +351,12 @@ const SolucionTickets = () => {
       }
     } catch (error) {
       console.error("Error al guardar:", error);
-      const errorMessage = error.response?.data?.message || "Error al procesar la solicitud";
-      showError(errorMessage);
+      if (error?.response?.status === 404) {
+        showError("La ruta para guardar esta acción no existe en el backend (404). Revisa que estén creados los endpoints de solución/seguimiento.");
+      } else {
+        const errorMessage = error.response?.data?.message || "Error al procesar la solicitud";
+        showError(errorMessage);
+      }
     } finally {
       setIsLoading(false);
       hideLoading();
@@ -345,31 +368,45 @@ const SolucionTickets = () => {
       setIsLoading(true);
       showLoading("Guardando cambios...");
 
-      if (!ticket.titulo || !ticket.descripcion) {
-        showError("Título y descripción son campos obligatorios");
+      // Diferencias entre el ticket actual y el original
+      const updatedFields = {};
+      Object.keys(ticket).forEach((key) => {
+        if (ticket[key] !== originalTicket[key]) {
+          updatedFields[key] = ticket[key];
+        }
+      });
+
+      if (Object.keys(updatedFields).length === 0) {
+        showWarning("No hay cambios para guardar");
+        setIsLoading(false);
+        hideLoading();
         return;
       }
 
-      const response = await axios.post(
-        `${API_BASE_URL}/usuarios/tickets/${id}/actualizar`,
-        ticket
+      // Log para depurar qué se envía al backend
+      console.debug("Payload de actualización del ticket:", updatedFields);
+
+      await axios.put(
+        `${API_BASE_URL}/usuarios/tickets/${id}`,
+        updatedFields
       );
 
-      const updatedTicket = response.data;
-      setTicket(updatedTicket);
-      setOriginalTicket(updatedTicket);
-      
-      // Cerrar el modo edición según la sección
-      if (section === 'vertical') {
+      // El backend responde solo con {success, message}; recargar el ticket
+      const refreshed = await axios.get(`${API_BASE_URL}/usuarios/tickets/${id}`);
+      setTicket(refreshed.data);
+      setOriginalTicket(refreshed.data);
+
+      if (section === "vertical") {
         setIsEditingVerticalForm(false);
       } else {
         setIsEditingTicketInfo(false);
       }
-      
+
       showSuccess("Cambios guardados correctamente");
     } catch (error) {
       console.error("Error al guardar cambios:", error);
-      const errorMessage = error.response?.data?.message || "Error al guardar cambios";
+      const errorMessage =
+        error.response?.data?.message || "Error al guardar cambios";
       showError(errorMessage);
     } finally {
       setIsLoading(false);
@@ -380,7 +417,7 @@ const SolucionTickets = () => {
   const handleCancelEdit = (section) => {
     // Restaurar los valores originales desde la copia de respaldo
     setTicket(originalTicket);
-    
+
     // Cerrar el modo edición según la sección
     if (section === 'vertical') {
       setIsEditingVerticalForm(false);
@@ -478,7 +515,7 @@ const SolucionTickets = () => {
                     {categorias?.map((categoria) => (
                       <option
                         key={categoria.id_categoria}
-                        value={categoria.id_categoria}
+                        value={categoria.nombre_categoria}
                       >
                         {categoria.nombre_categoria}
                       </option>
@@ -490,15 +527,15 @@ const SolucionTickets = () => {
                   <label>Estado:</label>
                   <select
                     name="estado"
-                    value={ticket.estado}
+                    value={(ticket.estado || '').toLowerCase()}
                     onChange={handleVerticalFormChange}
                     disabled={!isEditingVerticalForm || !isAdminOrTech}
                   >
-                    <option value="Nuevo">Nuevo</option>
-                    <option value="En curso">En curso</option>
-                    <option value="En espera">En espera</option>
-                    <option value="Resuelto">Resuelto</option>
-                    <option value="Cerrado">Cerrado</option>
+                    <option value="nuevo">Nuevo</option>
+                    <option value="en curso">En curso</option>
+                    <option value="en espera">En espera</option>
+                    <option value="resuelto">Resuelto</option>
+                    <option value="cerrado">Cerrado</option>
                   </select>
                 </div>
 
@@ -506,7 +543,7 @@ const SolucionTickets = () => {
                   <label>Prioridad:</label>
                   <select
                     name="prioridad"
-                    value={ticket.prioridad}
+                    value={(ticket.prioridad || '').toLowerCase()}
                     onChange={handleVerticalFormChange}
                     disabled={!isEditingVerticalForm || !isAdminOrTech}
                   >
@@ -540,7 +577,7 @@ const SolucionTickets = () => {
                   />
                 </div>
 
-                <div className={styles.formGroup}>
+                {/*<div className={styles.formGroup}>
                   <label>Observador:</label>
                   <input
                     type="text"
@@ -549,7 +586,7 @@ const SolucionTickets = () => {
                     onChange={handleVerticalFormChange}
                     disabled={!isEditingVerticalForm || !isAdminOrTech}
                   />
-                </div>
+                </div>*/}
 
                 <div className={styles.formGroup}>
                   <label>Asignado a:</label>
@@ -562,8 +599,8 @@ const SolucionTickets = () => {
                     >
                       <option value="">Seleccionar técnico</option>
                       {tecnicos.map((tec) => (
-                        <option key={tec.id} value={tec.nombre}>
-                          {tec.nombre}
+                        <option key={tec.id_usuario} value={tec.nombre_completo}>
+                          {tec.nombre_completo}
                         </option>
                       ))}
                     </select>
@@ -583,8 +620,8 @@ const SolucionTickets = () => {
                     >
                       <option value="">Seleccionar grupo</option>
                       {grupos.map((grupo) => (
-                        <option key={grupo.id} value={grupo.nombre}>
-                          {grupo.nombre}
+                        <option key={grupo.id_grupo} value={grupo.nombre_grupo}>
+                          {grupo.nombre_grupo}
                         </option>
                       ))}
                     </select>
@@ -633,10 +670,10 @@ const SolucionTickets = () => {
                   {isEditingTicketInfo ? (
                     <select
                       name="prioridad"
-                      value={ticket.prioridad}
+                      value={(ticket.prioridad || '').toLowerCase()}
                       onChange={handleTicketInfoChange}
                       className={styles.editSelect}
-                      data-priority={ticket.prioridad.toLowerCase()}
+                      data-priority={(ticket.prioridad || '').toLowerCase()}
                     >
                       <option value="alta">Alta</option>
                       <option value="media">Media</option>
@@ -645,9 +682,9 @@ const SolucionTickets = () => {
                   ) : (
                     <span
                       className={styles.ticketPriority}
-                      data-priority={ticket.prioridad.toLowerCase()}
+                      data-priority={(ticket.prioridad || '').toLowerCase()}
                     >
-                      {ticket.prioridad}
+                      {(ticket.prioridad || '').charAt(0).toUpperCase() + (ticket.prioridad || '').slice(1)}
                     </span>
                   )}
                 </div>
@@ -726,12 +763,14 @@ const SolucionTickets = () => {
               <div className={styles.optionsContainerWrapper} ref={dropdownRef}>
                 {showOptions && (
                   <div className={styles.optionsDropup}>
-                    <button
-                      className={styles.optionItems}
-                      onClick={() => handleOptionSelect("solucion")}
-                    >
-                      Agregar solución
-                    </button>
+                    {isAdminOrTech && (
+                      <button
+                        className={styles.optionItems}
+                        onClick={() => handleOptionSelect("solucion")}
+                      >
+                        Agregar solución
+                      </button>
+                    )}
                     <button
                       className={styles.optionItems}
                       onClick={() => handleOptionSelect("seguimiento")}
@@ -740,7 +779,7 @@ const SolucionTickets = () => {
                     </button>
                   </div>
                 )}
-                
+
                 <button
                   className={styles.optionsButtons}
                   onClick={() => setShowOptions(!showOptions)}
@@ -837,6 +876,18 @@ const SolucionTickets = () => {
                   </form>
                 </div>
               )}
+
+              {/* Lista de seguimientos/soluciones */}
+              {Array.isArray(seguimientos) && seguimientos.length > 0 && (
+                <div className={styles.seguimientosContainer}>
+                  <h3 className={styles.seguimientosTitle}>Seguimientos y soluciones</h3>
+                  <div>
+                    {seguimientos.map((item) => (
+                      <SeguimientoItem key={item.id} seguimiento={item} />)
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Columna derecha - Opciones del ticket */}
@@ -884,22 +935,22 @@ const SolucionTickets = () => {
           </div>
         </div>
       </div>
-      
-      
+
+
       {/* Modal de éxito */}
       {showSuccessModal && (
         <div className={styles.modalOverlay}>
           <div className={styles.modal}>
             <div className={styles.modalHeader}>
               <h3>Operación Exitosa</h3>
-              <button 
-                onClick={handleCloseSuccessModal} 
+              <button
+                onClick={handleCloseSuccessModal}
                 className={styles.modalCloseButton}
               >
                 &times;
               </button>
             </div>
-            
+
             <div className={styles.modalBody}>
               <div className={styles.successIcon}>
                 <svg viewBox="0 0 24 24">
@@ -907,7 +958,7 @@ const SolucionTickets = () => {
                 </svg>
               </div>
               <p>{modalMessage}</p>
-              
+
               <div className={styles.modalActions}>
                 <button
                   onClick={handleCloseSuccessModal}
@@ -920,21 +971,21 @@ const SolucionTickets = () => {
           </div>
         </div>
       )}
-      
+
       {/* Modal de error */}
       {showErrorModal && (
         <div className={styles.modalOverlay}>
           <div className={styles.modal}>
             <div className={styles.modalHeader}>
               <h3>Error</h3>
-              <button 
-                onClick={handleCloseErrorModal} 
+              <button
+                onClick={handleCloseErrorModal}
                 className={styles.modalCloseButton}
               >
                 &times;
               </button>
             </div>
-            
+
             <div className={styles.modalBody}>
               <div className={styles.errorIcon}>
                 <svg viewBox="0 0 24 24">
@@ -942,7 +993,7 @@ const SolucionTickets = () => {
                 </svg>
               </div>
               <p>{modalMessage}</p>
-              
+
               <div className={styles.modalActions}>
                 <button
                   onClick={handleCloseErrorModal}
@@ -955,7 +1006,7 @@ const SolucionTickets = () => {
           </div>
         </div>
       )}
-      
+
       <ChatBot />
     </MenuVertical>
   );

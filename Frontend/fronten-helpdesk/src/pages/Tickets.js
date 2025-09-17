@@ -29,6 +29,7 @@ const Tickets = () => {
   const [categorias, setCategorias] = useState([]);
   const [tickets, setTickets] = useState([]);
   const [filteredTickets, setFilteredTickets] = useState([]);
+  const [allTickets, setAllTickets] = useState([]);
 
     // Efecto para obtener usuarios y llenar los select
     useEffect(() => {
@@ -83,20 +84,38 @@ const Tickets = () => {
         ultimaActualizacion: ticket.ultimaActualizacion || ''
       }));
 
-      setTickets(normalizedTickets);
-      setFilteredTickets(normalizedTickets);
+      // Si el rol es 'usuario', limitar a los tickets solicitados por él
+      let visibleTickets = normalizedTickets;
+      if (userRole === 'usuario') {
+        const nombreUsuario = String(nombre || '').trim().toLowerCase();
+        visibleTickets = normalizedTickets.filter(t =>
+          String(t.solicitante || '').trim().toLowerCase() === nombreUsuario
+        );
+      }
+
+      // Guardar todos y excluir tickets resueltos o cerrados de la vista por defecto
+      setAllTickets(visibleTickets);
+      const activeTickets = visibleTickets.filter(t => {
+        const st = String(t.estado || '').toLowerCase();
+        return st !== 'resuelto' && st !== 'cerrado';
+      });
+
+      setTickets(activeTickets);
+      setFilteredTickets(activeTickets);
     } catch (err) {
       setError("Error al cargar tickets");
       console.error("Error fetching tickets:", err);
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [userRole, nombre]);
 
 
   // 5. Aplicar filtros
   const applyFilters = useCallback(() => {
-    const filteredData = tickets.filter((item) => {
+    // Si el filtro de estado está activo, usar todos los tickets (incluye resueltos/cerrados)
+    const baseData = (filters.estado && String(filters.estado).trim() !== "") ? allTickets : tickets;
+    const filteredData = baseData.filter((item) => {
       // Filtrado general
       let match = Object.keys(filters).every((key) => {
         if (!filters[key]) return true;
@@ -240,16 +259,18 @@ const Tickets = () => {
           </div>
 
           <div className={styles.actions}>
-            <button
-              onClick={() => setShowFilters(!showFilters)}
-              className={styles.Buttonfiltros}
-              title="Alternar filtros"
-            >
-              <FcEmptyFilter />
-              <span className={styles.mostrasfiltros}>
-                {showFilters ? "Ocultar" : "Mostrar"} filtros
-              </span>
-            </button>
+            {userRole !== 'usuario' && (
+              <button
+                onClick={() => setShowFilters(!showFilters)}
+                className={styles.Buttonfiltros}
+                title="Alternar filtros"
+              >
+                <FcEmptyFilter />
+                <span className={styles.mostrasfiltros}>
+                  {showFilters ? "Ocultar" : "Mostrar"} filtros
+                </span>
+              </button>
+            )}
 
             {/* Dropdown de exportación */}
             <div className={styles.exportDropdown}>
@@ -284,7 +305,7 @@ const Tickets = () => {
         </div>
 
         {/* Panel de filtros */}
-        {showFilters && (
+        {showFilters && userRole !== 'usuario' && (
           <div className={styles.filterPanel}>
             <div className={styles.filterGrid}>
               {/* Fila 1 */}
