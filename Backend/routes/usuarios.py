@@ -1200,6 +1200,73 @@ def solucionar_ticket(id_ticket):
                 if conn:
                     conn.close()
 
+@usuarios_bp.route("/encuestasatisfaccion", methods=["POST"])
+def encuesta_satisfaccion():
+    """Registra una encuesta de satisfacción asociada a un ticket en historial_tickets."""
+    conn = None
+    cursor = None
+    try:
+        data = request.get_json() or {}
+        ticket_id = data.get('ticketId') or data.get('ticket_id') or data.get('id_ticket')
+        calificacion = data.get('calificacion')
+        comentario = str(data.get('comentario') or '').strip()
+        usuario_nombre = data.get('usuario')
+        fecha = data.get('fecha')  # opcional, informativo
+
+        # Validaciones básicas
+        if not ticket_id:
+            return jsonify({'success': False, 'message': 'ticketId es requerido'}), 400
+        try:
+            calificacion = int(calificacion)
+        except Exception:
+            return jsonify({'success': False, 'message': 'calificacion debe ser numérica'}), 400
+        if calificacion < 1 or calificacion > 5:
+            return jsonify({'success': False, 'message': 'calificacion fuera de rango (1-5)'}), 400
+
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT id_ticket FROM tickets WHERE id_ticket = %s", (ticket_id,))
+        if not cursor.fetchone():
+            return jsonify({'success': False, 'message': 'Ticket no encontrado'}), 404
+
+        modificado_por, rol_mod = _resolver_usuario_por_nombre(usuario_nombre)
+        payload = {
+            'calificacion': calificacion,
+            'comentario': comentario,
+            'fecha': fecha
+        }
+        cursor.execute(
+            """
+            INSERT INTO historial_tickets
+            (id_ticket2, campo_modificado, valor_nuevo, modificado_por, nombre_modificador, rol_modificador)
+            VALUES (%s, %s, %s, %s, %s, %s)
+            """,
+            (ticket_id, 'encuesta', json.dumps(payload, ensure_ascii=False), modificado_por, usuario_nombre, rol_mod)
+        )
+
+        # Al registrar la encuesta, cerrar el ticket
+        cursor.execute(
+            """
+            UPDATE tickets
+            SET estado_ticket = %s,
+                fecha_cierre = COALESCE(fecha_cierre, NOW()),
+                fecha_actualizacion = NOW()
+            WHERE id_ticket = %s
+            """,
+            ('cerrado', ticket_id)
+        )
+
+        conn.commit()
+        return jsonify({'success': True, 'message': 'Encuesta registrada correctamente', 'nuevo_estado': 'cerrado'}), 201
+    except Exception as e:
+        if conn:
+            conn.rollback()
+        return jsonify({'success': False, 'message': f'Error al registrar encuesta: {str(e)}'}), 500
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
 @usuarios_bp.route("/estado_tickets", methods=["GET"])
 def obtener_estado_tickets():
     estado = request.args.get("estado")

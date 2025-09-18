@@ -940,7 +940,7 @@ const SolucionTickets = () => {
                 </label>
                 <div className={styles.optionContent}>
                   <Link
-                    to="/EncuestaSatisfaccion/:surveyId"
+                    to={`/EncuestaSatisfaccion/${ticket.id}`}
                     className={styles.optionLink}
                   >
                     Encuesta

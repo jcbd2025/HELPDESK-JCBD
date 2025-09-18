@@ -48,7 +48,7 @@ const EncuestaSatisfaccion = () => {
 
     try {
       const response = await axios.post(
-        `http://localhost:5000/api/encuestasatisfaccion`,
+        `http://localhost:5000/usuarios/encuestasatisfaccion`,
         {
           ticketId: surveyId,
           calificacion: parseInt(calificacion),
@@ -56,14 +56,10 @@ const EncuestaSatisfaccion = () => {
           fecha: new Date().toISOString(),
           usuario: nombre || "Anónimo"
         },
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`
-          }
-        }
+        {}
       );
 
-      if (response.status === 200) {
+      if (response.status >= 200 && response.status < 300) {
         setModalMessage("¡Gracias por tu feedback! La encuesta ha sido enviada correctamente.");
         setShowSuccessModal(true);
       }
