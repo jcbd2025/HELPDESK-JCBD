@@ -90,7 +90,7 @@ const Categorias = () => {
 
   const fetchEntidades = async () => {
     try {
-      const response = await axios.get("http://localhost:5000/usuarios/obtenerEntidades");
+      const response = await axios.get("/usuarios/obtenerEntidades");
       setEntidades(response.data);
     } catch (error) {
       console.error("Error al cargar entidades:", error);
@@ -134,7 +134,7 @@ const Categorias = () => {
   const fetchCategorias = async () => {
     setIsLoading(true);
     try {
-      const response = await axios.get("http://localhost:5000/categorias/obtener");
+      const response = await axios.get("/categorias/obtener");
       setCategorias(response.data);
       setFilteredCategorias(response.data);
     } catch (error) {
@@ -154,8 +154,8 @@ const Categorias = () => {
     try {
       const method = editingId ? 'PUT' : 'POST';
       const url = editingId
-        ? `http://localhost:5000/categorias/actualizacion/${editingId}`
-        : 'http://localhost:5000/categorias/creacion';
+        ? `/categorias/actualizacion/${editingId}`
+        : '/categorias/creacion';
 
       const response = await axios[method.toLowerCase()](url, formData);
 
@@ -180,7 +180,7 @@ const Categorias = () => {
     if (!window.confirm("¿Estás seguro de eliminar esta categoría?")) return;
 
     try {
-      const response = await axios.delete(`http://localhost:5000/categorias/eliminar/${id}`);
+      const response = await axios.delete(`/categorias/eliminar/${id}`);
       if (response.data.success) {
         setModalMessage("Categoría eliminada correctamente");
         setShowSuccessModal(true);

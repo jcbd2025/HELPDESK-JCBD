@@ -40,7 +40,7 @@ const Login = () => {
     try {
       // 1. Verificar estado del usuario
       const estadoResponse = await axios.get(
-        `http://localhost:5000/usuarios/verificar-estado/${usuario}`
+        `/usuarios/verificar-estado/${usuario}`
       );
       
       if (estadoResponse.data.estado === 'inactivo') {
@@ -54,7 +54,7 @@ const Login = () => {
       }
 
       // 2. Si está activo, proceder con el login
-      const response = await axios.post("http://127.0.0.1:5000/auth/login", {
+      const response = await axios.post("/auth/login", {
         usuario,
         password,
       });

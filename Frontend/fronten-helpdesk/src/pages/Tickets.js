@@ -37,7 +37,7 @@ const Tickets = () => {
         try {
           const token = localStorage.getItem("token");
           const usuariosResponse = await axios.get(
-            "http://localhost:5000/usuarios/obtener",
+            "/usuarios/obtener",
             { headers: { Authorization: `Bearer ${token}` } }
           );
           setUsuarios(usuariosResponse.data);
@@ -65,7 +65,7 @@ const Tickets = () => {
     setError(null);
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get("http://localhost:5000/usuarios/tickets", {
+      const response = await axios.get("/usuarios/tickets", {
         headers: { Authorization: `Bearer ${token}` }
       });
 

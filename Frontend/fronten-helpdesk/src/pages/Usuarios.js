@@ -65,7 +65,7 @@ const Usuarios = () => {
     setIsLoading(true);
     try {
       const response = await axios.get(
-        "http://localhost:5000/usuarios/obtener"
+        "/usuarios/obtener"
       );
       setUsers(response.data);
       setFilteredUsers(response.data);
@@ -80,7 +80,7 @@ const Usuarios = () => {
   const fetchEntidades = useCallback(async () => {
     try {
       const response = await axios.get(
-        "http://localhost:5000/usuarios/obtenerEntidades"
+        "/usuarios/obtenerEntidades"
       );
       setEntidades(response.data);
     } catch (error) {
@@ -93,7 +93,7 @@ const Usuarios = () => {
     setIsLoading(true);
     try {
       const response = await axios.get(
-        "http://localhost:5000/usuarios/obtenerGrupos"
+        "/usuarios/obtenerGrupos"
       );
       setGrupos(response.data);
     } catch (error) {
@@ -318,8 +318,8 @@ const Usuarios = () => {
     try {
       const method = editingId ? "PUT" : "POST";
       const url = editingId
-        ? `http://localhost:5000/usuarios/actualizacion/${editingId}`
-        : "http://localhost:5000/usuarios/creacion";
+        ? `/usuarios/actualizacion/${editingId}`
+        : "/usuarios/creacion";
 
       const response = await axios[method.toLowerCase()](url, formData);
 
@@ -357,7 +357,7 @@ const Usuarios = () => {
 
     try {
       const response = await axios.delete(
-        `http://localhost:5000/usuarios/eliminar/${id}`
+        `/usuarios/eliminar/${id}`
       );
       if (response.data.success) {
         setModalMessage("Usuario eliminado correctamente");

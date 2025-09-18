@@ -62,8 +62,8 @@ const HomeTecnicoPage = () => {
         setIsLoading(true);
         const token = localStorage.getItem("token");
         const [estadoGeneralRes, estado_tickets] = await Promise.all([
-          axios.get("http://localhost:5000/usuarios/estado_tickets", { headers: { Authorization: `Bearer ${token}` }, params: { usuario_id: userId, rol: 'tecnico' } }),
-          axios.get(`http://localhost:5000/usuarios/tickets/tecnico/${userId}`),
+          axios.get("/usuarios/estado_tickets", { headers: { Authorization: `Bearer ${token}` }, params: { usuario_id: userId, rol: 'tecnico' } }),
+          axios.get(`/usuarios/tickets/tecnico/${userId}`),
         ]);
 
         // Fuente personal: tickets del técnico

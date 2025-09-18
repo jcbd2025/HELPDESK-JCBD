@@ -102,25 +102,25 @@ const CrearCasoUse = () => {
       try {
         // Obtener usuarios
         const usuariosResponse = await axios.get(
-          "http://localhost:5000/usuarios/obtener"
+          "/usuarios/obtener"
         );
         setUsuarios(usuariosResponse.data);
 
         // Obtener departamentos
         const deptosResponse = await axios.get(
-          "http://localhost:5000/usuarios/obtenerEntidades"
+          "/usuarios/obtenerEntidades"
         );
         setDepartamentos(deptosResponse.data);
 
         // Obtener categorías
         const catsResponse = await axios.get(
-          "http://localhost:5000/usuarios/obtenerCategorias"
+          "/usuarios/obtenerCategorias"
         );
         setCategorias(catsResponse.data);
 
         // Obtener datos del usuario logueado para el campo origen
         const userResponse = await axios.get(
-          `http://localhost:5000/usuarios/obtenerUsuario/${userId}`
+          `/usuarios/obtenerUsuario/${userId}`
         );
         const userData = userResponse.data;
 
@@ -128,7 +128,7 @@ const CrearCasoUse = () => {
         if (isEditMode) {
           const ticketId = id || location.state?.ticketData?.id_ticket || location.state?.ticketData?.id;
           const response = await axios.get(
-            `http://localhost:5000/usuarios/tickets/${ticketId}`
+            `/usuarios/tickets/${ticketId}`
           );
           const ticketData = response.data;
 
@@ -242,7 +242,7 @@ const CrearCasoUse = () => {
         formDataToSend.append("user_role", userRole);
 
         response = await axios.put(
-          `http://localhost:5000/usuarios/tickets/${formData.id}`,
+          `/usuarios/tickets/${formData.id}`,
           formDataToSend,
           {
             headers: {
@@ -252,7 +252,7 @@ const CrearCasoUse = () => {
         );
       } else {
         response = await axios.post(
-          "http://localhost:5000/usuarios/tickets",
+          "/usuarios/tickets",
           formDataToSend,
           {
             headers: {

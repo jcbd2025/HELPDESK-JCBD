@@ -67,11 +67,11 @@ const HomeAdmiPage = () => {
 
         // 🔹 Peticiones separadas para en curso y cerrados
         const [estadoGeneralRes, estado_tickets] = await Promise.all([
-          axios.get("http://localhost:5000/usuarios/estado_tickets", {
+          axios.get("/usuarios/estado_tickets", {
             headers: { Authorization: `Bearer ${token}` },
             params: { usuario_id: userId, rol: userRole },
           }),
-          axios.get(`http://localhost:5000/usuarios/tickets/tecnico/${userId}`),
+          axios.get(`/usuarios/tickets/tecnico/${userId}`),
         ]);
 
         // Normalizar estados y guardar en estados independientes para la vista personal

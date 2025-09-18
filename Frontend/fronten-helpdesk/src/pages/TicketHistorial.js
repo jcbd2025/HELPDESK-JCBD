@@ -65,7 +65,7 @@ const TicketHistorial = () => {
     const fetchHistorial = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(`http://localhost:5000/api/tickets/${id}/historial`);
+        const response = await axios.get(`/api/tickets/${id}/historial`);
 
         if (!response.data.ticket || !Array.isArray(response.data.historial)) {
           throw new Error('Estructura de datos incorrecta del servidor');
@@ -213,12 +213,12 @@ const TicketHistorial = () => {
     if (!nuevoSeguimiento.trim()) return;
 
     try {
-      await axios.post(`http://localhost:5000/api/tickets/${id}/seguimientos`, {
+      await axios.post(`/api/tickets/${id}/seguimientos`, {
         descripcion: nuevoSeguimiento,
         usuario: localStorage.getItem("nombre")
       });
 
-      const response = await axios.get(`http://localhost:5000/api/tickets/${id}/seguimientos`);
+      const response = await axios.get(`/api/tickets/${id}/seguimientos`);
       setSeguimientos(response.data);
       setNuevoSeguimiento("");
     } catch (error) {

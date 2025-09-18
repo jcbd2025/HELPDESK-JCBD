@@ -74,10 +74,10 @@ const CrearCasoAdmin = () => {
 
         // Usar Promise.all para llamadas paralelas
         const [usuariosRes, deptosRes, catsRes, grupoRes] = await Promise.all([
-          axios.get("http://localhost:5000/usuarios/obtener"),
-          axios.get("http://localhost:5000/usuarios/obtenerEntidades"),
-          axios.get("http://localhost:5000/usuarios/obtenerCategorias"),
-          axios.get("http://localhost:5000/usuarios/obtenerGrupos"),
+          axios.get("/usuarios/obtener"),
+          axios.get("/usuarios/obtenerEntidades"),
+          axios.get("/usuarios/obtenerCategorias"),
+          axios.get("/usuarios/obtenerGrupos"),
         ]);
 
         setUsuarios(usuariosRes.data);
@@ -232,7 +232,7 @@ const CrearCasoAdmin = () => {
       });
 
       const response = await axios.post(
-        "http://localhost:5000/usuarios/tickets",
+        "/usuarios/tickets",
         formDataToSend,
         {
           headers: {

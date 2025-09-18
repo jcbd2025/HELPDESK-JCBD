@@ -12,7 +12,7 @@ const UserStatusChecker = () => {
       if (nombre_usuario) {
         try {
           const response = await axios.get(
-            `http://localhost:5000/usuarios/verificar-estado/${nombre_usuario}`
+            `/usuarios/verificar-estado/${nombre_usuario}`
           );
           
           if (response.data.estado === 'inactivo') {

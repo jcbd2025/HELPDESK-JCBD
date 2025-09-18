@@ -46,7 +46,7 @@ const HomePage = () => {
     const fetchTickets = async () => {
       try {
         const token = localStorage.getItem("token");
-        const response = await axios.get("http://localhost:5000/usuarios/estado_tickets", {
+        const response = await axios.get("/usuarios/estado_tickets", {
           headers: {
             Authorization: `Bearer ${token}`,
           },

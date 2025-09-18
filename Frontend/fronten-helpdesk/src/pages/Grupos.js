@@ -102,7 +102,7 @@ const Grupos = () => {
   const fetchGrupos = async () => {
     setIsLoading(true);
     try {
-      const response = await axios.get("http://localhost:5000/grupos/obtener");
+      const response = await axios.get("/grupos/obtener");
       setGrupos(response.data);
       setFilteredGrupos(response.data);
     } catch (error) {
@@ -121,8 +121,8 @@ const Grupos = () => {
     try {
       const method = editingId ? 'PUT' : 'POST';
       const url = editingId 
-        ? `http://localhost:5000/grupos/actualizacion/${editingId}`
-        : 'http://localhost:5000/grupos/creacion';
+        ? `/grupos/actualizacion/${editingId}`
+        : '/grupos/creacion';
 
       const response = await axios[method.toLowerCase()](url, formData);
 
@@ -151,7 +151,7 @@ const Grupos = () => {
     if (!window.confirm("¿Estás seguro de que deseas eliminar este grupo?")) return;
 
     try {
-      const response = await axios.delete(`http://localhost:5000/grupos/eliminar/${id}`);
+      const response = await axios.delete(`/grupos/eliminar/${id}`);
       if (response.data.success) {
         showNotificationModal("Grupo eliminado", "Grupo eliminado correctamente", "success");
         fetchGrupos();

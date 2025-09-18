@@ -120,7 +120,7 @@ const Entidades = () => {
   // Funciones de API
   const fetchCategorias = async () => {
     try {
-      const response = await axios.get("http://localhost:5000/categorias/obtener");
+      const response = await axios.get("/categorias/obtener");
       setCategorias(response.data);
     } catch (error) {
       console.error("Error al cargar categorías:", error);
@@ -132,7 +132,7 @@ const Entidades = () => {
   const fetchEntidades = async () => {
     setIsLoading(true);
     try {
-      const response = await axios.get("http://localhost:5000/entidades/obtener");
+      const response = await axios.get("/entidades/obtener");
       setEntidades(response.data);
       setFilteredEntidades(response.data);
     } catch (error) {
@@ -152,8 +152,8 @@ const Entidades = () => {
     try {
       const method = editingId ? 'PUT' : 'POST';
       const url = editingId
-        ? `http://localhost:5000/entidades/actualizacion/${editingId}`
-        : 'http://localhost:5000/entidades/creacion';
+        ? `/entidades/actualizacion/${editingId}`
+        : '/entidades/creacion';
 
       const response = await axios[method.toLowerCase()](url, formData);
 
@@ -178,7 +178,7 @@ const Entidades = () => {
     if (!window.confirm("¿Estás seguro de eliminar esta entidad?")) return;
 
     try {
-      const response = await axios.delete(`http://localhost:5000/entidades/eliminar/${id}`);
+      const response = await axios.delete(`/entidades/eliminar/${id}`);
       if (response.data.success) {
         setModalMessage("Entidad eliminada correctamente");
         setShowSuccessModal(true);
