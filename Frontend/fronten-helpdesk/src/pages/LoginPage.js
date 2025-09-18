@@ -9,12 +9,18 @@ const Login = () => {
   const [usuario, setUser] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false); // Nuevo estado para mostrar contraseña
   
   // Estados para el modal
   const [showModal, setShowModal] = useState(false);
   const [modalTitle, setModalTitle] = useState("");
   const [modalMessage, setModalMessage] = useState("");
   const [modalType, setModalType] = useState(""); // "error", "warning", "info"
+
+  // Función para alternar visibilidad de contraseña
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
 
   const showNotificationModal = (title, message, type) => {
     setModalTitle(title);
@@ -86,7 +92,7 @@ const Login = () => {
       } else if (error.response?.status === 401) {
         showNotificationModal(
           "Credenciales Incorrectas", 
-          "Usuario o contraseña incorrectos", 
+          "Usuario o contraseña incorrecta", 
           "error"
         );
       } else if (error.code === "ERR_NETWORK") {
@@ -128,14 +134,27 @@ const Login = () => {
           </div>
 
           <div className={styles.formGroup}>
-            <input
-              className={styles.inicio}
-              type="password"
-              placeholder="CONTRASEÑA"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
+            <div className={styles.passwordContainer}>
+              <input
+                className={styles.inicio}
+                type={showPassword ? "text" : "password"}
+                placeholder="CONTRASEÑA"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+              <button
+                type="button"
+                className={styles.passwordToggle}
+                onClick={togglePasswordVisibility}
+              >
+                {showPassword ? (
+                  <span className={styles.eyeIcon}>👁️</span>
+                ) : (
+                  <span className={styles.eyeIcon}>🔒</span>
+                )}
+              </button>
+            </div>
           </div>
 
           <div>
