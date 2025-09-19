@@ -1,0 +1,90 @@
+version: "3.1"
+
+rules:
+  - rule: Say goodbye anytime the user says goodbye
+    steps:
+      - intent: goodbye
+      - action: utter_goodbye
+
+  - rule: Say 'I am a bot' anytime the user challenges
+    steps:
+      - intent: bot_challenge
+      - action: utter_iamabot
+
+  - rule: Mood great via LLM
+    steps:
+      - intent: mood_great
+      - action: action_responder_llm
+
+  - rule: Mood unhappy via LLM
+    steps:
+      - intent: mood_unhappy
+      - action: action_responder_llm
+
+  # Reglas soporte técnico
+  - rule: Responder problema correo
+    steps:
+      - intent: problema_correo
+      - action: utter_problema_correo
+
+  - rule: Responder impresora no imprime
+    steps:
+      - intent: impresora_no_imprime
+      - action: utter_impresora_no_imprime
+
+  - rule: Responder red lenta
+    steps:
+      - intent: red_lenta
+      - action: utter_red_lenta
+
+  - rule: Responder restablecer contraseña
+    steps:
+      - intent: restablecer_contraseña
+      - action: utter_restablecer_contraseña
+
+  - rule: Responder estado ticket
+    steps:
+      - intent: estado_ticket
+      - action: utter_estado_ticket
+
+  - rule: Responder instalación software
+    steps:
+      - intent: instalacion_software
+      - action: utter_instalacion_software
+
+  - rule: Responder vpn
+    steps:
+      - intent: vpn
+      - action: utter_vpn
+
+  - rule: Responder bloqueo cuenta
+    steps:
+      - intent: bloqueo_cuenta
+      - action: utter_bloqueo_cuenta
+
+  - rule: Responder gracias
+    steps:
+      - intent: gracias
+      - action: utter_gracias
+  - rule: Responder consulta general LLM
+    steps:
+      - intent: consulta_general
+      - action: action_responder_llm
+  - rule: Fallback LLM
+    steps:
+      - intent: nlu_fallback
+      - action: action_responder_llm
+  - rule: Activar formulario creación ticket
+    steps:
+      - intent: crear_ticket
+      - action: utter_crear_ticket
+      - action: ticket_form
+      - active_loop: ticket_form
+  - rule: Enviar formulario creación ticket
+    condition:
+      - active_loop: ticket_form
+    steps:
+      - action: ticket_form
+      - active_loop: null
+      - action: utter_ticket_form_completo
+      - action: action_crear_ticket

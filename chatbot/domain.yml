@@ -1,0 +1,197 @@
+version: "3.1"
+
+intents:
+  - greet
+  - goodbye
+  - affirm
+  - deny
+  - mood_great
+  - mood_unhappy
+  - bot_challenge
+  # Intents soporte técnico
+  - problema_correo
+  - impresora_no_imprime
+  - red_lenta
+  - restablecer_contraseña
+  - crear_ticket
+  - estado_ticket
+  - instalacion_software
+  - vpn
+  - bloqueo_cuenta
+  - gracias
+  - consulta_general
+  - nlu_fallback
+
+responses:
+  utter_greet:
+    - text: "¡Hola! ¿En qué puedo ayudarte?"
+
+  utter_cheer_up:
+    - text: "Aquí tienes algo para animarte:"
+      image: "https://i.imgur.com/nGF1K8f.jpg"
+
+  utter_did_that_help:
+    - text: "¿Te ayudó eso?"
+
+  utter_happy:
+    - text: "¡Genial, continuemos!"
+
+  utter_goodbye:
+    - text: "¡Hasta luego!"
+
+  utter_iamabot:
+    - text: "Soy un bot, impulsado por Rasa."
+
+  # Respuestas soporte técnico
+  utter_problema_correo:
+    - text: |
+        Revisa estos pasos para problemas de correo:
+        1. Verifica tu conexión a Internet.
+        2. Confirma usuario/contraseña correctos.
+        3. Si es Outlook, limpia caché y reinicia.
+        4. ¿Sigue fallando? Puedo crear un ticket, solo dime: "crear ticket correo".
+
+  utter_impresora_no_imprime:
+    - text: |
+        Pasos básicos para impresora que no imprime:
+        1. Comprueba que esté encendida y sin errores en el panel.
+        2. Revisa conexión (USB / red) y papel.
+        3. Intenta reinstalar cola de impresión.
+        4. ¿Necesitas soporte adicional? Puedo crear un ticket.
+
+  utter_red_lenta:
+    - text: |
+        Para red lenta:
+        - Prueba un test de velocidad.
+        - Reinicia el router o desconecta/reconecta WiFi.
+        - Cierra aplicaciones pesadas (copias, streaming).
+        - Si afecta a varios usuarios, conviene crear ticket.
+
+  utter_restablecer_contraseña:
+    - text: |
+        Para restablecer contraseña:
+        1. Ingresa al portal corporativo y elige "Olvidé mi contraseña".
+        2. Sigue el enlace enviado a tu correo.
+        3. Usa una contraseña segura (mínimo 8 caracteres, mezcla de tipos).
+        ¿Quieres que cree un ticket si el proceso falla?
+
+  utter_crear_ticket:
+    - text: "Perfecto, para crear un ticket necesito: título, descripción, prioridad (baja/media/alta) y tu nombre de usuario. Dime 'registrar ticket' para iniciar."
+
+  utter_estado_ticket:
+    - text: "Para consultar estado dime el número de ticket. Ejemplo: 'estado ticket 123'."
+
+  utter_instalacion_software:
+    - text: |
+        Instalación de software:
+        1. Verifica si tienes permisos de administrador.
+        2. Descarga desde la fuente oficial o repositorio interno.
+        3. Si requiere licencia, asegúrate de tenerla.
+        ¿Creo un ticket para que un técnico lo haga por ti?
+
+  utter_vpn:
+    - text: |
+        Problemas con VPN:
+        - Verifica credenciales y que tu cuenta esté activa.
+        - Asegúrate de tener la hora del sistema correcta.
+        - Prueba otro puerto/protocolo si el cliente lo permite.
+        - Si el error persiste, puedo crear un ticket.
+
+  utter_bloqueo_cuenta:
+    - text: |
+        Cuenta bloqueada:
+        1. Suele ocurrir por intentos fallidos.
+        2. Espera 15 minutos o solicita desbloqueo al soporte.
+        3. Recomiendo cambiar contraseña tras desbloqueo.
+        ¿Deseas crear un ticket para desbloqueo?
+
+  utter_gracias:
+    - text: "¡Con gusto! Si necesitas algo más, aquí estoy."
+  # Preguntas del formulario
+  utter_ask_titulo:
+    - text: "Indica el título del ticket (breve)."
+  utter_ask_descripcion:
+    - text: "Describe el problema o solicitud con el mayor detalle posible."
+  utter_ask_prioridad:
+    - text: "¿Prioridad? (baja / media / alta)"
+  utter_ask_ubicacion:
+    - text: "¿Cuál es la ubicación del incidente (ej: Oficina Central, Piso 2, Remoto)?"
+  # Eliminados prompts de categoría e ID de solicitante (ya no se usan)
+  utter_ask_solicitante_username:
+    - text: "Indica tu nombre de usuario (ejemplo: Usuario_1)."
+  utter_ticket_form_cancelado:
+    - text: "Se canceló la creación del ticket."
+  utter_ticket_form_completo:
+    - text: "Gracias. Creando tu ticket..."
+
+actions:
+  - action_crear_ticket
+  - action_estado_ticket
+  - action_reiniciar_password
+  - validate_ticket_form
+  - action_responder_llm
+
+slots:
+  titulo:
+    type: text
+    influence_conversation: false
+    mappings:
+      - type: from_text
+        conditions:
+          - active_loop: ticket_form
+            requested_slot: titulo
+  descripcion:
+    type: text
+    influence_conversation: false
+    mappings:
+      - type: from_text
+        conditions:
+          - active_loop: ticket_form
+            requested_slot: descripcion
+  prioridad:
+    type: text
+    influence_conversation: false
+    mappings:
+      - type: from_text
+        conditions:
+          - active_loop: ticket_form
+            requested_slot: prioridad
+  ubicacion:
+    type: text
+    influence_conversation: false
+    mappings:
+      - type: from_text
+        conditions:
+          - active_loop: ticket_form
+            requested_slot: ubicacion
+  solicitante_username:
+    type: text
+    influence_conversation: false
+    mappings:
+      - type: from_text
+        conditions:
+          - active_loop: ticket_form
+            requested_slot: solicitante_username
+  ticket_id:
+    type: text
+    influence_conversation: false
+    mappings:
+      - type: from_text
+  usuario:
+    type: text
+    influence_conversation: false
+    mappings:
+      - type: from_text
+
+forms:
+  ticket_form:
+    required_slots:
+      - titulo
+      - descripcion
+      - prioridad
+      - ubicacion
+      - solicitante_username
+
+session_config:
+  session_expiration_time: 60
+  carry_over_slots_to_new_session: true

@@ -505,8 +505,8 @@ def crear_ticket():
         asignado = request.form.get("asignado_a")
         estado_ticket = request.form.get("estado") or "nuevo"  # ✅ usa el que venga o "nuevo"
 
-        # Validación de campos requeridos
-        if not all([prioridad, titulo, descripcion, ubicacion, tipo, categoria, solicitante]):
+        # Validación de campos requeridos (categoría deja de ser obligatoria)
+        if not all([prioridad, titulo, descripcion, ubicacion, tipo, solicitante]):
             return jsonify({
                 "success": False,
                 "message": "Faltan campos requeridos"
@@ -515,6 +515,10 @@ def crear_ticket():
         # Si vienen vacíos, convertirlos a None para que vayan como NULL en MySQL
         grupo = grupo if grupo else None
         asignado = asignado if asignado else None
+
+        # Normalizar categoría vacía a None para insertar NULL
+        if not categoria:
+            categoria = None
 
         conn = get_db_connection()
         cursor = conn.cursor()

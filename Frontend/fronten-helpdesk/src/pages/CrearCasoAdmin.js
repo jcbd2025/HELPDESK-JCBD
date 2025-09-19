@@ -47,7 +47,7 @@ const CrearCasoAdmin = () => {
     id: "",
     tipo: "incidencia",
     origen: "",
-    prioridad: "mediana",
+    prioridad: "media", // normalizado (antes: mediana)
     categoria: "",
     titulo: "",
     descripcion: "",
@@ -55,7 +55,7 @@ const CrearCasoAdmin = () => {
     solicitante: "", // Cambiar para que se seleccione del select
     elementos: "",
     entidad: "",
-    estado: "nuevo",
+    estado: "nuevo", // usar siempre minúsculas internamente
     ubicacion: "",
     observador: "",
     asignado_a: "",
@@ -206,7 +206,7 @@ const CrearCasoAdmin = () => {
       setShowErrorModal(true);
       return;
     }
-    
+
     e.preventDefault();
     setIsLoading(true);
     setError(null);
@@ -215,18 +215,18 @@ const CrearCasoAdmin = () => {
     try {
       const formDataToSend = new FormData();
 
-      // Agregar campos al FormData
-      Object.keys(formData).forEach((key) => {
-        if (
-          key !== "archivos" &&
-          formData[key] !== undefined &&
-          formData[key] !== null
-        ) {
-          formDataToSend.append(key, formData[key]);
+      // Normalizaciones previas al envío
+      const prioridadNorm = (formData.prioridad || '').toLowerCase().replace('mediana','media');
+      const estadoNorm = (formData.estado || '').toLowerCase();
+
+      const payload = { ...formData, prioridad: prioridadNorm, estado: estadoNorm };
+
+      Object.keys(payload).forEach((key) => {
+        if (key !== "archivos" && payload[key] !== undefined && payload[key] !== null) {
+          formDataToSend.append(key, payload[key]);
         }
       });
 
-      // Agregar archivos
       formData.archivos.forEach((file) => {
         formDataToSend.append("archivos", file);
       });
@@ -252,22 +252,22 @@ const CrearCasoAdmin = () => {
         const usuarioActual = usuarios.find(u => u.nombre_completo === userNombre);
         setFormData({
           id: "",
-          tipo: "incidencia",
-          origen: "",
-          prioridad: "mediana",
-          categoria: "",
-          titulo: "",
-          descripcion: "",
-          archivos: [],
-          solicitante: usuarioActual ? usuarioActual.id_usuario : formData.solicitante,
-          elementos: "",
-          entidad: "",
-          estado: "nuevo",
-          ubicacion: "",
-          observador: "",
-          asignado_a: "",
-          grupo_asignado: "",
-          fechaApertura: new Date().toISOString().slice(0, 16),
+            tipo: "incidencia",
+            origen: "",
+            prioridad: "media",
+            categoria: "",
+            titulo: "",
+            descripcion: "",
+            archivos: [],
+            solicitante: usuarioActual ? usuarioActual.id_usuario : formData.solicitante,
+            elementos: "",
+            entidad: "",
+            estado: "nuevo",
+            ubicacion: "",
+            observador: "",
+            asignado_a: "",
+            grupo_asignado: "",
+            fechaApertura: new Date().toISOString().slice(0, 16),
         });
       }
     } catch (error) {
@@ -569,11 +569,11 @@ const CrearCasoAdmin = () => {
                       onChange={handleChange}
                       required
                     >
-                      <option value="Nuevo">Nuevo</option>
-                      <option value="En curso">En curso</option>
-                      <option value="En espera">En espera</option>
-                      <option value="Resuelto">Resuelto</option>
-                      <option value="Cerrado">Cerrado</option>
+                      <option value="nuevo">Nuevo</option>
+                      <option value="en curso">En curso</option>
+                      <option value="en espera">En espera</option>
+                      <option value="resuelto">Resuelto</option>
+                      <option value="cerrado">Cerrado</option>
                     </select>
                   </div>
 
@@ -586,7 +586,7 @@ const CrearCasoAdmin = () => {
                       required
                     >
                       <option value="alta">Alta</option>
-                      <option value="mediana">Mediana</option>
+                      <option value="media">Media</option>
                       <option value="baja">Baja</option>
                     </select>
                   </div>
