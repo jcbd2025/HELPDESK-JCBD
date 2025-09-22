@@ -69,11 +69,11 @@ const HomeTecnicoPage = () => {
         // Fuente personal: tickets del técnico
         const personal = estado_tickets.data || [];
         setTicketsEnCurso(personal.filter(t => norm(t.estado) === 'en curso'));
-        setTicketsResueltos(personal.filter(t => norm(t.estado) === 'resuelto'));
+  setTicketsResueltos(personal.filter(t => norm(t.estado) === 'resuelto'));
         setTicketsACerrar(personal.filter(t => !['resuelto','cerrado','borrado'].includes(norm(t.estado))));
 
         // Agrupado global
-        const agrupados = { nuevo: [], enCurso: [], enEspera: [], resueltos: [], cerrados: [], borrados: [], encuesta: [], abiertos: [] };
+  const agrupados = { nuevo: [], enCurso: [], enEspera: [], resueltos: [], cerrados: [], borrados: [], encuesta: [], abiertos: [] };
         (estadoGeneralRes.data || []).forEach(ticket => {
           const estado = norm(ticket.estado || ticket.estado_ticket);
           let key;
@@ -96,7 +96,7 @@ const HomeTecnicoPage = () => {
             default: key = null;
           }
           if (key && agrupados[key]) {
-            agrupados[key].push({
+            const baseObj = {
               id: ticket.id || ticket.id_ticket,
               solicitante: ticket.solicitante || ticket.nombre_completo,
               titulo: ticket.titulo,
@@ -104,7 +104,12 @@ const HomeTecnicoPage = () => {
               prioridad: ticket.prioridad,
               fecha_creacion: ticket.fecha_creacion,
               tecnico: ticket.tecnico || ticket.asignadoA || 'Sin asignar',
-            });
+              estado
+            };
+            agrupados[key].push(baseObj);
+            if (estado === 'resuelto') {
+              agrupados.encuesta.push(baseObj);
+            }
           }
         });
 
@@ -228,7 +233,7 @@ const HomeTecnicoPage = () => {
                   </div>
 
                    <div className={styles.tablaContainer}>
-                    <h2>ENCUESTA DE SATISFACCIÓN</h2>
+                    <h2>ENCUESTA DE SATISFACCIÓN (Pendientes)</h2>
                     <table>
                       <thead>
                         <tr>
@@ -236,15 +241,25 @@ const HomeTecnicoPage = () => {
                           <th>SOLICITANTE</th>
                           <th>ELEMENTOS ASOCIADOS</th>
                           <th>DESCRIPCIÓN</th>
+                          <th>Acción</th>
                         </tr>
                       </thead>
                       <tbody>
                         {ticketsResueltos.map(ticket => (
-                          <tr key={ticket.id || ticket.id_ticket} onClick={() => goEdit(ticket.id || ticket.id_ticket)} style={{ cursor: 'pointer' }}>
-                            <td>{ticket.id || ticket.id_ticket}</td>
+                          <tr key={ticket.id || ticket.id_ticket}>
+                            <td style={{cursor:'pointer'}} onClick={() => goEdit(ticket.id || ticket.id_ticket)}>{ticket.id || ticket.id_ticket}</td>
                             <td>{ticket.solicitante}</td>
                             <td>{ticket.categoria || 'General'}</td>
-                            <td>{ticket.descripcion}</td>
+                            <td style={{maxWidth:'260px'}}>{ticket.descripcion}</td>
+                            <td>
+                              <button
+                                className={styles.viewButton}
+                                style={{padding:'4px 8px'}}
+                                onClick={() => navigate(`/EncuestaSatisfaccion/${ticket.id || ticket.id_ticket}`)}
+                              >
+                                Encuesta
+                              </button>
+                            </td>
                           </tr>
                         ))}
                       </tbody>

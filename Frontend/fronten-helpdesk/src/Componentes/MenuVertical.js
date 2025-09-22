@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect, useContext, useRef, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { FaMagnifyingGlass, FaPowerOff } from "react-icons/fa6";
 import { FiAlignJustify } from "react-icons/fi";
@@ -23,6 +23,10 @@ const MenuVertical = ({ children }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [results, setResults] = useState({ tickets: [], usuarios: [], categorias: [], grupos: [] });
+  const [showPanel, setShowPanel] = useState(false);
+  const debounceRef = useRef(null);
+  const panelRef = useRef(null);
 
  // Rutas según rol
   const homeRoute =
@@ -35,27 +39,71 @@ const MenuVertical = ({ children }) => {
   const crearCasoRoute =
     userRole === "usuario" ? "/CrearCasoUse" : "/CrearCasoAdmin";
 
-  const handleSearch = async () => {
+  const runQuery = useCallback(async (q) => {
+    if (!q || q.trim().length < 2) {
+      setResults({ tickets: [], usuarios: [], categorias: [], grupos: [] });
+      return;
+    }
     try {
       setIsLoading(true);
       setError(null);
-      addNotification(`Buscando: ${searchTerm}`, "info");
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      addNotification(`Resultados para: ${searchTerm}`, "success");
+      const rol = (localStorage.getItem('rol') || '').toLowerCase();
+      const usuarioId = localStorage.getItem('id_usuario') || localStorage.getItem('userId') || '';
+      const params = new URLSearchParams({ q });
+      if (rol) params.append('rol', rol);
+      if (usuarioId) params.append('usuario_id', usuarioId);
+      const res = await fetch(`/usuarios/buscar?${params.toString()}`);
+      const data = await res.json();
+      if (data.success) {
+        setResults(data.results || { tickets: [], usuarios: [], categorias: [], grupos: [] });
+      } else {
+        setResults({ tickets: [], usuarios: [], categorias: [], grupos: [] });
+      }
     } catch (err) {
-      const errorMsg = err.response?.data?.message || err.message;
+      const errorMsg = err.message;
       setError(errorMsg);
-      addNotification(`Error en búsqueda: ${errorMsg}`, "error");
+      setResults({ tickets: [], usuarios: [], categorias: [], grupos: [] });
     } finally {
       setIsLoading(false);
+    }
+  }, []);
+
+  const handleSearch = () => {
+    if (searchTerm.trim().length >= 2) {
+      runQuery(searchTerm.trim());
+      setShowPanel(true);
     }
   };
 
   const handleKeyPress = (e) => {
-    if (e.key === "Enter" && searchTerm.trim()) {
+    if (e.key === "Enter" && searchTerm.trim().length >= 2) {
       handleSearch();
     }
   };
+
+  const handleChange = (e) => {
+    const val = e.target.value;
+    setSearchTerm(val);
+    setShowPanel(true);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      if (val.trim().length >= 2) {
+        runQuery(val.trim());
+      } else {
+        setResults({ tickets: [], usuarios: [], categorias: [], grupos: [] });
+      }
+    }, 400);
+  };
+
+  useEffect(() => {
+    const handler = (e) => {
+      if (panelRef.current && !panelRef.current.contains(e.target)) {
+        setShowPanel(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
 
   const toggleMobileMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);
 
@@ -247,10 +295,11 @@ const MenuVertical = ({ children }) => {
               <input
                 className={styles.search}
                 type="text"
-                placeholder="Buscar..."
+                placeholder="Buscar (mínimo 2 letras)..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                onKeyPress={handleKeyPress}
+                onChange={handleChange}
+                onKeyDown={handleKeyPress}
+                onFocus={() => { if (searchTerm.trim().length >=2) setShowPanel(true); }}
               />
               <button
                 className={styles.buttonBuscar}
@@ -262,6 +311,65 @@ const MenuVertical = ({ children }) => {
               </button>
               {isLoading && <span className={styles.loading}>Buscando...</span>}
               {error && <div className={styles.errorMessage}>{error}</div>}
+              {showPanel && (
+                <div ref={panelRef} style={{position:'absolute', top:'42px', left:0, width:'560px', maxHeight:'60vh', overflowY:'auto', background:'#fff', border:'1px solid #ddd', borderRadius:'8px', padding:'10px', boxShadow:'0 4px 12px rgba(0,0,0,0.15)', zIndex:1000}}>
+                  {searchTerm.trim().length < 2 && <div style={{fontSize:'12px', color:'#666'}}>Escribe al menos 2 caracteres…</div>}
+                  {searchTerm.trim().length >=2 && !isLoading && Object.values(results).every(arr => !arr || arr.length===0) && (
+                    <div style={{fontSize:'12px', color:'#666'}}>Sin resultados</div>
+                  )}
+                  {results.tickets?.length > 0 && (
+                    <div style={{marginBottom:'10px'}}>
+                      <div style={{fontSize:'11px', fontWeight:'600', color:'#444', textTransform:'uppercase'}}>Tickets</div>
+                      {results.tickets.map(t => {
+                        const rol = (localStorage.getItem('rol') || '').toLowerCase();
+                        const usuarioNombre = (localStorage.getItem('nombre_completo') || localStorage.getItem('nombre') || '').trim().toLowerCase();
+                        const esPropio = usuarioNombre && (t.solicitante || '').trim().toLowerCase() === usuarioNombre;
+                        const clickable = rol !== 'usuario' || esPropio;
+                        return (
+                          <div
+                            key={`t-${t.id}`}
+                            style={{padding:'6px 4px', borderBottom:'1px solid #eee', cursor: clickable ? 'pointer' : 'not-allowed', opacity: clickable ? 1 : 0.55}}
+                            title={clickable ? 'Ver ticket' : 'No autorizado'}
+                            onClick={() => { if (clickable) window.location.href = `/tickets/solucion/${t.id}`; }}
+                          >
+                            <div style={{fontSize:'13px', fontWeight:'500'}}>{t.titulo || '(Sin título)'} <span style={{color:'#888'}}>#{t.id}</span></div>
+                            <div style={{fontSize:'11px', color:'#666'}}>{(t.descripcion || '').slice(0,110)}</div>
+                            <div style={{fontSize:'10px', color:'#999'}}>Estado: {t.estado} • Prioridad: {t.prioridad} • Sol: {t.solicitante || '—'}</div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                  {results.usuarios?.length > 0 && (
+                    <div style={{marginBottom:'10px'}}>
+                      <div style={{fontSize:'11px', fontWeight:'600', color:'#444', textTransform:'uppercase'}}>Usuarios</div>
+                      {results.usuarios.map(u => (
+                        <div key={`u-${u.id}`} style={{padding:'6px 4px', borderBottom:'1px solid #eee'}}>
+                          <div style={{fontSize:'13px', fontWeight:'500'}}>{u.nombre_completo} <span style={{color:'#888'}}>({u.nombre_usuario})</span></div>
+                          <div style={{fontSize:'11px', color:'#666'}}>{u.correo}</div>
+                          <div style={{fontSize:'10px', color:'#999'}}>Rol: {u.rol} • Estado: {u.estado}</div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {results.categorias?.length > 0 && (
+                    <div style={{marginBottom:'10px'}}>
+                      <div style={{fontSize:'11px', fontWeight:'600', color:'#444', textTransform:'uppercase'}}>Categorías</div>
+                      {results.categorias.map(c => (
+                        <div key={`c-${c.id}`} style={{padding:'6px 4px', borderBottom:'1px solid #eee'}}>{c.nombre}</div>
+                      ))}
+                    </div>
+                  )}
+                  {results.grupos?.length > 0 && (
+                    <div style={{marginBottom:'0'}}>
+                      <div style={{fontSize:'11px', fontWeight:'600', color:'#444', textTransform:'uppercase'}}>Grupos</div>
+                      {results.grupos.map(g => (
+                        <div key={`g-${g.id}`} style={{padding:'6px 4px', borderBottom:'1px solid #eee'}}>{g.nombre}</div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             <div className={styles.userContainer}>

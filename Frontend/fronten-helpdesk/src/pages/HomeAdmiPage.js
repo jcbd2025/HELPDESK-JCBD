@@ -64,6 +64,7 @@ const HomeAdmiPage = () => {
     const fetchTickets = async () => {
       try {
         const token = localStorage.getItem("token");
+        const userFullName = (localStorage.getItem("nombre_completo") || localStorage.getItem("nombre") || "").trim();
 
         // 🔹 Peticiones separadas para en curso y cerrados
         const [estadoGeneralRes, estado_tickets] = await Promise.all([
@@ -85,13 +86,21 @@ const HomeAdmiPage = () => {
         setTicketsEnCurso(
           personalSource.filter((t) => norm(t.estado) === 'en curso')
         );
+        // Tickets resueltos (pendientes de encuesta): estado = resuelto y todavía no cerrados
         setTicketsResueltos(
           personalSource.filter((t) => norm(t.estado) === 'resuelto')
         );
         // Casos a cerrar: excluir resuelto, cerrado y borrado
-        setTicketsACerrar(
-          personalSource.filter((t) => !['resuelto', 'cerrado', 'borrado'].includes(norm(t.estado)))
-        );
+        // Filtrar sólo tickets NO resueltos/cerrados/borrados y asignados al usuario actual (si hay nombre)
+        const ticketsPendientes = personalSource.filter((t) => !['resuelto', 'cerrado', 'borrado'].includes(norm(t.estado)));
+        const nombreMatch = (a, b) => (a || '').trim().toLowerCase() === (b || '').trim().toLowerCase();
+        const ticketsAsignados = userFullName
+          ? ticketsPendientes.filter(t => {
+              const tecnicoAsignado = (t.tecnico || t.asignadoA || t.asignado_a || t.tecnico_asignado || t.nombre_tecnico || '').toString();
+              return nombreMatch(tecnicoAsignado, userFullName);
+            })
+          : ticketsPendientes; // Si no tenemos nombre del usuario, mostrar pendientes (fallback)
+        setTicketsACerrar(ticketsAsignados);
 
         // Agrupar datos para las tablas generales
         const agrupados = {
@@ -143,6 +152,7 @@ const HomeAdmiPage = () => {
               break;
             
             case "encuesta":
+              // Si hubiera estado 'encuesta' explícito lo podríamos mapear aparte, pero mantenemos lógica.
               estadoFrontend = "encuesta";
               break;
             default:
@@ -163,7 +173,7 @@ const HomeAdmiPage = () => {
               ticket.asignadoNombre ||
               "Sin asignar";
 
-            agrupados[estadoFrontend].push({
+            const baseObj = {
               id: ticket.id || ticket.id_ticket,
               solicitante: ticket.solicitante || ticket.nombre_completo,
               descripcion: ticket.descripcion,
@@ -171,7 +181,13 @@ const HomeAdmiPage = () => {
               prioridad: ticket.prioridad,
               fecha_creacion: ticket.fecha_creacion,
               tecnico: tecnicoAsignado,
-            });
+              estado
+            };
+            agrupados[estadoFrontend].push(baseObj);
+            // Adicional: llenar 'encuesta' sólo si es resuelto (pendiente de encuesta)
+            if (estado === 'resuelto') {
+              agrupados.encuesta.push(baseObj);
+            }
           }
         });
 
@@ -266,6 +282,7 @@ const HomeAdmiPage = () => {
     );
   }
 
+
   return (
     <MenuVertical>
       <>
@@ -349,7 +366,7 @@ const HomeAdmiPage = () => {
 
                  
                   <div className={styles.tablaContainer}>
-                    <h2>ENCUESTA DE SATISFACCIÓN</h2>
+                    <h2>ENCUESTA DE SATISFACCIÓN (Pendientes)</h2>
                     <table>
                       <thead>
                         <tr>
@@ -357,17 +374,27 @@ const HomeAdmiPage = () => {
                           <th>SOLICITANTE</th>
                           <th>ELEMENTOS ASOCIADOS</th>
                           <th>DESCRIPCIÓN</th>
+                          <th>Acción</th>
                         </tr>
                       </thead>
                       <tbody>
                         {ticketsResueltos.map((ticket) => {
                           const id = getTicketId(ticket);
                           return (
-                          <tr key={id ?? Math.random()} onClick={() => goEdit(id)} style={{ cursor: 'pointer' }}>
-                            <td>{id}</td>
+                          <tr key={id ?? Math.random()}>
+                            <td style={{cursor:'pointer'}} onClick={() => goEdit(id)}>{id}</td>
                             <td>{ticket.solicitante}</td>
                             <td>{ticket.categoria}</td>
-                            <td>{ticket.descripcion}</td>
+                            <td style={{maxWidth:'260px'}}>{ticket.descripcion}</td>
+                            <td>
+                              <button
+                                className={styles.viewButton}
+                                style={{padding:'4px 8px'}}
+                                onClick={() => navigate(`/EncuestaSatisfaccion/${id}`)}
+                              >
+                                Encuesta
+                              </button>
+                            </td>
                           </tr>
                         );})}
                       </tbody>
