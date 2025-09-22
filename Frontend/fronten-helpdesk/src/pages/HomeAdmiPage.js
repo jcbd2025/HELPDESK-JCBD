@@ -13,7 +13,7 @@ import {
   Tooltip,
   Legend,
   Cell, 
-  ResponsiveContainer,
+  ResponsiveContainer, 
 } from "recharts";
 import axios from "axios";
 import styles from "../styles/HomeAdmiPage.module.css";
