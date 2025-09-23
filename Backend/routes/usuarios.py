@@ -5,6 +5,7 @@ import uuid
 from werkzeug.utils import secure_filename
 from datetime import datetime
 import json
+from time import perf_counter
 
 usuarios_bp = Blueprint("usuarios", __name__)
 
@@ -505,8 +506,8 @@ def crear_ticket():
         asignado = request.form.get("asignado_a")
         estado_ticket = request.form.get("estado") or "nuevo"  # ✅ usa el que venga o "nuevo"
 
-        # Validación de campos requeridos
-        if not all([prioridad, titulo, descripcion, ubicacion, tipo, categoria, solicitante]):
+        # Validación de campos requeridos (categoría deja de ser obligatoria)
+        if not all([prioridad, titulo, descripcion, ubicacion, tipo, solicitante]):
             return jsonify({
                 "success": False,
                 "message": "Faltan campos requeridos"
@@ -515,6 +516,10 @@ def crear_ticket():
         # Si vienen vacíos, convertirlos a None para que vayan como NULL en MySQL
         grupo = grupo if grupo else None
         asignado = asignado if asignado else None
+
+        # Normalizar categoría vacía a None para insertar NULL
+        if not categoria:
+            categoria = None
 
         conn = get_db_connection()
         cursor = conn.cursor()
@@ -959,6 +964,119 @@ def actualizar_ticket(id_ticket):
             conn.close()
 
 
+@usuarios_bp.route("/tickets/<int:id_ticket>/historial", methods=["GET"])
+def historial_ticket(id_ticket):
+    """Devuelve el historial completo del ticket ordenado cronológicamente (ASC).
+    Incluye: creación, cambios de campos clave, seguimientos, soluciones, encuestas.
+    Estructura de cada item:
+      {
+        id: <int|None>,
+        tipo: 'creacion'|'cambio'|'seguimiento'|'solucion'|'encuesta',
+        campo: <str|None>,
+        valor_anterior: <str|None>,
+        valor_nuevo: <str|None>,
+        descripcion: <str|None>,
+        archivos: [str],
+        usuario: <nombre_modificador|Sistema>,
+        fecha: 'YYYY-MM-DD HH:MM:SS'
+      }
+    """
+    conn = None
+    cursor = None
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+
+        # Verificar ticket
+        cursor.execute("SELECT id_ticket, titulo, fecha_creacion FROM tickets WHERE id_ticket = %s", (id_ticket,))
+        tk = cursor.fetchone()
+        if not tk:
+            return jsonify({"success": False, "message": "Ticket no encontrado"}), 404
+
+        eventos = []
+        # Evento de creación
+        if tk.get('fecha_creacion'):
+            eventos.append({
+                'id': None,
+                'tipo': 'creacion',
+                'campo': None,
+                'valor_anterior': None,
+                'valor_nuevo': tk.get('titulo'),
+                'descripcion': f"Ticket creado: {tk.get('titulo')}",
+                'archivos': [],
+                'usuario': 'Sistema',
+                'fecha': tk['fecha_creacion'].strftime('%Y-%m-%d %H:%M:%S') if hasattr(tk['fecha_creacion'], 'strftime') else str(tk['fecha_creacion'])
+            })
+
+        # Historial desde historial_tickets
+        cursor.execute(
+            """
+            SELECT id_historial, campo_modificado, valor_anterior, valor_nuevo, fecha_modificacion,
+                   nombre_modificador
+            FROM historial_tickets
+            WHERE id_ticket2 = %s
+            ORDER BY fecha_modificacion ASC
+            """,
+            (id_ticket,)
+        )
+        rows = cursor.fetchall()
+
+        for r in rows:
+            campo = r['campo_modificado']
+            tipo = 'cambio'
+            descripcion = None
+            archivos = []
+            valor_anterior = r.get('valor_anterior')
+            valor_nuevo = r.get('valor_nuevo')
+
+            if campo in ('seguimiento', 'solucion', 'encuesta'):
+                tipo = campo  # usar el propio nombre como tipo
+                # Parsear JSON si aplica
+                try:
+                    payload = json.loads(valor_nuevo) if valor_nuevo else {}
+                except Exception:
+                    payload = {'descripcion': valor_nuevo}
+                descripcion = payload.get('descripcion') or payload.get('comentario')
+                if campo in ('seguimiento', 'solucion'):
+                    archivos = payload.get('archivos', []) or []
+                # Para encuesta, mantener valor_nuevo legible
+                if campo == 'encuesta':
+                    # Mostrar calificación
+                    cal = payload.get('calificacion')
+                    if cal is not None:
+                        descripcion = f"Encuesta: calificación {cal}/5 - {descripcion or ''}".strip()
+                valor_anterior = None
+            else:
+                # Cambio de campo normal: armar descripción
+                descripcion = f"Cambio en {campo}: {valor_anterior} -> {valor_nuevo}"
+
+            eventos.append({
+                'id': r['id_historial'],
+                'tipo': tipo,
+                'campo': None if tipo in ('seguimiento', 'solucion', 'encuesta') else campo,
+                'valor_anterior': valor_anterior if tipo == 'cambio' else None,
+                'valor_nuevo': valor_nuevo if tipo == 'cambio' else None,
+                'descripcion': descripcion,
+                'archivos': archivos,
+                'usuario': r.get('nombre_modificador') or 'Sistema',
+                'fecha': r['fecha_modificacion'].strftime('%Y-%m-%d %H:%M:%S') if hasattr(r['fecha_modificacion'], 'strftime') else str(r['fecha_modificacion'])
+            })
+
+        # Ya vienen ordenados ASC por la query; si queremos reforzar:
+        eventos.sort(key=lambda x: x['fecha'])
+
+        return jsonify({'success': True, 'ticket_id': id_ticket, 'eventos': eventos})
+    except Exception as e:
+        if conn:
+            conn.rollback()
+        return jsonify({'success': False, 'message': f'Error al obtener historial: {str(e)}'}), 500
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+
+
 
 @usuarios_bp.route("/tickets/<int:id_ticket>/seguimientos", methods=["GET"])
 def listar_seguimientos(id_ticket):
@@ -1394,3 +1512,146 @@ def obtener_tickets_por_tecnico(id_tecnico):
             "success": False,
             "message": "Error al obtener tickets por técnico"
         }), 500
+
+
+@usuarios_bp.route("/buscar", methods=["GET"])
+def buscar_global():
+    """Búsqueda global simple sobre tickets, usuarios, categorías y grupos.
+    Parámetro: q (string)
+    Reglas:
+      - Mínimo 2 caracteres
+      - Limita 10 resultados por grupo
+      - Coincidencia LIKE %q%
+      - Tickets: también permite búsqueda por ID numérico exacto
+    Respuesta:
+      {
+        'query': q,
+        'results': { tickets: [...], usuarios: [...], categorias: [...], grupos: [...] },
+        'counts': { ... },
+        'took_ms': <float>,
+        'success': True
+      }
+    """
+    inicio = perf_counter()
+    q = (request.args.get('q') or '').strip()
+    rol = (request.args.get('rol') or '').strip().lower()
+    usuario_id = request.args.get('usuario_id')  # puede ser None
+    if len(q) < 2:
+        return jsonify({
+            'success': True,
+            'query': q,
+            'results': { 'tickets': [], 'usuarios': [], 'categorias': [], 'grupos': [] },
+            'counts': { 'tickets': 0, 'usuarios': 0, 'categorias': 0, 'grupos': 0 },
+            'message': 'Ingrese al menos 2 caracteres'
+        })
+
+    patron = f"%{q}%"
+    es_num = q.isdigit()
+    conn = None
+    cursor = None
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+
+        # Tickets (aplicar restricción si rol usuario: sólo sus tickets)
+        params_t = [patron, patron]
+        base_where = ["(t.titulo LIKE %s OR t.descripcion LIKE %s)"]
+        if es_num:
+            base_where.append("t.id_ticket = %s")
+            params_t.append(int(q))
+        if rol == 'usuario' and usuario_id:
+            base_where.append("ut.id_usuario1 = %s")
+            params_t.append(usuario_id)
+        where_ticket = "(" + " OR ".join(base_where) + ")"
+        cursor.execute(f"""
+            SELECT 
+                t.id_ticket AS id,
+                t.titulo,
+                LEFT(t.descripcion, 180) AS descripcion,
+                t.estado_ticket AS estado,
+                t.prioridad,
+                sol.nombre_completo AS solicitante,
+                tec.nombre_completo AS tecnico
+            FROM tickets t
+            LEFT JOIN usuarios_tickets ut ON t.id_ticket = ut.id_ticket3
+            LEFT JOIN usuarios sol ON ut.id_usuario1 = sol.id_usuario
+            LEFT JOIN usuarios tec ON t.id_tecnico_asignado = tec.id_usuario
+            WHERE {where_ticket}
+            ORDER BY t.fecha_creacion DESC
+            LIMIT 10
+        """, params_t)
+        tickets = cursor.fetchall()
+
+        # Usuarios
+        cursor.execute(
+            """
+            SELECT 
+                u.id_usuario AS id,
+                u.nombre_completo,
+                u.nombre_usuario,
+                u.correo,
+                u.rol,
+                u.estado
+            FROM usuarios u
+            WHERE u.nombre_completo LIKE %s OR u.nombre_usuario LIKE %s OR u.correo LIKE %s
+            ORDER BY u.fecha_registro DESC
+            LIMIT 10
+            """,
+            (patron, patron, patron)
+        )
+        usuarios = cursor.fetchall()
+
+        # Categorías
+        cursor.execute(
+            """
+            SELECT c.id_categoria AS id, c.nombre_categoria AS nombre
+            FROM categorias c
+            WHERE c.nombre_categoria LIKE %s
+            ORDER BY c.nombre_categoria ASC
+            LIMIT 10
+            """,
+            (patron,)
+        )
+        categorias = cursor.fetchall()
+
+        # Grupos
+        cursor.execute(
+            """
+            SELECT g.id_grupo AS id, g.nombre_grupo AS nombre
+            FROM grupos g
+            WHERE g.nombre_grupo LIKE %s
+            ORDER BY g.nombre_grupo ASC
+            LIMIT 10
+            """,
+            (patron,)
+        )
+        grupos = cursor.fetchall()
+
+        fin = perf_counter()
+        took_ms = round((fin - inicio) * 1000, 2)
+        return jsonify({
+            'success': True,
+            'query': q,
+            'results': {
+                'tickets': tickets,
+                'usuarios': usuarios,
+                'categorias': categorias,
+                'grupos': grupos
+            },
+            'counts': {
+                'tickets': len(tickets),
+                'usuarios': len(usuarios),
+                'categorias': len(categorias),
+                'grupos': len(grupos)
+            },
+            'took_ms': took_ms
+        })
+    except Exception as e:
+        if conn:
+            conn.rollback()
+        return jsonify({'success': False, 'message': f'Error en búsqueda: {str(e)}'}), 500
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()

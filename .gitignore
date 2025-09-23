@@ -1,1 +1,117 @@
-node_modules
+############################################################
+# .gitignore para HELPDESK-JCBD (Flask Backend + Rasa + Frontend)
+# Ajusta según tus necesidades antes del commit.
+############################################################
+
+# === Sistema / editores ===
+*.swp
+*.swo
+*.tmp
+*.bak
+*.orig
+*.cache
+*.lock
+~$*
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+!.vscode/launch.json
+
+# === Entornos virtuales Python ===
+venv/
+.venv/
+env/
+.env/
+help/
+chatbot/rasaenv/
+Backend/venv/
+
+# === Python compilados / caches ===
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+dist/
+build/
+pip-wheel-metadata/
+.python-version
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+.cache/
+
+# === Rasa ===
+chatbot/.rasa/
+events.db
+tracker.db
+*.db
+chatbot/results/
+chatbot/models/*
+!chatbot/models/.gitkeep
+
+# === Backend Flask ===
+instance/
+*.log
+logs/
+Backend/*.log
+Backend/logs/
+Backend/uploads/*
+!Backend/uploads/.gitkeep
+
+# === Frontend Node/React ===
+node_modules/
+Frontend/**/node_modules/
+npm-debug.log*
+yarn-error.log*
+yarn-debug.log*
+pnpm-debug.log*
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+*.tsbuildinfo
+Frontend/**/dist/
+Frontend/**/build/
+
+# === Configuración / secretos ===
+.env
+*.env
+.env.*
+env.*
+.dockerenv
+.secrets*/
+*.pem
+*.key
+*.crt
+openai_key*
+
+# === Bases de datos / dumps ===
+*.sqlite3
+*.db
+*.sql
+!help_desk_jcbd.sql
+
+# === Binarios / artefactos grandes ===
+*.tar.gz
+*.zip
+*.7z
+*.rar
+*.iso
+*.exe
+
+# === Tests / reports ===
+reports/
+test-output/
+
+# === Notas ===
+# - Elimina la ignorancia de package-lock / yarn.lock si quieres reproducibilidad exacta en CI.
+# - Mantén los .gitkeep para carpetas vacías necesarias.
+

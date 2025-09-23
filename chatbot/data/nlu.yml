@@ -1,0 +1,254 @@
+version: "3.1"
+
+nlu:
+- intent: greet
+  examples: |
+    - hey
+    - hello
+    - hi
+    - hello there
+    - good morning
+    - good evening
+    - moin
+    - hey there
+    - let's go
+    - hey dude
+    - goodmorning
+    - goodevening
+    - good afternoon
+    - hola
+    - buenas
+    - buen dia
+    - buenos días
+    - buenas tardes
+    - buenas noches
+    - hola hola
+    - que tal
+
+- intent: goodbye
+  examples: |
+    - cu
+    - good by
+    - cee you later
+    - good night
+    - bye
+    - goodbye
+    - have a nice day
+    - see you around
+    - bye bye
+    - see you later
+    - adios
+    - hasta luego
+    - nos vemos
+    - chao
+    - me despido
+    - hasta pronto
+
+- intent: affirm
+  examples: |
+    - yes
+    - y
+    - indeed
+    - of course
+    - that sounds good
+    - correct
+    - si
+    - sí
+    - claro
+    - por supuesto
+    - correcto
+    - de acuerdo
+
+- intent: deny
+  examples: |
+    - no
+    - n
+    - never
+    - I don't think so
+    - don't like that
+    - no way
+    - not really
+    - no gracias
+    - para nada
+    - en absoluto
+    - no quiero
+    - no sirve
+    - no me gusta
+
+- intent: mood_great
+  examples: |
+    - perfect
+    - great
+    - amazing
+    - feeling like a king
+    - wonderful
+    - I am feeling very good
+    - I am great
+    - I am amazing
+    - I am going to save the world
+    - super stoked
+    - extremely good
+    - so so perfect
+    - so good
+    - so perfect
+    - perfecto
+    - genial
+    - increíble
+    - me siento excelente
+    - estoy muy bien
+    - todo va perfecto
+    - de maravilla
+
+- intent: mood_unhappy
+  examples: |
+    - my day was horrible
+    - I am sad
+    - I don't feel very well
+    - I am disappointed
+    - super sad
+    - I'm so sad
+    - sad
+    - very sad
+    - unhappy
+    - not good
+    - not very good
+    - extremly sad
+    - so saad
+    - so sad
+    - estoy triste
+    - tuve un mal día
+    - me siento mal
+    - estoy decepcionado
+    - muy triste
+    - super triste
+    - no me va bien
+    - no me siento bien
+    - las cosas no van bien
+
+- intent: bot_challenge
+  examples: |
+    - are you a bot?
+    - are you a human?
+    - am I talking to a bot?
+    - am I talking to a human?
+    - eres un bot?
+    - eres humano?
+    - hablo con un bot?
+    - hablo con una persona?
+
+- intent: problema_correo
+  examples: |
+    - no me llega el correo
+    - tengo problemas con mi correo
+    - no puedo enviar emails
+    - error al abrir outlook
+    - outlook no sincroniza
+    - el correo se queda en bandeja de salida
+    - correo lento
+    - problemas con mi cuenta de email
+
+- intent: impresora_no_imprime
+  examples: |
+    - la impresora no imprime
+    - mi impresora está atascada
+    - impresora fuera de línea
+    - no sale nada al imprimir
+    - error de impresión
+    - documento atascado en cola de impresión
+
+- intent: red_lenta
+  examples: |
+    - la red está lenta
+    - el internet está muy lento
+    - conexión inestable
+    - se cae el wifi
+    - mi conexión va muy lenta
+    - problemas de velocidad de red
+
+- intent: restablecer_contraseña
+  examples: |
+    - necesito restablecer mi contraseña
+    - olvidé mi contraseña
+    - cambiar contraseña
+    - no recuerdo mi clave
+    - recuperar password
+    - cómo reestablezco mi contraseña
+
+- intent: crear_ticket
+  examples: |
+    - quiero crear un ticket
+    - crear ticket
+    - registrar un ticket
+    - necesito abrir un caso
+    - abrir un ticket nuevo
+    - generar un ticket de soporte
+
+- intent: estado_ticket
+  examples: |
+    - estado ticket 123
+    - cual es el estado del ticket 45
+    - dime el estado del ticket 50
+    - consultar ticket 100
+    - verificar estado ticket 77
+    - cómo va mi ticket 89
+
+- intent: instalacion_software
+  examples: |
+    - necesito instalar un programa
+    - instalar software
+    - ayuda para instalar una aplicación
+    - instalar office
+    - instalar antivirus
+    - cómo instalo un software corporativo
+
+- intent: vpn
+  examples: |
+    - la vpn no conecta
+    - error vpn
+    - se desconecta la vpn
+    - no puedo entrar a la vpn
+    - problema con conexión vpn
+    - la vpn se cae
+
+- intent: bloqueo_cuenta
+  examples: |
+    - mi cuenta está bloqueada
+    - me bloquearon la cuenta
+    - cuenta suspendida
+    - no puedo acceder a mi cuenta por bloqueo
+    - desbloquear cuenta
+    - cuenta bloqueada por intentos fallidos
+
+- intent: gracias
+  examples: |
+    - gracias
+    - muchas gracias
+    - perfecto gracias
+    - excelente gracias
+    - listo gracias
+    - ok gracias
+
+- intent: consulta_general
+  examples: |
+    - ¿Cómo configuro mi firma de correo?
+    - Necesito ayuda con un problema general
+    - Tengo una duda de soporte
+    - No sé cómo acceder al sistema
+    - ¿Qué hago si mi computador está lento?
+    - ¿Cómo puedo mejorar el rendimiento de mi PC?
+    - Tengo una pregunta de tecnología
+    - ¿Me puedes orientar con un problema?
+    - No encuentro la opción para cambiar mi avatar
+    - Necesito orientación técnica
+    - ¿Cómo instalo una impresora de red?
+    - ¿Cuál es el proceso para solicitar un nuevo usuario?
+    - pc
+    - falla pc
+    - no tengo disco
+    - sin disco
+    - disco no aparece
+    - problema pc
+    - mi pc falla
+    - mi pc no arranca
+    - error en mi pc
+    - ayuda pc

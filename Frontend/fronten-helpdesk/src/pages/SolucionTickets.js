@@ -63,6 +63,11 @@ const SolucionTickets = () => {
   const [modalMessage, setModalMessage] = useState("");
   const [modalTitle, setModalTitle] = useState("");
   const [confirmAction, setConfirmAction] = useState(null);
+  // Historial
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
+  const [historial, setHistorial] = useState([]);
+  const [loadingHistorial, setLoadingHistorial] = useState(false);
+  const [historyError, setHistoryError] = useState(null);
 
   // Nuevos estados para borrar ticket
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -458,6 +463,31 @@ const SolucionTickets = () => {
     } else {
       setIsEditingTicketInfo(false);
     }
+  };
+
+  const abrirHistorial = async () => {
+    setShowHistoryModal(true);
+    setLoadingHistorial(true);
+    setHistoryError(null);
+    try {
+      const resp = await axios.get(`${API_BASE_URL}/usuarios/tickets/${id}/historial`);
+      if (resp.data?.success) {
+        // Asegurar orden por fecha ascendente
+        const eventosOrdenados = [...resp.data.eventos].sort((a,b)=> (a.fecha > b.fecha ? 1 : -1));
+        setHistorial(eventosOrdenados);
+      } else {
+        setHistoryError(resp.data?.message || "No se pudo obtener el historial");
+      }
+    } catch (e) {
+      setHistoryError(e.response?.data?.message || e.message);
+    } finally {
+      setLoadingHistorial(false);
+    }
+  };
+
+  const cerrarHistorial = () => {
+    setShowHistoryModal(false);
+    setHistorial([]);
   };
 
   const formatDateTimeForInput = (dateString) => {
@@ -990,12 +1020,14 @@ const SolucionTickets = () => {
               <div className={styles.optionGroup}>
                 <label className={styles.optionLabel}>Histórico</label>
                 <div className={styles.optionContent}>
-                  <Link
-                    to={`/tickets/${ticket.id}/historial`}
+                  <button
+                    type="button"
+                    onClick={abrirHistorial}
                     className={styles.optionLink}
+                    style={{ cursor: 'pointer' }}
                   >
                     <FaHistory /> Historial
-                  </Link>
+                  </button>
                 </div>
               </div>
             </div>
@@ -1063,6 +1095,60 @@ const SolucionTickets = () => {
       )}
 
       {/* Modal de error */}
+      {/* Modal Historial */}
+      {showHistoryModal && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.modal} style={{maxWidth:'900px', width:'95%', maxHeight:'85vh', display:'flex', flexDirection:'column'}}>
+            <div className={styles.modalHeader}>
+              <h3>Historial del Ticket #{ticket.id}</h3>
+              <button onClick={cerrarHistorial} className={styles.modalCloseButton}>&times;</button>
+            </div>
+            <div className={styles.modalBody} style={{overflowY:'auto'}}>
+              {loadingHistorial && <p>Cargando historial...</p>}
+              {historyError && <p style={{color:'red'}}>Error: {historyError}</p>}
+              {!loadingHistorial && !historyError && historial.length === 0 && (
+                <p>No hay eventos registrados.</p>
+              )}
+              {!loadingHistorial && !historyError && historial.length > 0 && (
+                <ul style={{listStyle:'none', padding:0, margin:0}}>
+                  {historial.map(evt => (
+                    <li key={(evt.id || `${evt.tipo}-${evt.fecha}`)} style={{marginBottom:'12px', padding:'8px', borderLeft:'4px solid #5a67d8', background:'#f9f9fb', borderRadius:'4px'}}>
+                      <div style={{display:'flex', justifyContent:'space-between', alignItems:'baseline', flexWrap:'wrap', gap:'8px'}}>
+                        <strong style={{textTransform:'capitalize'}}>{evt.tipo}</strong>
+                        <span style={{fontSize:'0.8rem', color:'#555'}}>{evt.fecha}</span>
+                      </div>
+                      {evt.campo && (
+                        <div style={{fontSize:'0.85rem', marginTop:'4px'}}>
+                          <em>{evt.campo}</em>
+                        </div>
+                      )}
+                      {evt.descripcion && (
+                        <div style={{marginTop:'4px'}}>{evt.descripcion}</div>
+                      )}
+                      {Array.isArray(evt.archivos) && evt.archivos.length > 0 && (
+                        <div style={{marginTop:'6px'}}>
+                          <strong>Archivos:</strong>
+                          <ul style={{margin:'4px 0 0 16px'}}>
+                            {evt.archivos.map((a,i)=>(
+                              <li key={i}>
+                                <a href={`${API_BASE_URL}/uploads/${a}`} target="_blank" rel="noopener noreferrer">{a}</a>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      <div style={{marginTop:'6px', fontSize:'0.75rem', color:'#666'}}>Por: {evt.usuario}</div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+            <div className={styles.modalActions}>
+              <button onClick={cerrarHistorial} className={styles.modalButton}>Cerrar</button>
+            </div>
+          </div>
+        </div>
+      )}
       {showErrorModal && (
         <div className={styles.modalOverlay}>
           <div className={styles.modal}>
