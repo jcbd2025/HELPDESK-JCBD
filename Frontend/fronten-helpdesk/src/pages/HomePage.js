@@ -21,7 +21,7 @@ const HomePage = () => {
     cerrados: [],
     borrados: [],
     encuesta: [],
-    abiertos: [],
+   
     pendientes: [],
   });
 
@@ -64,7 +64,7 @@ const HomePage = () => {
           cerrados: [],
           borrados: [],
           encuesta: [],
-          abiertos: [],
+        
           pendientes: [],
         };
 
@@ -97,9 +97,7 @@ const HomePage = () => {
             case 'eliminado':
               estadoFrontend = 'borrados';
               break;
-            case 'abierto':
-              estadoFrontend = 'abiertos';
-              break;
+            
             case 'pendiente':
               estadoFrontend = 'pendientes';
               break;
@@ -234,7 +232,7 @@ const HomePage = () => {
     { label: "Resueltos", color: "gray", icon: "✔️", count: tableData.resueltos.length, key: "resueltos" },
     { label: "Cerrado", color: "black", icon: "✅", count: tableData.cerrados.length, key: "cerrados" },
     { label: "Encuesta", color: "purple", icon: "📅", count: tableData.encuesta.length, key: "encuesta" },
-    { label: "Abiertos", color: "#4CAF50", icon: "📝", count: tableData.abiertos.length, key: "abiertos" },
+    
   ];
 
   const handleTabClick = (tabKey) => {
@@ -295,7 +293,7 @@ const HomePage = () => {
           {activeTab === "cerrados" && renderTable(tableData.cerrados, "Cerrados")}
           {activeTab === "borrados" && renderTable(tableData.borrados, "Borrados")}
           {activeTab === "encuesta" && renderSurveyTable(tableData.encuesta, "Encuesta de Satisfacción")}
-          {activeTab === "abiertos" && renderTable(tableData.abiertos, "Abiertos")}
+      
           {activeTab === "pendientes" && renderTable(tableData.pendientes, "Pendientes")}
         </div>
         <ChatBot />

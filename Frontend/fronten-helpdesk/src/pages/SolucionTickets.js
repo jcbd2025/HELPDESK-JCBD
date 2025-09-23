@@ -64,6 +64,9 @@ const SolucionTickets = () => {
   const [modalTitle, setModalTitle] = useState("");
   const [confirmAction, setConfirmAction] = useState(null);
 
+  // Nuevos estados para borrar ticket
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
   const { addNotification } = useNotification();
   const userRole = localStorage.getItem("rol");
   const isAdminOrTech = ["administrador", "tecnico"].includes(userRole);
@@ -116,6 +119,37 @@ const SolucionTickets = () => {
   // Función para ocultar modal de carga
   const hideLoading = () => {
     setShowLoadingModal(false);
+  };
+
+  // Función para manejar la eliminación del ticket
+  const handleDeleteTicket = () => {
+    setShowDeleteConfirm(true);
+    setShowOptions(false);
+  };
+
+  // Función para confirmar la eliminación
+  const confirmDelete = async () => {
+    try {
+      showLoading("Eliminando ticket...");
+      
+      // Aquí va tu llamada API para eliminar el ticket
+      await axios.delete(`${API_BASE_URL}/usuarios/tickets/${id}`);
+      
+      setShowDeleteConfirm(false);
+      showSuccess("Ticket eliminado correctamente", "Eliminación Exitosa");
+      
+      // Redirigir a la lista de tickets después de 2 segundos
+      setTimeout(() => {
+        navigate("/tickets");
+      }, 2000);
+      
+    } catch (error) {
+      console.error("Error al eliminar el ticket:", error);
+      const errorMessage = error.response?.data?.message || "Error al eliminar el ticket";
+      showError(errorMessage);
+    } finally {
+      hideLoading();
+    }
   };
 
   const SeguimientoItem = ({ seguimiento }) => {
@@ -210,7 +244,6 @@ const SolucionTickets = () => {
           axios.get(`${API_BASE_URL}/usuarios/obtenerCategorias`),
           axios.get(`${API_BASE_URL}/usuarios/obtener`),
           axios.get(`${API_BASE_URL}/usuarios/obtenerGrupos`),
-
         ]);
 
         const ticketData = ticketRes.data;
@@ -219,6 +252,7 @@ const SolucionTickets = () => {
         setCategorias(categoriasRes.data);
         setTecnicos(usuariosRes.data);
         setGrupos(gruposRes.data);
+        
         // Si el backend ya retorna seguimientos dentro del ticket, reflejarlo en el estado opcionalmente
         if (Array.isArray(ticketData.seguimientos)) {
           setSeguimientos(ticketData.seguimientos);
@@ -337,7 +371,7 @@ const SolucionTickets = () => {
       const updatedTicket = ticketRes.data;
       setTicket(updatedTicket);
       setOriginalTicket(updatedTicket);
-  setSeguimientos(seguimientosRes.data);
+      setSeguimientos(seguimientosRes.data);
       setSolutionFormData({ descripcion: "", archivos: [] });
       setShowSolutionForm(false);
 
@@ -577,17 +611,6 @@ const SolucionTickets = () => {
                   />
                 </div>
 
-                {/*<div className={styles.formGroup}>
-                  <label>Observador:</label>
-                  <input
-                    type="text"
-                    name="observador"
-                    value={ticket.observador}
-                    onChange={handleVerticalFormChange}
-                    disabled={!isEditingVerticalForm || !isAdminOrTech}
-                  />
-                </div>*/}
-
                 <div className={styles.formGroup}>
                   <label>Asignado a:</label>
                   {isAdminOrTech ? (
@@ -762,21 +785,37 @@ const SolucionTickets = () => {
               {/* Botón de opciones y formulario */}
               <div className={styles.optionsContainerWrapper} ref={dropdownRef}>
                 {showOptions && (
-                  <div className={styles.optionsDropup}>
+                  <div className={styles.optionsMenu}>
                     {isAdminOrTech && (
-                      <button
-                        className={styles.optionItems}
-                        onClick={() => handleOptionSelect("solucion")}
+                      <button 
+                        className={styles.optionButton}
+                        onClick={() => {
+                          setSelectedOption("solucion");
+                          setShowSolutionForm(true);
+                          setShowOptions(false);
+                        }}
                       >
-                        Agregar solución
+                        Agregar Solución
                       </button>
                     )}
-                    <button
-                      className={styles.optionItems}
-                      onClick={() => handleOptionSelect("seguimiento")}
+                    <button 
+                      className={styles.optionButton}
+                      onClick={() => {
+                        setSelectedOption("seguimiento");
+                        setShowSolutionForm(true);
+                        setShowOptions(false);
+                      }}
                     >
-                      Seguimiento
+                      Agregar Seguimiento
                     </button>
+                    {isAdminOrTech && (
+                      <button 
+                        className={`${styles.optionButton} ${styles.deleteButton}`}
+                        onClick={handleDeleteTicket}
+                      >
+                        Borrar Ticket
+                      </button>
+                    )}
                   </div>
                 )}
 
@@ -789,95 +828,95 @@ const SolucionTickets = () => {
                     {showOptions ? "▲" : "▼"}
                   </span>
                 </button>
+
+                {showSolutionForm && (
+                  <div className={styles.solutionForm}>
+                    <h3>
+                      {selectedOption === "solucion"
+                        ? "Agregar Solución"
+                        : "Agregar Seguimiento"}
+                    </h3>
+
+                    <form onSubmit={handleSubmit}>
+                      <div className={styles.formGroup}>
+                        <label>Descripción:</label>
+                        <textarea
+                          className={styles.textarea}
+                          placeholder={
+                            selectedOption === "solucion"
+                              ? "Describa la solución al problema..."
+                              : "Agregue detalles del seguimiento..."
+                          }
+                          value={solutionFormData.descripcion}
+                          onChange={(e) =>
+                            setSolutionFormData({
+                              ...solutionFormData,
+                              descripcion: e.target.value,
+                            })
+                          }
+                          rows="5"
+                          required
+                        />
+                      </div>
+
+                      <div className={styles.formGroup}>
+                        <label>Archivos adjuntos:</label>
+                        <input
+                          type="file"
+                          multiple
+                          onChange={handleSolutionFileChange}
+                          className={styles.fileInput}
+                        />
+                        {solutionFormData.archivos.length > 0 && (
+                          <div className={styles.fileList}>
+                            <strong>Archivos seleccionados:</strong>
+                            <ul>
+                              {solutionFormData.archivos.map((file, index) => (
+                                <li key={index} className={styles.fileItem}>
+                                  {file.name}
+                                  <button
+                                    type="button"
+                                    onClick={() => removeSolutionFile(index)}
+                                    className={styles.removeFileButton}
+                                  >
+                                    ×
+                                  </button>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className={styles.formActions}>
+                        <button
+                          type="submit"
+                          className={styles.submitButton}
+                          disabled={isLoading}
+                        >
+                          {isLoading ? "Procesando..." : "Guardar"}
+                        </button>
+                        <button
+                          type="button"
+                          className={styles.cancelButton}
+                          onClick={() => {
+                            setShowSolutionForm(false);
+                            setSolutionFormData({
+                              descripcion: "",
+                              archivos: [],
+                            });
+                          }}
+                          disabled={isLoading}
+                        >
+                          Cancelar
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                )}
               </div>
 
-              {showSolutionForm && (
-                <div className={styles.solutionForm}>
-                  <h3>
-                    {selectedOption === "solucion"
-                      ? "Agregar Solución"
-                      : "Agregar Seguimiento"}
-                  </h3>
-
-                  <form onSubmit={handleSubmit}>
-                    <div className={styles.formGroup}>
-                      <label>Descripción:</label>
-                      <textarea
-                        className={styles.textarea}
-                        placeholder={
-                          selectedOption === "solucion"
-                            ? "Describa la solución al problema..."
-                            : "Agregue detalles del seguimiento..."
-                        }
-                        value={solutionFormData.descripcion}
-                        onChange={(e) =>
-                          setSolutionFormData({
-                            ...solutionFormData,
-                            descripcion: e.target.value,
-                          })
-                        }
-                        rows="5"
-                        required
-                      />
-                    </div>
-
-                    <div className={styles.formGroup}>
-                      <label>Archivos adjuntos:</label>
-                      <input
-                        type="file"
-                        multiple
-                        onChange={handleSolutionFileChange}
-                        className={styles.fileInput}
-                      />
-                      {solutionFormData.archivos.length > 0 && (
-                        <div className={styles.fileList}>
-                          <strong>Archivos seleccionados:</strong>
-                          <ul>
-                            {solutionFormData.archivos.map((file, index) => (
-                              <li key={index} className={styles.fileItem}>
-                                {file.name}
-                                <button
-                                  type="button"
-                                  onClick={() => removeSolutionFile(index)}
-                                  className={styles.removeFileButton}
-                                >
-                                  ×
-                                </button>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                    </div>
-
-                    <div className={styles.formActions}>
-                      <button
-                        type="submit"
-                        className={styles.submitButton}
-                        disabled={isLoading}
-                      >
-                        {isLoading ? "Procesando..." : "Guardar"}
-                      </button>
-                      <button
-                        type="button"
-                        className={styles.cancelButton}
-                        onClick={() => {
-                          setShowSolutionForm(false);
-                          setSolutionFormData({
-                            descripcion: "",
-                            archivos: [],
-                          });
-                        }}
-                        disabled={isLoading}
-                      >
-                        Cancelar
-                      </button>
-                    </div>
-                  </form>
-                </div>
-              )}
-
-              {/* Archivos adjuntos del ticket (cargados en la creación o actualización del ticket) */}
+              {/* Archivos adjuntos del ticket */}
               {Array.isArray(ticket?.adjuntos) && ticket.adjuntos.length > 0 && (
                 <div className={styles.seguimientosContainer}>
                   <h3 className={styles.seguimientosTitle}>Archivos adjuntos del ticket</h3>
@@ -964,6 +1003,29 @@ const SolucionTickets = () => {
         </div>
       </div>
 
+      {/* Modal de confirmación para borrar ticket */}
+      {showDeleteConfirm && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.confirmModal}>
+            <h3>Confirmar Eliminación</h3>
+            <p>¿Estás seguro de que deseas eliminar este ticket? Esta acción no se puede deshacer.</p>
+            <div className={styles.modalActions}>
+              <button 
+                className={styles.cancelButton}
+                onClick={() => setShowDeleteConfirm(false)}
+              >
+                Cancelar
+              </button>
+              <button 
+                className={styles.confirmDeleteButton}
+                onClick={confirmDelete}
+              >
+                Eliminar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modal de éxito */}
       {showSuccessModal && (

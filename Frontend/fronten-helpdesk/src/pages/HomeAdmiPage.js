@@ -46,7 +46,7 @@ const HomeAdmiPage = () => {
     cerrados: [],
     borrados: [],
     encuesta: [],
-    abiertos: [],
+    
  
   });
 
@@ -102,7 +102,7 @@ const HomeAdmiPage = () => {
           cerrados: [],
           borrados: [],
           encuesta: [],
-          abiertos: [],
+       
           
         };
 
@@ -138,9 +138,7 @@ const HomeAdmiPage = () => {
             case "eliminado":
               estadoFrontend = "borrados";
               break;
-            case "abierto":
-              estadoFrontend = "abiertos";
-              break;
+       
             
             case "encuesta":
               estadoFrontend = "encuesta";
@@ -236,13 +234,7 @@ const HomeAdmiPage = () => {
       icon: "📅",
       count: tableData.encuesta.length,
     },
-    {
-      label: "Abiertos",
-      key: 'abiertos',
-      color: "#4CAF50",
-      icon: "📝",
-      count: tableData.abiertos.length,
-    },
+    
     
   ];
 
