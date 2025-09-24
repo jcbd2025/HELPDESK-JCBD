@@ -72,7 +72,6 @@ const HomeTecnicoPage = () => {
         setTicketsACerrar(personal.filter(t => !['resuelto','cerrado','borrado'].includes(norm(t.estado))));
 
         // Agrupado global
-<<<<<<< HEAD
         const agrupados = { 
           nuevo: [], 
           enCurso: [], 
@@ -83,9 +82,6 @@ const HomeTecnicoPage = () => {
           encuesta: [] 
         };
 
-=======
-  const agrupados = { nuevo: [], enCurso: [], enEspera: [], resueltos: [], cerrados: [], borrados: [], encuesta: [], abiertos: [] };
->>>>>>> 6429cb355fc8e42664be7396c7fc1760515be831
         (estadoGeneralRes.data || []).forEach(ticket => {
           const estado = norm(ticket.estado || ticket.estado_ticket);
           let key;
@@ -232,71 +228,6 @@ const HomeTecnicoPage = () => {
                           <td>{t.categoria || 'General'}</td>
                           <td>{t.descripcion || t.titulo || ''}</td>
                         </tr>
-<<<<<<< HEAD
-=======
-                      </thead>
-                      <tbody>
-                        {ticketsACerrar.map(t => (
-                          <tr key={t.id || t.id_ticket} onClick={() => goEdit(t.id || t.id_ticket)} style={{ cursor: 'pointer' }}>
-                            <td>{t.id || t.id_ticket}</td>
-                            <td>{t.solicitante || 'N/A'}</td>
-                            <td>{t.categoria || 'General'}</td>
-                            <td>{t.descripcion || t.titulo || ''}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-
-                   <div className={styles.tablaContainer}>
-                    <h2>ENCUESTA DE SATISFACCIÓN (Pendientes)</h2>
-                    <table>
-                      <thead>
-                        <tr>
-                          <th>ID</th>
-                          <th>SOLICITANTE</th>
-                          <th>ELEMENTOS ASOCIADOS</th>
-                          <th>DESCRIPCIÓN</th>
-                          <th>Acción</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {ticketsResueltos.map(ticket => (
-                          <tr key={ticket.id || ticket.id_ticket}>
-                            <td style={{cursor:'pointer'}} onClick={() => goEdit(ticket.id || ticket.id_ticket)}>{ticket.id || ticket.id_ticket}</td>
-                            <td>{ticket.solicitante}</td>
-                            <td>{ticket.categoria || 'General'}</td>
-                            <td style={{maxWidth:'260px'}}>{ticket.descripcion}</td>
-                            <td>
-                              <button
-                                className={styles.viewButton}
-                                style={{padding:'4px 8px'}}
-                                onClick={() => navigate(`/EncuestaSatisfaccion/${ticket.id || ticket.id_ticket}`)}
-                              >
-                                Encuesta
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </>
-              )}
-
-              {/* Vista Global */}
-              {(activeView === "global" || activeView === "todo") && (
-                <>
-                  <div className={styles.sectionContainer}>
-                    <h2>Tickets</h2>
-                    <div className={styles.cardsContainer}>
-                      {tickets.map((ticket, index) => (
-                        <div key={index} className={styles.card} style={{ borderColor: ticket.color }} onClick={() => setGlobalListKey(ticket.key)}>
-                          <span className="icon">{ticket.icon}</span>
-                          <span className="label">{ticket.label}</span>
-                          <span className="count">{ticket.count}</span>
-                        </div>
->>>>>>> 6429cb355fc8e42664be7396c7fc1760515be831
                       ))}
                       {ticketsACerrar.length === 0 && (
                         <tr>

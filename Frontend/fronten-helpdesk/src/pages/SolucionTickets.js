@@ -255,7 +255,24 @@ const SolucionTickets = () => {
         setTicket(ticketData);
         setOriginalTicket(ticketData); // Guardar copia original
         setCategorias(categoriasRes.data);
-        setTecnicos(usuariosRes.data);
+        // Filtrar sólo usuarios con rol técnico o administrador para el combo "Asignado a"
+        const soloTecnicos = (usuariosRes.data || []).filter(u => {
+          const r = (u.rol || '').toLowerCase();
+            return r === 'tecnico' || r === 'administrador';
+        });
+
+        // Si el ticket ya tiene un asignado que no cumple (por cambio de rol), lo incluimos como opción para no perderlo visualmente
+        if (ticketData?.asignadoA) {
+          const existe = soloTecnicos.some(t => t.nombre_completo === ticketData.asignadoA);
+          if (!existe) {
+            soloTecnicos.push({
+              id_usuario: ticketData.asignadoAId || 'asignado_actual',
+              nombre_completo: ticketData.asignadoA,
+              rol: 'tecnico'
+            });
+          }
+        }
+        setTecnicos(soloTecnicos);
         setGrupos(gruposRes.data);
         
         // Si el backend ya retorna seguimientos dentro del ticket, reflejarlo en el estado opcionalmente
