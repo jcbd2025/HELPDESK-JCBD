@@ -70,7 +70,7 @@ const HomeAdmiPage = () => {
         const [estadoGeneralRes, estado_tickets] = await Promise.all([
           axios.get("/usuarios/estado_tickets", {
             headers: { Authorization: `Bearer ${token}` },
-            params: { usuario_id: userId, rol: userRole },
+            params: { usuario_id: userId, rol: userRole, incluir_eliminados: '1' },
           }),
           axios.get(`/usuarios/tickets/tecnico/${userId}`),
         ]);

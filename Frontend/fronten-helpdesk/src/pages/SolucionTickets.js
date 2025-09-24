@@ -138,7 +138,8 @@ const SolucionTickets = () => {
       showLoading("Eliminando ticket...");
       
       // Aquí va tu llamada API para eliminar el ticket
-      await axios.delete(`${API_BASE_URL}/usuarios/tickets/${id}`);
+  // Soft delete: marcar como eliminado
+  await axios.put(`${API_BASE_URL}/usuarios/tickets/${id}/eliminar`);
       
       setShowDeleteConfirm(false);
       showSuccess("Ticket eliminado correctamente", "Eliminación Exitosa");

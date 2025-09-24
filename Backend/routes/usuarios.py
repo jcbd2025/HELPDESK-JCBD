@@ -615,7 +615,7 @@ def obtener_tickets():
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
 
-        query = """
+        base_query = """
             SELECT 
                 t.id_ticket as id,
                 t.titulo,
@@ -639,12 +639,15 @@ def obtener_tickets():
             LEFT JOIN grupos g ON t.id_grupo1 = g.id_grupo
         """
 
+        conditions = ["t.estado_ticket != 'eliminado'"]
         params = []
         if rol and rol.lower() not in ['administrador', 'tecnico'] and usuario_id:
-            query += " WHERE ut.id_usuario1 = %s"
+            conditions.append("ut.id_usuario1 = %s")
             params.append(usuario_id)
 
-        # Ordenar por fecha de creación descendente (más reciente primero)
+        query = base_query
+        if conditions:
+            query += " WHERE " + " AND ".join(conditions)
         query += " ORDER BY t.fecha_creacion DESC"
 
         cursor.execute(query, params)
@@ -701,7 +704,7 @@ def obtener_ticket_por_id(id_ticket):
             LEFT JOIN usuarios u ON ut.id_usuario1 = u.id_usuario
             LEFT JOIN usuarios tec ON t.id_tecnico_asignado = tec.id_usuario
             LEFT JOIN grupos g ON t.id_grupo1 = g.id_grupo
-            WHERE t.id_ticket = %s
+            WHERE t.id_ticket = %s AND t.estado_ticket != 'eliminado'
         """, (id_ticket,))
 
         ticket = cursor.fetchone()
@@ -767,6 +770,48 @@ def obtener_ticket_por_id(id_ticket):
             "success": False,
             "message": "Error al obtener el ticket"
         }), 500
+
+@usuarios_bp.route("/tickets/<int:id_ticket>/eliminar", methods=["PUT"])
+def eliminar_ticket_soft(id_ticket):
+    """Soft delete: marca el ticket como eliminado sin borrar registros relacionados."""
+    conn = None
+    cursor = None
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT estado_ticket FROM tickets WHERE id_ticket = %s", (id_ticket,))
+        row = cursor.fetchone()
+        if not row:
+            return jsonify({"success": False, "message": "Ticket no encontrado"}), 404
+
+        if row['estado_ticket'] == 'eliminado':
+            return jsonify({"success": True, "message": "El ticket ya estaba eliminado"}), 200
+
+        cursor.execute(
+            "UPDATE tickets SET estado_ticket = %s, fecha_actualizacion = NOW() WHERE id_ticket = %s",
+            ('eliminado', id_ticket)
+        )
+
+        # Registrar en historial
+        cursor.execute(
+            """
+            INSERT INTO historial_tickets
+            (id_ticket2, campo_modificado, valor_anterior, valor_nuevo, fecha_modificacion, nombre_modificador, rol_modificador)
+            VALUES (%s, %s, %s, %s, NOW(), %s, %s)
+            """,
+            (id_ticket, 'estado_ticket', row['estado_ticket'], 'eliminado', 'Sistema', 'sistema')
+        )
+        conn.commit()
+        return jsonify({"success": True, "message": "Ticket marcado como eliminado"}), 200
+    except Exception as e:
+        if conn:
+            conn.rollback()
+        return jsonify({"success": False, "message": f"Error al eliminar ticket: {str(e)}"}), 500
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
 
 
 @usuarios_bp.route("/tickets/<int:id_ticket>", methods=["PUT"])
@@ -1390,6 +1435,7 @@ def obtener_estado_tickets():
     estado = request.args.get("estado")
     usuario_id = request.args.get("usuario_id")
     rol = request.args.get("rol")
+    incluir_eliminados = request.args.get("incluir_eliminados")  # '1' para incluir eliminados aunque no se pida un estado específico
 
     try:
         conn = get_db_connection()
@@ -1421,9 +1467,16 @@ def obtener_estado_tickets():
         conditions = []
         params = []
 
+        # Lógica eliminados:
+        # 1. Si se solicita explicitamente estado=eliminado -> solo esos (no agregar filtro extra)
+        # 2. Si no se especifica estado y NO se pasa incluir_eliminados=1 -> ocultar eliminados
+        # 3. Si se especifica otro estado (ej: 'nuevo') -> ya el filtro de estado excluye eliminados implicitamente
         if estado:
             conditions.append("t.estado_ticket = %s")
             params.append(estado)
+        else:
+            if incluir_eliminados != '1':
+                conditions.append("t.estado_ticket != 'eliminado'")
 
         if rol and rol.lower() not in ['administrador', 'tecnico'] and usuario_id:
             conditions.append("ut.id_usuario1 = %s")
@@ -1486,7 +1539,7 @@ def obtener_tickets_por_tecnico(id_tecnico):
     LEFT JOIN usuarios_tickets ut ON t.id_ticket = ut.id_ticket3
     LEFT JOIN usuarios u ON ut.id_usuario1 = u.id_usuario
     LEFT JOIN usuarios tech ON t.id_tecnico_asignado = tech.id_usuario
-    WHERE t.id_tecnico_asignado = %s
+    WHERE t.id_tecnico_asignado = %s AND t.estado_ticket != 'eliminado'
     ORDER BY t.fecha_creacion DESC
 """
 
@@ -1576,7 +1629,7 @@ def buscar_global():
             LEFT JOIN usuarios_tickets ut ON t.id_ticket = ut.id_ticket3
             LEFT JOIN usuarios sol ON ut.id_usuario1 = sol.id_usuario
             LEFT JOIN usuarios tec ON t.id_tecnico_asignado = tec.id_usuario
-            WHERE {where_ticket}
+            WHERE {where_ticket} AND t.estado_ticket != 'eliminado'
             ORDER BY t.fecha_creacion DESC
             LIMIT 10
         """, params_t)

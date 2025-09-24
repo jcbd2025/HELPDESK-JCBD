@@ -46,13 +46,15 @@ const HomePage = () => {
     const fetchTickets = async () => {
       try {
         const token = localStorage.getItem("token");
+        // Traer todos los tickets visibles + incluir eliminados
         const response = await axios.get("/usuarios/estado_tickets", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
           params: {
             usuario_id: userId,
-            rol: userRole
+            rol: userRole,
+            incluir_eliminados: '1'
           }
         });
 
@@ -231,6 +233,7 @@ const HomePage = () => {
     { label: "En espera", color: "orange", icon: "🟡", count: tableData.enEspera.length, key: "enEspera" },
     { label: "Resueltos", color: "gray", icon: "✔️", count: tableData.resueltos.length, key: "resueltos" },
     { label: "Cerrado", color: "black", icon: "✅", count: tableData.cerrados.length, key: "cerrados" },
+    { label: "Borrados", color: "crimson", icon: "🗑️", count: tableData.borrados.length, key: "borrados" },
     { label: "Encuesta", color: "purple", icon: "📅", count: tableData.encuesta.length, key: "encuesta" },
     
   ];
